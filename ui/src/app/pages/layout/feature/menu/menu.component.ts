@@ -35,21 +35,6 @@ export class MenuComponent implements OnInit {
             ],
           },
           {
-            label: $localize`Administration`,
-            items: [
-              {
-                label: $localize`Products`,
-                icon: 'pi pi-fw pi-box',
-                routerLink: ['products'],
-              },
-              {
-                label: $localize`Categories`,
-                icon: 'pi pi-fw pi-box',
-                routerLink: ['categories'],
-              },
-            ],
-          },
-          {
             label: $localize`Settings`,
             items: [
               {

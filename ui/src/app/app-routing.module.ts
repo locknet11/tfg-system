@@ -40,20 +40,6 @@ const routes: Routes = [
           ),
       },
       {
-        path: 'products',
-        canMatch: [isAuthenticated],
-        loadChildren: () =>
-          import('./pages/products/products.routes').then(x => x.ProductRoutes),
-      },
-      {
-        path: 'categories',
-        canMatch: [isAuthenticated],
-        loadChildren: () =>
-          import('./pages/categories/categories.routes').then(
-            x => x.CategoriesRoutes
-          ),
-      },
-      {
         path: 'users',
         canMatch: [isAuthenticated],
         loadChildren: () =>
