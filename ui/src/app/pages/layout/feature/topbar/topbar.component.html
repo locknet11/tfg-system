@@ -1,0 +1,14 @@
+<div class="layout-topbar">
+    <a class="layout-topbar-logo" routerLink="">
+        <img src="../../../../../assets/img/logo.png" alt="logo">
+    </a>
+
+    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+        <i class="pi pi-bars"></i>
+    </button>
+
+    <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
+            <p-menu #menu [model]="items" [popup]="true"></p-menu>
+            <button pButton type="button" (click)="menu.toggle($event)" icon="pi pi-user" class="p-button-raised p-button-secondary" [label]="($accountInfo | async)?.fullName || ''"></button>
+    </div>
+</div>

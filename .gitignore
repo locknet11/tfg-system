@@ -1,0 +1,11 @@
+node_modules
+./node_modules
+./ui/node_modules
+
+target
+./target
+./api/target
+
+.vscode
+.idea
+

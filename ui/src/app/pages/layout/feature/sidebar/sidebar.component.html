@@ -1,0 +1,11 @@
+<div class="flex flex-column justify-content-between h-full">
+    <app-menu></app-menu>
+    <ng-container *ngIf="isMobile">
+        <div class="menu__sidebar__mobile">
+            <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
+                <p-menu #menu [model]="items" [popup]="true"></p-menu>
+                <button pButton type="button" (click)="menu.toggle($event)" icon="pi pi-user" class="p-button-raised p-button-secondary w-full" [label]="($accountInfo | async)?.fullName || ''"></button>
+            </div>
+        </div>
+    </ng-container>
+</div>
