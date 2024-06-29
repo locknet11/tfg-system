@@ -1,1 +1,57 @@
-<p>users works!</p>
+<div class="flex flex-wrap justify-content-between align-items-center mb-3">
+  <h3 i18n>Users</h3>
+  <button
+    icon="pi pi-plus"
+    routerLink="create"
+    pButton
+    i18n-label
+    label="Create"></button>
+</div>
+<p-table
+  [value]="users"
+  [tableStyle]="{ 'min-width': '50rem' }"
+  [lazy]="true"
+  (onLazyLoad)="getUsers($event)"
+  [rows]="rows"
+  [alwaysShowPaginator]="true"
+  i18n-currentPageReportTemplate
+  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+  [totalRecords]="totalRecords"
+  [showCurrentPageReport]="true"
+  [paginator]="true">
+  <ng-template pTemplate="header">
+    <tr>
+      <th i18n>Email</th>
+      <th i18n>Full name</th>
+      <th i18n>Role</th>
+      <th i18n>Actions</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-user>
+    <tr>
+      <td>{{ user.email }}</td>
+      <td>{{ user.fullName }}</td>
+      <td>{{ user.role }}</td>
+      <td>
+        <div>
+          <button
+            pButton
+            class="mr-1 p-button p-button-sm"
+            icon="pi pi-pencil"
+            i18n-title
+            (click)="editUser(user.id)"
+            title="Edit"></button>
+          <button
+            pButton
+            class="p-button-danger p-button p-button-sm"
+            icon="pi pi-trash"
+            i18n-title
+            (click)="deleteConfirm($event, user.id)"
+            title="Delete"></button>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-confirmDialog></p-confirmDialog>

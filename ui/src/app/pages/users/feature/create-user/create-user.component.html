@@ -1,0 +1,78 @@
+<div class="surface-ground px-4 py-8 md:px-6 lg:px-8">
+  <div class="text-900 font-medium text-xl mb-3" i18n>Create user</div>
+  <form [formGroup]="createUserForm" (ngSubmit)="submit()">
+    <div class="surface-card p-4 shadow-2 border-round p-fluid">
+      <div class="grid formgrid p-fluid">
+        <div class="field mb-4 col-12 md:col-6">
+          <label for="email" class="font-medium text-900" i18n>Email</label>
+          <input formControlName="email" type="text" pInputText />
+        </div>
+        <div class="field mb-4 col-12 md:col-6">
+          <label class="font-medium text-900" i18n>Full name</label>
+          <input formControlName="fullName" type="text" pInputText />
+        </div>
+        <div class="field mb-4 col-12 md:col-6">
+          <label for="customer_name" class="font-medium text-900" i18n
+            >Password</label
+          >
+          <input
+            formControlName="password"
+            type="password"
+            [feedback]="false"
+            type="password"
+            pPassword
+            aria-describedby="fff"
+            pInputText />
+          <small class="mt-2" i18n>Min. lenght: 8 characters</small>
+        </div>
+        <div class="field mb-4 col-12 md:col-6">
+          <label class="font-medium text-900" i18n>Confirm password</label>
+          <input
+            formControlName="passwordConfirmation"
+            type="password"
+            [feedback]="false"
+            pPassword />
+          <small class="mt-2 text-red-500" *ngIf="!isValidPassword" i18n
+            >Passwords must be equals</small
+          >
+        </div>
+        <div class="field col-12 md:col-6 mb-4">
+          <label class="font-medium text-900" i18n>Role</label>
+          <p-dropdown
+            formControlName="role"
+            [options]="roles"
+            optionValue="value"
+            optionLabel="label"></p-dropdown>
+        </div>
+        <div class="field col-12 mb-4 md:col-6">
+          <label class="font-medium text-900" i18n>Module access</label>
+          <p-multiSelect
+            formControlName="moduleAccess"
+            [options]="modules"
+            optionValue="value"
+            optionLabel="label"></p-multiSelect>
+        </div>
+        <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>
+      </div>
+      <div class="flex justify-content-end">
+        <button
+          pButton
+          label="Cancel"
+          i18n-label
+          icon="pi pi-times"
+          type="button"
+          routerLink="/users"
+          class="p-button-secondary w-8rem mr-2"></button>
+        <button
+          pButton
+          pRipple
+          type="submit"
+          label="Create user"
+          i18n-label
+          icon="pi pi-plus"
+          [disabled]="createUserForm.invalid"
+          class="w-auto"></button>
+      </div>
+    </div>
+  </form>
+</div>

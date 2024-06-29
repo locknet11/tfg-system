@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.app.domain.authentication.model.AuthenticationRequest;
 import com.project.app.domain.authentication.model.AuthenticationResponse;
 import com.project.app.domain.authentication.services.AuthenticationService;
-import com.project.app.domain.user.exception.UserException;
-import com.project.app.domain.user.model.User;
-import com.project.app.domain.user.model.dto.CreateClientUserRequest;
 import com.project.app.domain.user.model.dto.UserAccountInfo;
 import com.project.app.domain.user.services.UserService;
 import com.project.app.domain.user.services.UserServiceMapper;
@@ -31,12 +28,6 @@ public class AuthenticationController {
     private final UserServiceMapper userMapper;
     private final UserService userService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid CreateClientUserRequest request) throws UserException {
-        User userToCreate = userMapper.createClientUserRequestToUser(request);
-        userService.createUser(userToCreate);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid AuthenticationRequest request) {

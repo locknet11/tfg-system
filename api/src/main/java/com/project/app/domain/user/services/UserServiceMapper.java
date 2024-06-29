@@ -1,15 +1,22 @@
 package com.project.app.domain.user.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import com.project.app.domain.shared.ListMapper;
+import com.project.app.domain.shared.ResponseList;
 import com.project.app.domain.user.exception.UserException;
 import com.project.app.domain.user.model.Role;
 import com.project.app.domain.user.model.User;
-import com.project.app.domain.user.model.dto.CreateClientUserRequest;
 import com.project.app.domain.user.model.dto.CreateUserRequest;
+import com.project.app.domain.user.model.dto.UpdateUserRequest;
 import com.project.app.domain.user.model.dto.UserAccountInfo;
+import com.project.app.domain.user.model.dto.UsersList;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -33,21 +40,31 @@ public class UserServiceMapper {
         return user;
     }
 
-    public User createClientUserRequestToUser(CreateClientUserRequest request) throws UserException {
-        if (emailExists(request.getEmail())) {
-            throw new UserException("user.email.alreadyExists");
-        }
-        User user = new User();
+    public UserAccountInfo userToUserAccountInfo(User user) {
+        return modelMapper.map(user, UserAccountInfo.class);
+    }
+
+    public ResponseList<UserAccountInfo> usersListToResponseList(UsersList list) {
+        List<UserAccountInfo> accountInfoList = userListToUserAccountInfoList(list.getContent());
+        PageImpl<UserAccountInfo> dtoPage = new PageImpl<>(accountInfoList, list.getPageable(), list.getTotalElements());
+        return ListMapper.mapList(dtoPage);
+    }
+
+    public User updateUserRequestToUser(UpdateUserRequest request, String userId) throws UserException{ 
+        User user = userService.getById(userId);
         user.setEmail(request.getEmail())
-                .setFullName(request.getFullName())
-                .setEncodedPassword(passwordEncoder.encode(request.getPassword()))
-                .setRole(Role.CLIENT)
-                .setCreatedAt(LocalDateTime.now());
+        .setFullName(request.getFullName())
+        .setModuleAccess(request.getModuleAccess())
+        .setRole(request.getRole())
+        .setUpdatedAt(LocalDateTime.now());
         return user;
     }
 
-    public UserAccountInfo userToUserAccountInfo(User user) {
-        return modelMapper.map(user, UserAccountInfo.class);
+    private List<UserAccountInfo> userListToUserAccountInfoList(List<User> users) {
+        return users
+                .stream()
+                .map(user -> modelMapper.map(user, UserAccountInfo.class))
+                .collect(Collectors.toList());
     }
 
     private boolean emailExists(String email) {

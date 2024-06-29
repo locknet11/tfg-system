@@ -1,19 +1,21 @@
 package com.project.app.domain.user.services.impl;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import com.project.app.domain.user.db.UserRepository;
 import com.project.app.domain.user.exception.UserException;
 import com.project.app.domain.user.model.User;
+import com.project.app.domain.user.model.dto.UsersList;
 import com.project.app.domain.user.services.UserService;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -54,8 +56,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User getByUsername(String username) throws UserException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getByUsername'");
+        return repository.findByEmail(username).orElseThrow(() -> new UserException("user.error.notfound"));
     }
 
     @Override
@@ -67,6 +68,27 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User getCurrentUser(String email) {
         return repository.findByEmail(email).orElse(null);
+    }
+
+    @Override
+    public List<User> getUsers() {
+        return repository.findAll();
+    }
+
+    @Override
+    public void deleteUser(String userId) {
+        repository.deleteById(userId);
+    }
+
+    @Override
+    public User updateUser(User user) throws UserException {
+        return repository.save(user);
+    }
+
+    @Override
+    public UsersList listUsers(PageRequest pageRequest) {
+        Page<User> page = repository.findAll(pageRequest);
+        return new UsersList(page.getContent(), pageRequest, page.getTotalElements());
     }
 
 }
