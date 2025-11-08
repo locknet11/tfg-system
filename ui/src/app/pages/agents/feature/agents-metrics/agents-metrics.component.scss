@@ -1,0 +1,63 @@
+.metrics-container {
+  padding: 1rem 0;
+}
+
+.metric-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  height: 100%;
+  border: 1px solid var(--surface-border);
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .metric-label {
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1;
+  }
+}
+
+.chart-container {
+  background: var(--surface-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--surface-border);
+
+  .chart-header {
+    .chart-metric {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .metric-label {
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
+      }
+
+      .metric-change {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #10b981;
+      }
+    }
+
+    .chart-period {
+      font-size: 0.875rem;
+      color: var(--text-color-secondary);
+    }
+  }
+}

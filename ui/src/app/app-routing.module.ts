@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { NoPreloading, RouterModule, Routes } from '@angular/router';
-import { isAuthenticated } from './shared/guards/is-authenticated.guard';
 
 const routes: Routes = [
   {
@@ -9,6 +8,13 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/authentication/authentication.routes').then(
         x => x.AuthenticationRoutes
+      ),
+  },
+  {
+    path: 'project-selector',
+    loadComponent: () =>
+      import('./pages/project-selector/feature/project-selector.component').then(
+        x => x.ProjectSelectorComponent
       ),
   },
   {
@@ -25,7 +31,6 @@ const routes: Routes = [
     children: [
       {
         path: 'mainpage',
-        canMatch: [isAuthenticated],
         loadComponent: () =>
           import('./pages/mainpage/mainpage.component').then(
             x => x.MainpageComponent
@@ -33,7 +38,6 @@ const routes: Routes = [
       },
       {
         path: 'dashboard',
-        canMatch: [isAuthenticated],
         loadComponent: () =>
           import('./pages/dashboard/dashboard.component').then(
             x => x.DashboardComponent
@@ -41,9 +45,22 @@ const routes: Routes = [
       },
       {
         path: 'users',
-        canMatch: [isAuthenticated],
         loadChildren: () =>
           import('./pages/users/users.routes').then(x => x.UsersRoutes),
+      },
+      {
+        path: 'targets',
+        loadComponent: () =>
+          import('./pages/targets/feature/targets.component').then(
+            x => x.TargetsComponent
+          ),
+      },
+      {
+        path: 'agents',
+        loadComponent: () =>
+          import('./pages/agents/feature/agents.component').then(
+            x => x.AgentsComponent
+          ),
       },
       {
         path: 'page-not-found',

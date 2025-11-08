@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @SpringBootApplication
-@EnableMongoRepositories(basePackages = { "com.project" })
+@EnableMongoRepositories(basePackages = { "com.spulido" })
 public class WsApplication {
 
 	public static void main(String[] args) {

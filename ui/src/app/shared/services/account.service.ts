@@ -1,17 +1,10 @@
-import { Injectable } from '@angular/core';
-import {
-  BehaviorSubject,
-  Observable,
-  firstValueFrom,
-  lastValueFrom,
-  shareReplay,
-  switchMap,
-} from 'rxjs';
-import { AccountInfo } from '../models/global.model';
-import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { LocalStorageService } from './local-storage.service';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Observable, shareReplay, switchMap } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { AccountInfo } from '../models/global.model';
+import { LocalStorageService } from './local-storage.service';
 
 const baseUrl = environment.baseUrl;
 

@@ -21,31 +21,56 @@ export class MenuComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.accountService.$accountData.pipe(take(1)).subscribe({
-      next: account => {
-        this.model = [
+    // this.accountService.$accountData.pipe(take(1)).subscribe({
+    //   next: account => {
+
+    //   },
+    // });
+    this.model = [
+      {
+        items: [
           {
-            label: $localize`Home`,
-            items: [
-              {
-                label: $localize`Main page`,
-                icon: 'pi pi-home',
-                routerLink: ['mainpage'],
-              },
-            ],
+            label: $localize`Organizations`,
+            icon: 'pi pi-building',
+            routerLink: ['organizations'],
           },
           {
-            label: $localize`Settings`,
-            items: [
-              {
-                label: $localize`Users`,
-                icon: 'pi pi-fw pi-box',
-                routerLink: ['users'],
-              },
-            ],
+            label: $localize`Projects`,
+            icon: 'pi pi-briefcase',
+            routerLink: ['projects'],
           },
-        ];
+          {
+            label: $localize`Targets`,
+            icon: 'pi pi-flag',
+            routerLink: ['targets'],
+          },
+          {
+            label: $localize`Agents`,
+            icon: 'pi pi-users',
+            routerLink: ['agents'],
+          },
+          {
+            label: $localize`Templates`,
+            icon: 'pi pi-file',
+            routerLink: ['templates'],
+          },
+          {
+            label: $localize`Alerts`,
+            icon: 'pi pi-bell',
+            routerLink: ['alerts'],
+          },
+          {
+            label: $localize`Reports`,
+            icon: 'pi pi-chart-bar',
+            routerLink: ['reports'],
+          },
+          {
+            label: $localize`Users`,
+            icon: 'pi pi-user',
+            routerLink: ['users'],
+          },
+        ],
       },
-    });
+    ];
   }
 }

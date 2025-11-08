@@ -1,0 +1,83 @@
+<div class="flex h-full align-items-center justify-content-center">
+  <div
+    class="surface-section align-self-center w-full md:w-4 p-6 md:p-8 border-round auth-box">
+    <form [formGroup]="selectorForm" (ngSubmit)="enterProject()">
+      <div class="mb-5 text-center">
+        <img
+          src="../../../../assets/img/logo.png"
+          alt="Logo"
+          height="60"
+          class="mb-4" />
+        <div class="text-900 text-2xl font-medium mb-2" i18n>
+          Select Organization & Project
+        </div>
+        <div class="text-600 text-sm" i18n>
+          Choose an organization and project to continue.
+        </div>
+      </div>
+
+      <div class="flex flex-column gap-4">
+        <div>
+          <label class="block text-900 font-medium mb-2" i18n
+            >Organization</label
+          >
+          <p-dropdown
+            formControlName="organization"
+            [options]="organizations"
+            optionLabel="name"
+            placeholder="Select an organization"
+            [filter]="true"
+            filterBy="name"
+            [showClear]="true"
+            styleClass="w-full"
+            class="w-full">
+            <ng-template pTemplate="selectedItem" let-selectedOption>
+              <div class="flex align-items-center gap-2" *ngIf="selectedOption">
+                <div>{{ selectedOption.name }}</div>
+              </div>
+            </ng-template>
+            <ng-template let-organization pTemplate="item">
+              <div class="flex align-items-center gap-2">
+                <div>{{ organization.name }}</div>
+              </div>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <div>
+          <label class="block text-900 font-medium mb-2" i18n>Project</label>
+          <p-dropdown
+            formControlName="project"
+            [options]="filteredProjects"
+            optionLabel="name"
+            placeholder="Select a project"
+            [filter]="true"
+            filterBy="name"
+            [showClear]="true"
+            styleClass="w-full"
+            class="w-full">
+            <ng-template pTemplate="selectedItem" let-selectedOption>
+              <div class="flex align-items-center gap-2" *ngIf="selectedOption">
+                <div>{{ selectedOption.name }}</div>
+              </div>
+            </ng-template>
+            <ng-template let-project pTemplate="item">
+              <div class="flex align-items-center gap-2">
+                <div>{{ project.name }}</div>
+              </div>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <button
+          [disabled]="selectorForm.invalid"
+          i18n-label
+          pButton
+          label="Enter Project"
+          pRipple
+          icon="pi pi-arrow-right"
+          class="w-full p-3 mt-2"></button>
+      </div>
+    </form>
+  </div>
+</div>

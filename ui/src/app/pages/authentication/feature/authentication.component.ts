@@ -31,6 +31,7 @@ import { MessageModule } from 'primeng/message';
   ],
   providers: [AuthenticationService],
   templateUrl: './authentication.component.html',
+  styles: ['.auth-box { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }'],
 })
 export class AuthenticationComponent {
   constructor(

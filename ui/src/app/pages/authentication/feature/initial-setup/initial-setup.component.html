@@ -1,0 +1,81 @@
+<div class="flex h-full align-items-center justify-content-center">
+  <div
+    class="surface-section align-self-center w-full md:w-4 p-6 md:p-8 border-round auth-box">
+    <form [formGroup]="setupForm" (ngSubmit)="setupAdministrator()">
+      <div class="mb-5 text-center">
+        <img
+          src="../../../../assets/img/logo.png"
+          alt="Logo"
+          height="60"
+          class="mb-4" />
+        <div class="text-600 text-sm" i18n>
+          Configure la cuenta de administrador inicial.
+        </div>
+      </div>
+
+      <div class="flex flex-column gap-3">
+        <div>
+          <input
+            [ngClass]="markErrors('fullName')"
+            formControlName="fullName"
+            placeholder="Nombre"
+            type="text"
+            pInputText
+            class="w-full p-3" />
+        </div>
+
+        <div>
+          <input
+            [ngClass]="markErrors('email')"
+            formControlName="email"
+            placeholder="Correo Electrónico"
+            type="email"
+            pInputText
+            class="w-full p-3" />
+        </div>
+
+        <div>
+          <p-password
+            [ngClass]="markErrors('password')"
+            formControlName="password"
+            placeholder="Contraseña"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full p-3">
+          </p-password>
+        </div>
+
+        <div>
+          <p-password
+            [ngClass]="markErrors('confirmPassword')"
+            formControlName="confirmPassword"
+            placeholder="Confirmar Contraseña"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full p-3">
+          </p-password>
+          <p-message
+            *ngIf="
+              setupForm.controls['confirmPassword'].hasError(
+                'passwordMismatch'
+              ) && setupForm.controls['confirmPassword'].dirty
+            "
+            styleClass="w-full mt-2"
+            severity="error"
+            i18n-text
+            text="Passwords do not match"></p-message>
+        </div>
+
+        <button
+          [disabled]="setupForm.invalid"
+          i18n-label
+          pButton
+          label="Configurar Administrador"
+          pRipple
+          class="w-full p-3 mt-2"></button>
+      </div>
+    </form>
+  </div>
+</div>

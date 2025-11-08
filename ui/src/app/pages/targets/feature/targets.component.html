@@ -1,0 +1,56 @@
+<div class="targets-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold m-0" i18n>Targets</h1>
+    <p-button
+      (onClick)="addTarget()"
+      icon="pi pi-plus"
+      label="Agregar Target"
+      styleClass="p-button-success"
+      i18n-label></p-button>
+  </div>
+
+  <p-table
+    [value]="targets"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="targets-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th i18n>SYSTEM NAME</th>
+        <th i18n>IP OR DOMAIN</th>
+        <th i18n>STATUS</th>
+        <th i18n>ASSIGNED AGENT</th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-target>
+      <tr>
+        <td>{{ target.systemName }}</td>
+        <td>{{ target.ipOrDomain }}</td>
+        <td>
+          <p-tag
+            [value]="getStatusLabel(target.status)"
+            [severity]="getStatusSeverity(target.status)"></p-tag>
+        </td>
+        <td>{{ target.assignedAgent }}</td>
+        <td>
+          <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-pencil"
+              (onClick)="editTarget(target)"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"></p-button>
+            <p-button
+              icon="pi pi-trash"
+              (onClick)="deleteConfirm($event, target)"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-confirmDialog></p-confirmDialog>
+</div>
