@@ -1,0 +1,31 @@
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  organizationId: string;
+  memberIds: string[];
+  status: ProjectStatus;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+export type ProjectStatus = 'ACTIVE' | 'INACTIVE' | 'COMPLETED' | 'ARCHIVED';
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+  organizationId: string;
+}
+
+export interface UpdateProjectRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateProjectStatusRequest {
+  status: ProjectStatus;
+}
+
+export interface AddMemberRequest {
+  userId: string;
+}

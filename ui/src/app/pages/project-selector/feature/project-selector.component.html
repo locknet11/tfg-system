@@ -16,58 +16,87 @@
         </div>
       </div>
 
-      <div class="flex flex-column gap-4">
-        <div>
-          <label class="block text-900 font-medium mb-2" i18n
-            >Organization</label
-          >
-          <p-dropdown
-            formControlName="organization"
-            [options]="organizations"
-            optionLabel="name"
-            placeholder="Select an organization"
-            [filter]="true"
-            filterBy="name"
-            [showClear]="true"
-            styleClass="w-full"
-            class="w-full">
-            <ng-template pTemplate="selectedItem" let-selectedOption>
-              <div class="flex align-items-center gap-2" *ngIf="selectedOption">
-                <div>{{ selectedOption.name }}</div>
-              </div>
-            </ng-template>
-            <ng-template let-organization pTemplate="item">
-              <div class="flex align-items-center gap-2">
-                <div>{{ organization.name }}</div>
-              </div>
-            </ng-template>
-          </p-dropdown>
-        </div>
+       <div class="flex flex-column gap-4">
+         <div>
+           <div class="flex justify-content-between align-items-center mb-2">
+             <label class="block text-900 font-medium" i18n>Organization</label>
+             <button
+               pButton
+               type="button"
+               icon="pi pi-plus"
+               [text]="true"
+               [rounded]="true"
+               pTooltip="Create new organization"
+               tooltipPosition="top"
+               (click)="openCreateOrganizationDialog()"
+               class="p-button-sm">
+             </button>
+           </div>
+           <p-dropdown
+             formControlName="organization"
+             [options]="organizations"
+             optionLabel="name"
+             placeholder="Select an organization"
+             [filter]="true"
+             filterBy="name"
+             [showClear]="true"
+             styleClass="w-full"
+             class="w-full"
+             [disabled]="loading">
+             <ng-template pTemplate="selectedItem" let-selectedOption>
+               <div class="flex align-items-center gap-2" *ngIf="selectedOption">
+                 <div>{{ selectedOption.name }}</div>
+               </div>
+             </ng-template>
+             <ng-template let-organization pTemplate="item">
+               <div class="flex align-items-center gap-2">
+                 <div>{{ organization.name }}</div>
+               </div>
+             </ng-template>
+           </p-dropdown>
+           <small class="text-red-500 mt-1" *ngIf="organizations.length === 0 && !loading" i18n>
+             No organizations found. Please create your first organization.
+           </small>
+         </div>
 
-        <div>
-          <label class="block text-900 font-medium mb-2" i18n>Project</label>
-          <p-dropdown
-            formControlName="project"
-            [options]="filteredProjects"
-            optionLabel="name"
-            placeholder="Select a project"
-            [filter]="true"
-            filterBy="name"
-            [showClear]="true"
-            styleClass="w-full"
-            class="w-full">
-            <ng-template pTemplate="selectedItem" let-selectedOption>
-              <div class="flex align-items-center gap-2" *ngIf="selectedOption">
-                <div>{{ selectedOption.name }}</div>
-              </div>
-            </ng-template>
-            <ng-template let-project pTemplate="item">
-              <div class="flex align-items-center gap-2">
-                <div>{{ project.name }}</div>
-              </div>
-            </ng-template>
-          </p-dropdown>
-        </div>
+         <div>
+           <div class="flex justify-content-between align-items-center mb-2">
+             <label class="block text-900 font-medium" i18n>Project</label>
+             <button
+               pButton
+               type="button"
+               icon="pi pi-plus"
+               [text]="true"
+               [rounded]="true"
+               pTooltip="Create new project"
+               tooltipPosition="top"
+               (click)="openCreateProjectDialog()"
+               [disabled]="!selectorForm.get('organization')?.value"
+               class="p-button-sm">
+             </button>
+           </div>
+           <p-dropdown
+             formControlName="project"
+             [options]="filteredProjects"
+             optionLabel="name"
+             placeholder="Select a project"
+             [filter]="true"
+             filterBy="name"
+             [showClear]="true"
+             styleClass="w-full"
+             class="w-full">
+             <ng-template pTemplate="selectedItem" let-selectedOption>
+               <div class="flex align-items-center gap-2" *ngIf="selectedOption">
+                 <div>{{ selectedOption.name }}</div>
+               </div>
+             </ng-template>
+             <ng-template let-project pTemplate="item">
+               <div class="flex align-items-center gap-2">
+                 <div>{{ project.name }}</div>
+               </div>
+             </ng-template>
+           </p-dropdown>
+         </div>
 
         <button
           [disabled]="selectorForm.invalid"
@@ -78,6 +107,142 @@
           icon="pi pi-arrow-right"
           class="w-full p-3 mt-2"></button>
       </div>
-    </form>
-  </div>
-</div>
+     </form>
+   </div>
+ </div>
+
+ <!-- Create Organization Dialog -->
+ <p-dialog
+   [(visible)]="showCreateOrganizationDialog"
+   [modal]="true"
+   [closable]="organizations.length > 0"
+   [closeOnEscape]="organizations.length > 0"
+   header="Create Organization"
+   i18n-header
+   styleClass="w-full md:w-6">
+   <form [formGroup]="createOrganizationForm" (ngSubmit)="createOrganization()">
+     <div class="flex flex-column gap-4">
+       <div>
+         <label class="block text-900 font-medium mb-2" i18n>Name *</label>
+         <input
+           pInputText
+           formControlName="name"
+           placeholder="Enter organization name"
+           i18n-placeholder
+           class="w-full"
+           [class.ng-invalid]="createOrganizationForm.get('name')?.invalid && createOrganizationForm.get('name')?.touched" />
+         <small class="text-red-500 mt-1" *ngIf="createOrganizationForm.get('name')?.invalid && createOrganizationForm.get('name')?.touched" i18n>
+           Organization name is required and must be at least 2 characters.
+         </small>
+       </div>
+
+       <div>
+         <label class="block text-900 font-medium mb-2" i18n>Description</label>
+         <textarea
+           p-inputTextarea
+           formControlName="description"
+           placeholder="Enter organization description (optional)"
+           i18n-placeholder
+           rows="3"
+           class="w-full">
+         </textarea>
+       </div>
+     </div>
+
+     <ng-template pTemplate="footer">
+       <button
+         *ngIf="organizations.length > 0"
+         pButton
+         type="button"
+         label="Cancel"
+         i18n-label
+         icon="pi pi-times"
+         class="p-button-text"
+         (click)="closeCreateOrganizationDialog()">
+       </button>
+       <button
+         pButton
+         type="submit"
+         label="Create Organization"
+         i18n-label
+         icon="pi pi-check"
+         [disabled]="createOrganizationForm.invalid"
+         class="p-button-primary">
+       </button>
+     </ng-template>
+   </form>
+ </p-dialog>
+
+ <!-- Create Project Dialog -->
+ <p-dialog
+   [(visible)]="showCreateProjectDialog"
+   [modal]="true"
+   header="Create Project"
+   i18n-header
+   styleClass="w-full md:w-6">
+   <form [formGroup]="createProjectForm" (ngSubmit)="createProject()">
+     <div class="flex flex-column gap-4">
+       <div>
+         <label class="block text-900 font-medium mb-2" i18n>Organization *</label>
+         <p-dropdown
+           formControlName="organizationId"
+           [options]="organizations"
+           optionLabel="name"
+           optionValue="id"
+           placeholder="Select organization"
+           i18n-placeholder
+           styleClass="w-full"
+           class="w-full">
+         </p-dropdown>
+       </div>
+
+       <div>
+         <label class="block text-900 font-medium mb-2" i18n>Name *</label>
+         <input
+           pInputText
+           formControlName="name"
+           placeholder="Enter project name"
+           i18n-placeholder
+           class="w-full"
+           [class.ng-invalid]="createProjectForm.get('name')?.invalid && createProjectForm.get('name')?.touched" />
+         <small class="text-red-500 mt-1" *ngIf="createProjectForm.get('name')?.invalid && createProjectForm.get('name')?.touched" i18n>
+           Project name is required and must be at least 2 characters.
+         </small>
+       </div>
+
+       <div>
+         <label class="block text-900 font-medium mb-2" i18n>Description</label>
+         <textarea
+           p-inputTextarea
+           formControlName="description"
+           placeholder="Enter project description (optional)"
+           i18n-placeholder
+           rows="3"
+           class="w-full">
+         </textarea>
+       </div>
+     </div>
+
+     <ng-template pTemplate="footer">
+       <button
+         pButton
+         type="button"
+         label="Cancel"
+         i18n-label
+         icon="pi pi-times"
+         class="p-button-text"
+         (click)="closeCreateProjectDialog()">
+       </button>
+       <button
+         pButton
+         type="submit"
+         label="Create Project"
+         i18n-label
+         icon="pi pi-check"
+         [disabled]="createProjectForm.invalid"
+         class="p-button-primary">
+       </button>
+     </ng-template>
+   </form>
+ </p-dialog>
+
