@@ -21,24 +21,9 @@ export class MenuComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // this.accountService.$accountData.pipe(take(1)).subscribe({
-    //   next: account => {
-
-    //   },
-    // });
     this.model = [
       {
         items: [
-          {
-            label: $localize`Organizations`,
-            icon: 'pi pi-building',
-            routerLink: ['organizations'],
-          },
-          {
-            label: $localize`Projects`,
-            icon: 'pi pi-briefcase',
-            routerLink: ['projects'],
-          },
           {
             label: $localize`Targets`,
             icon: 'pi pi-flag',
@@ -63,11 +48,6 @@ export class MenuComponent implements OnInit {
             label: $localize`Reports`,
             icon: 'pi pi-chart-bar',
             routerLink: ['reports'],
-          },
-          {
-            label: $localize`Users`,
-            icon: 'pi pi-user',
-            routerLink: ['users'],
           },
         ],
       },
