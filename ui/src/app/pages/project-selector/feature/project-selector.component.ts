@@ -1,12 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
-import { StepsModule } from 'primeng/steps';
-import { MenuItem } from 'primeng/api';
 import {
   FormBuilder,
   FormGroup,
@@ -14,19 +7,24 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ToastService } from 'src/app/shared/services/toast.service';
 import { Router } from '@angular/router';
+import { MenuItem } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { StepsModule } from 'primeng/steps';
+import { ToastService } from 'src/app/shared/services/toast.service';
 import { OrganizationService } from '../data-access/organization.service';
+import {
+  CreateOrganizationRequest,
+  OrganizationInfo,
+} from '../data-access/organizations.model';
 import { ProjectService } from '../data-access/project.service';
 import {
-  Organization,
-  OrganizationInfo,
-  CreateOrganizationRequest,
-} from '../data-access/organizations.model';
-import {
-  Project,
-  ProjectInfo,
   CreateProjectRequest,
+  ProjectInfo,
 } from '../data-access/projects.model';
 
 @Component({
@@ -44,7 +42,25 @@ import {
     FormsModule,
   ],
   templateUrl: './project-selector.component.html',
-  styles: ['.auth-box { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }'],
+  styles: [
+    `
+      .auth-box {
+        background-color: rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+      }
+
+      .selector__layout {
+        height: 100vh;
+        background: url('../../../../assets/img/background.svg') no-repeat
+          center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
+    `,
+  ],
 })
 export class ProjectSelectorComponent implements OnInit {
   organizations: OrganizationInfo[] = [];
@@ -140,7 +156,7 @@ export class ProjectSelectorComponent implements OnInit {
   loadOrganizations(): void {
     this.loading = true;
     this.organizationService.getOrganizations().subscribe({
-      next: (organizations) => {
+      next: organizations => {
         this.organizations = organizations;
         this.loading = false;
 
@@ -154,39 +170,49 @@ export class ProjectSelectorComponent implements OnInit {
           this.loadProjects();
         }
       },
-      error: (error) => {
+      error: error => {
         this.loading = false;
         this.toastService.error($localize`Error loading organizations`);
-      }
+      },
     });
   }
 
   loadProjects(): void {
     this.projectService.getProjects().subscribe({
-      next: (projects) => {
+      next: projects => {
         this.allProjects = projects;
         this.updateProjectDropdownOptions();
       },
-      error: (error) => {
+      error: error => {
         this.toastService.error($localize`Error loading projects`);
-      }
+      },
     });
   }
 
   updateOrganizationDropdownOptions(): void {
     this.organizationDropdownOptions = [
       ...this.organizations,
-      { id: 'create-new', name: 'Create new organization...', isCreateOption: true }
+      {
+        id: 'create-new',
+        name: 'Create new organization...',
+        isCreateOption: true,
+      },
     ];
   }
 
   updateProjectDropdownOptions(): void {
     const currentOrg = this.selectorForm.get('organization')?.value;
     if (currentOrg) {
-      const orgProjects = this.allProjects.filter(p => p.organizationId === currentOrg.id);
+      const orgProjects = this.allProjects.filter(
+        p => p.organizationId === currentOrg.id
+      );
       this.projectDropdownOptions = [
         ...orgProjects,
-        { id: 'create-new', name: 'Create new project...', isCreateOption: true }
+        {
+          id: 'create-new',
+          name: 'Create new project...',
+          isCreateOption: true,
+        },
       ];
     } else {
       this.projectDropdownOptions = [];
@@ -224,7 +250,7 @@ export class ProjectSelectorComponent implements OnInit {
     };
 
     this.organizationService.createOrganization(request).subscribe({
-      next: (organization) => {
+      next: organization => {
         this.organizations.push(organization);
         this.updateOrganizationDropdownOptions();
         this.showNoOrganizationsMessage = false;
@@ -233,12 +259,14 @@ export class ProjectSelectorComponent implements OnInit {
 
         // Auto-select the created organization
         this.selectorForm.patchValue({
-          organization: organization
+          organization: organization,
         });
       },
-      error: (error) => {
-        this.toastService.error(error.error?.message || $localize`Error creating organization`);
-      }
+      error: error => {
+        this.toastService.error(
+          error.error?.message || $localize`Error creating organization`
+        );
+      },
     });
   }
 
@@ -248,7 +276,7 @@ export class ProjectSelectorComponent implements OnInit {
     this.createProjectForm.reset();
     if (currentOrg) {
       this.createProjectForm.patchValue({
-        organizationId: currentOrg.id
+        organizationId: currentOrg.id,
       });
     }
     this.showCreateProjectDialog = true;
@@ -270,15 +298,17 @@ export class ProjectSelectorComponent implements OnInit {
     };
 
     this.projectService.createProject(request).subscribe({
-      next: (project) => {
+      next: project => {
         this.allProjects.push(project);
         this.updateProjectDropdownOptions();
         this.toastService.success($localize`Project created successfully`);
         this.closeCreateProjectDialog();
       },
-      error: (error) => {
-        this.toastService.error(error.error?.message || $localize`Error creating project`);
-      }
+      error: error => {
+        this.toastService.error(
+          error.error?.message || $localize`Error creating project`
+        );
+      },
     });
   }
 
@@ -321,7 +351,7 @@ export class ProjectSelectorComponent implements OnInit {
     };
 
     this.organizationService.createOrganization(request).subscribe({
-      next: (organization) => {
+      next: organization => {
         this.organizations.push(organization);
         this.showNoOrganizationsMessage = false;
         this.toastService.success($localize`Organization created successfully`);
@@ -329,12 +359,14 @@ export class ProjectSelectorComponent implements OnInit {
         // Move to next step and set the organization in project form
         this.setupWizardActiveIndex = 1;
         this.createProjectForm.patchValue({
-          organizationId: organization.id
+          organizationId: organization.id,
         });
       },
-      error: (error) => {
-        this.toastService.error(error.error?.message || $localize`Error creating organization`);
-      }
+      error: error => {
+        this.toastService.error(
+          error.error?.message || $localize`Error creating organization`
+        );
+      },
     });
   }
 
@@ -349,7 +381,7 @@ export class ProjectSelectorComponent implements OnInit {
     };
 
     this.projectService.createProject(request).subscribe({
-      next: (project) => {
+      next: project => {
         this.allProjects.push(project);
         this.updateProjectDropdownOptions();
         this.toastService.success($localize`Project created successfully`);
@@ -357,13 +389,17 @@ export class ProjectSelectorComponent implements OnInit {
 
         // Auto-select the created organization and project
         this.selectorForm.patchValue({
-          organization: this.organizations.find(org => org.id === project.organizationId),
-          project: project
+          organization: this.organizations.find(
+            org => org.id === project.organizationId
+          ),
+          project: project,
         });
       },
-      error: (error) => {
-        this.toastService.error(error.error?.message || $localize`Error creating project`);
-      }
+      error: error => {
+        this.toastService.error(
+          error.error?.message || $localize`Error creating project`
+        );
+      },
     });
   }
 }
