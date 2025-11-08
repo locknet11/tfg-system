@@ -26,12 +26,13 @@ import { MessageModule } from 'primeng/message';
     InputTextModule,
     ReactiveFormsModule,
     FormsModule,
-    FormErrorDirective,
     MessageModule,
   ],
   providers: [AuthenticationService],
   templateUrl: './authentication.component.html',
-  styles: ['.auth-box { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }'],
+  styles: [
+    '.auth-box { background-color: rgba(0, 0, 0, 0.4); box-shadow: 0 0 20px rgba(0, 0, 0, 0.7) ; backdrop-filter: blur(10px); }',
+  ],
 })
 export class AuthenticationComponent {
   constructor(
