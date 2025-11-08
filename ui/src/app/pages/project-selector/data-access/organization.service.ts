@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   Organization,
+  OrganizationInfo,
   CreateOrganizationRequest,
   UpdateOrganizationRequest
 } from './organizations.model';
@@ -16,20 +17,20 @@ const baseUrl = environment.baseUrl;
 export class OrganizationService {
   constructor(private http: HttpClient) {}
 
-  getOrganizations(): Observable<Organization[]> {
-    return this.http.get<Organization[]>(`${baseUrl}/api/organizations`);
+  getOrganizations(): Observable<OrganizationInfo[]> {
+    return this.http.get<OrganizationInfo[]>(`${baseUrl}/api/organizations`);
   }
 
-  getOrganizationById(id: string): Observable<Organization> {
-    return this.http.get<Organization>(`${baseUrl}/api/organizations/${id}`);
+  getOrganizationById(id: string): Observable<OrganizationInfo> {
+    return this.http.get<OrganizationInfo>(`${baseUrl}/api/organizations/${id}`);
   }
 
-  createOrganization(request: CreateOrganizationRequest): Observable<Organization> {
-    return this.http.post<Organization>(`${baseUrl}/api/organizations`, request);
+  createOrganization(request: CreateOrganizationRequest): Observable<OrganizationInfo> {
+    return this.http.post<OrganizationInfo>(`${baseUrl}/api/organizations`, request);
   }
 
-  updateOrganization(id: string, request: UpdateOrganizationRequest): Observable<Organization> {
-    return this.http.put<Organization>(`${baseUrl}/api/organizations/${id}`, request);
+  updateOrganization(id: string, request: UpdateOrganizationRequest): Observable<OrganizationInfo> {
+    return this.http.put<OrganizationInfo>(`${baseUrl}/api/organizations/${id}`, request);
   }
 
   deleteOrganization(id: string): Observable<void> {

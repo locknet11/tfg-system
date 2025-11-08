@@ -2,6 +2,8 @@ package com.spulido.tfg.domain.organization.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,9 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.spulido.tfg.domain.organization.exception.OrganizationException;
 import com.spulido.tfg.domain.organization.model.Organization;
 import com.spulido.tfg.domain.organization.model.dto.CreateOrganizationRequest;
+import com.spulido.tfg.domain.organization.model.dto.OrganizationInfo;
 import com.spulido.tfg.domain.organization.model.dto.UpdateOrganizationRequest;
 import com.spulido.tfg.domain.organization.services.OrganizationService;
-
+import com.spulido.tfg.domain.organization.services.OrganizationServiceMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,42 +33,43 @@ import lombok.RequiredArgsConstructor;
 public class OrganizationController {
 
     private final OrganizationService organizationService;
+    private final OrganizationServiceMapper organizationMapper;
 
     @GetMapping
-    public ResponseEntity<List<Organization>> getOrganizations() {
+    public ResponseEntity<List<OrganizationInfo>> getOrganizations() {
         // Since there's only one admin user, return all organizations
         List<Organization> organizations = organizationService.getAllOrganizations();
-        return ResponseEntity.ok().body(organizations);
+        List<OrganizationInfo> organizationInfos = organizationMapper.organizationsToOrganizationInfos(organizations);
+        return ResponseEntity.ok().body(organizationInfos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Organization> getOrganizationById(@PathVariable("id") String id) throws OrganizationException {
+    public ResponseEntity<OrganizationInfo> getOrganizationById(@PathVariable("id") String id) throws OrganizationException {
         Organization organization = organizationService.getById(id);
-        return ResponseEntity.ok().body(organization);
+        OrganizationInfo organizationInfo = organizationMapper.organizationToOrganizationInfo(organization);
+        return ResponseEntity.ok().body(organizationInfo);
     }
 
     @PostMapping
-    public ResponseEntity<?> createOrganization(@RequestBody @Valid CreateOrganizationRequest request)
+    public ResponseEntity<OrganizationInfo> createOrganization(@RequestBody @Valid CreateOrganizationRequest request)
             throws URISyntaxException, OrganizationException {
         // Since there's only one admin user, we don't need to track owner/member relationships
-        Organization organization = new Organization();
-        organization.setName(request.getName())
-                   .setDescription(request.getDescription())
-                   .setOwnerId("admin"); // Fixed owner ID for the single admin user
+        Organization organization = organizationMapper.createOrganizationRequestToOrganization(request);
+        organization.setOwnerId("admin"); // Fixed owner ID for the single admin user
 
         Organization created = organizationService.createOrganization(organization);
-        return ResponseEntity.created(new URI(String.format("/api/organizations/%s", created.getId()))).body(created);
+        OrganizationInfo organizationInfo = organizationMapper.organizationToOrganizationInfo(created);
+        return ResponseEntity.created(new URI(String.format("/api/organizations/%s", created.getId()))).body(organizationInfo);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Organization> updateOrganization(@PathVariable("id") String id,
+    public ResponseEntity<OrganizationInfo> updateOrganization(@PathVariable("id") String id,
             @RequestBody @Valid UpdateOrganizationRequest request) throws OrganizationException {
         Organization organization = organizationService.getById(id);
-        organization.setName(request.getName())
-                   .setDescription(request.getDescription());
-
-        Organization updated = organizationService.updateOrganization(organization);
-        return ResponseEntity.ok().body(updated);
+        Organization updatedOrganization = organizationMapper.updateOrganizationRequestToOrganization(request, organization);
+        Organization updated = organizationService.updateOrganization(updatedOrganization);
+        OrganizationInfo organizationInfo = organizationMapper.organizationToOrganizationInfo(updated);
+        return ResponseEntity.ok().body(organizationInfo);
     }
 
     @DeleteMapping("/{id}")

@@ -2,6 +2,8 @@ package com.spulido.tfg.domain.project.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,12 +20,12 @@ import com.spulido.tfg.domain.organization.exception.OrganizationException;
 import com.spulido.tfg.domain.organization.services.OrganizationService;
 import com.spulido.tfg.domain.project.exception.ProjectException;
 import com.spulido.tfg.domain.project.model.Project;
-import com.spulido.tfg.domain.project.model.ProjectStatus;
 import com.spulido.tfg.domain.project.model.dto.CreateProjectRequest;
+import com.spulido.tfg.domain.project.model.dto.ProjectInfo;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectRequest;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectStatusRequest;
 import com.spulido.tfg.domain.project.services.ProjectService;
-
+import com.spulido.tfg.domain.project.services.ProjectServiceMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +38,10 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final OrganizationService organizationService;
+    private final ProjectServiceMapper projectMapper;
 
     @GetMapping
-    public ResponseEntity<List<Project>> getProjects(@RequestParam(required = false) String organizationId) {
+    public ResponseEntity<List<ProjectInfo>> getProjects(@RequestParam(required = false) String organizationId) {
         List<Project> projects;
         if (organizationId != null) {
             // Check if organization exists
@@ -53,13 +56,15 @@ public class ProjectController {
             projects = projectService.getAllProjects();
         }
 
-        return ResponseEntity.ok().body(projects);
+        List<ProjectInfo> projectInfos = projectMapper.projectsToProjectInfos(projects);
+        return ResponseEntity.ok().body(projectInfos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable("id") String id) throws ProjectException {
+    public ResponseEntity<ProjectInfo> getProjectById(@PathVariable("id") String id) throws ProjectException {
         Project project = projectService.getById(id);
-        return ResponseEntity.ok().body(project);
+        ProjectInfo projectInfo = projectMapper.projectToProjectInfo(project);
+        return ResponseEntity.ok().body(projectInfo);
     }
 
     @PostMapping
@@ -72,10 +77,7 @@ public class ProjectController {
             return ResponseEntity.badRequest().build();
         }
 
-        Project project = new Project();
-        project.setName(request.getName())
-               .setDescription(request.getDescription())
-               .setOrganizationId(request.getOrganizationId());
+        Project project = projectMapper.createProjectRequestToProject(request);
 
         Project created = projectService.createProject(project);
 
@@ -92,18 +94,18 @@ public class ProjectController {
             throw new ProjectException("Failed to associate project with organization: " + e.getMessage());
         }
 
-        return ResponseEntity.created(new URI(String.format("/api/projects/%s", created.getId()))).body(created);
+        ProjectInfo projectInfo = projectMapper.projectToProjectInfo(created);
+        return ResponseEntity.created(new URI(String.format("/api/projects/%s", created.getId()))).body(projectInfo);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(@PathVariable("id") String id,
+    public ResponseEntity<ProjectInfo> updateProject(@PathVariable("id") String id,
             @RequestBody @Valid UpdateProjectRequest request) throws ProjectException {
         Project project = projectService.getById(id);
-        project.setName(request.getName())
-               .setDescription(request.getDescription());
-
-        Project updated = projectService.updateProject(project);
-        return ResponseEntity.ok().body(updated);
+        Project updatedProject = projectMapper.updateProjectRequestToProject(request, project);
+        Project updated = projectService.updateProject(updatedProject);
+        ProjectInfo projectInfo = projectMapper.projectToProjectInfo(updated);
+        return ResponseEntity.ok().body(projectInfo);
     }
 
     @DeleteMapping("/{id}")

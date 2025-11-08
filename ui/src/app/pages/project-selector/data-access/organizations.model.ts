@@ -4,8 +4,18 @@ export interface Organization {
   description?: string;
   ownerId: string;
   projectIds: string[];
-  createdAt: Date;
-  updatedAt?: Date;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface OrganizationInfo {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  projectIds: string[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateOrganizationRequest {

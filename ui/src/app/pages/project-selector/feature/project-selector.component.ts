@@ -16,8 +16,8 @@ import { ToastService } from 'src/app/shared/services/toast.service';
 import { Router } from '@angular/router';
 import { OrganizationService } from '../data-access/organization.service';
 import { ProjectService } from '../data-access/project.service';
-import { Organization, CreateOrganizationRequest } from '../data-access/organizations.model';
-import { Project, CreateProjectRequest } from '../data-access/projects.model';
+import { Organization, OrganizationInfo, CreateOrganizationRequest } from '../data-access/organizations.model';
+import { Project, ProjectInfo, CreateProjectRequest } from '../data-access/projects.model';
 
 @Component({
   selector: 'app-project-selector',
@@ -36,9 +36,9 @@ import { Project, CreateProjectRequest } from '../data-access/projects.model';
   styles: ['.auth-box { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }'],
 })
 export class ProjectSelectorComponent implements OnInit {
-  organizations: Organization[] = [];
-  allProjects: Project[] = [];
-  filteredProjects: Project[] = [];
+  organizations: OrganizationInfo[] = [];
+  allProjects: ProjectInfo[] = [];
+  filteredProjects: ProjectInfo[] = [];
 
   // Dialog states
   showCreateOrganizationDialog = false;

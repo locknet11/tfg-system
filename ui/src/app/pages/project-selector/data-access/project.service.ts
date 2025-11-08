@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   Project,
+  ProjectInfo,
   CreateProjectRequest,
   UpdateProjectRequest,
   UpdateProjectStatusRequest
@@ -17,24 +18,24 @@ const baseUrl = environment.baseUrl;
 export class ProjectService {
   constructor(private http: HttpClient) {}
 
-  getProjects(organizationId?: string): Observable<Project[]> {
+  getProjects(organizationId?: string): Observable<ProjectInfo[]> {
     let params = new HttpParams();
     if (organizationId) {
       params = params.set('organizationId', organizationId);
     }
-    return this.http.get<Project[]>(`${baseUrl}/api/projects`, { params });
+    return this.http.get<ProjectInfo[]>(`${baseUrl}/api/projects`, { params });
   }
 
-  getProjectById(id: string): Observable<Project> {
-    return this.http.get<Project>(`${baseUrl}/api/projects/${id}`);
+  getProjectById(id: string): Observable<ProjectInfo> {
+    return this.http.get<ProjectInfo>(`${baseUrl}/api/projects/${id}`);
   }
 
-  createProject(request: CreateProjectRequest): Observable<Project> {
-    return this.http.post<Project>(`${baseUrl}/api/projects`, request);
+  createProject(request: CreateProjectRequest): Observable<ProjectInfo> {
+    return this.http.post<ProjectInfo>(`${baseUrl}/api/projects`, request);
   }
 
-  updateProject(id: string, request: UpdateProjectRequest): Observable<Project> {
-    return this.http.put<Project>(`${baseUrl}/api/projects/${id}`, request);
+  updateProject(id: string, request: UpdateProjectRequest): Observable<ProjectInfo> {
+    return this.http.put<ProjectInfo>(`${baseUrl}/api/projects/${id}`, request);
   }
 
   deleteProject(id: string): Observable<void> {

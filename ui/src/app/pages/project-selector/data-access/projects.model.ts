@@ -4,8 +4,18 @@ export interface Project {
   description?: string;
   organizationId: string;
   status: ProjectStatus;
-  createdAt: Date;
-  updatedAt?: Date;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ProjectInfo {
+  id: string;
+  name: string;
+  description?: string;
+  organizationId: string;
+  status: ProjectStatus;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export type ProjectStatus = 'ACTIVE' | 'INACTIVE' | 'COMPLETED' | 'ARCHIVED';
