@@ -9,13 +9,15 @@
   <button
     pButton
     type="button"
-    (click)="selectorPanel.toggle($event)"
+    (click)="selectorMenu.toggle($event)"
     icon="pi pi-chevron-down"
     class="p-button-raised p-button-secondary project-selector-btn"
     [label]="getCurrentSelectionLabel()"></button>
-  <p-overlayPanel #selectorPanel [style]="{ width: '300px' }">
-    <p-menu [model]="selectorMenuItems"></p-menu>
-  </p-overlayPanel>
+  <p-menu
+    #selectorMenu
+    [popup]="true"
+    appendTo="body"
+    [model]="selectorMenuItems"></p-menu>
 
   <div
     #topbarmenu
