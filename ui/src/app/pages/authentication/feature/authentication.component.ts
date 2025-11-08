@@ -59,7 +59,7 @@ export class AuthenticationComponent {
       .subscribe({
         next: res => {
           this.authService.saveToken(res.token);
-          this.router.navigate(['dashboard']);
+          this.router.navigate(['project-selector']);
         },
         error: err => {
           this.failedAuth = true;
