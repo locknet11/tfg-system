@@ -12,9 +12,21 @@ export interface AuthenticationResponse {
   token: string;
 }
 
+export interface SetupStatus {
+  needsSetup: boolean;
+}
+
+export interface SetupRequest {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
 const baseUrl = environment.baseUrl;
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class AuthenticationService {
   constructor(
     private http: HttpClient,
@@ -23,6 +35,17 @@ export class AuthenticationService {
   login(request: AuthenticationRequest) {
     return this.http.post<AuthenticationResponse>(
       `${baseUrl}/auth/login`,
+      request
+    );
+  }
+
+  checkSetupStatus() {
+    return this.http.get<SetupStatus>(`${baseUrl}/auth/check-setup`);
+  }
+
+  setup(request: SetupRequest) {
+    return this.http.post<AuthenticationResponse>(
+      `${baseUrl}/auth/setup`,
       request
     );
   }
