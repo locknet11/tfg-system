@@ -6,8 +6,7 @@ import {
   Project,
   CreateProjectRequest,
   UpdateProjectRequest,
-  UpdateProjectStatusRequest,
-  AddMemberRequest
+  UpdateProjectStatusRequest
 } from './projects.model';
 
 const baseUrl = environment.baseUrl;
@@ -44,13 +43,5 @@ export class ProjectService {
 
   updateProjectStatus(id: string, request: UpdateProjectStatusRequest): Observable<void> {
     return this.http.put<void>(`${baseUrl}/api/projects/${id}/status`, request);
-  }
-
-  addMember(projectId: string, request: AddMemberRequest): Observable<void> {
-    return this.http.post<void>(`${baseUrl}/api/projects/${projectId}/members`, request);
-  }
-
-  removeMember(projectId: string, userId: string): Observable<void> {
-    return this.http.delete<void>(`${baseUrl}/api/projects/${projectId}/members/${userId}`);
   }
 }

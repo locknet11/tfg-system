@@ -3,7 +3,6 @@ export interface Project {
   name: string;
   description?: string;
   organizationId: string;
-  memberIds: string[];
   status: ProjectStatus;
   createdAt: Date;
   updatedAt?: Date;
@@ -26,6 +25,3 @@ export interface UpdateProjectStatusRequest {
   status: ProjectStatus;
 }
 
-export interface AddMemberRequest {
-  userId: string;
-}

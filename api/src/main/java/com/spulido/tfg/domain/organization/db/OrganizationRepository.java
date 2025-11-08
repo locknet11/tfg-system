@@ -9,5 +9,5 @@ import com.spulido.tfg.domain.organization.model.Organization;
 public interface OrganizationRepository extends MongoRepository<Organization, String> {
     Optional<Organization> findByName(String name);
     List<Organization> findByOwnerId(String ownerId);
-    List<Organization> findByMemberIdsContaining(String memberId);
+
 }

@@ -3,7 +3,6 @@ export interface Organization {
   name: string;
   description?: string;
   ownerId: string;
-  memberIds: string[];
   projectIds: string[];
   createdAt: Date;
   updatedAt?: Date;
@@ -19,6 +18,3 @@ export interface UpdateOrganizationRequest {
   description?: string;
 }
 
-export interface AddMemberRequest {
-  userId: string;
-}

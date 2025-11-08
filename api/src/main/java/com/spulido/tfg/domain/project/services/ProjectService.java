@@ -17,8 +17,6 @@ public interface ProjectService {
 
     List<Project> getProjectsByOrganization(String organizationId);
 
-    List<Project> getProjectsByMember(String memberId);
-
     List<Project> getProjectsByOrganizationAndStatus(String organizationId, ProjectStatus status);
 
     List<Project> getAllProjects();
@@ -26,10 +24,6 @@ public interface ProjectService {
     void deleteProject(String projectId) throws ProjectException;
 
     boolean projectNameExists(String name);
-
-    void addMember(String projectId, String userId) throws ProjectException;
-
-    void removeMember(String projectId, String userId) throws ProjectException;
 
     void updateStatus(String projectId, ProjectStatus status) throws ProjectException;
 }

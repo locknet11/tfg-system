@@ -2,11 +2,8 @@ package com.spulido.tfg.domain.project.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,13 +19,11 @@ import com.spulido.tfg.domain.organization.services.OrganizationService;
 import com.spulido.tfg.domain.project.exception.ProjectException;
 import com.spulido.tfg.domain.project.model.Project;
 import com.spulido.tfg.domain.project.model.ProjectStatus;
-import com.spulido.tfg.domain.project.model.dto.AddMemberRequest;
 import com.spulido.tfg.domain.project.model.dto.CreateProjectRequest;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectRequest;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectStatusRequest;
 import com.spulido.tfg.domain.project.services.ProjectService;
-import com.spulido.tfg.domain.user.model.User;
-import com.spulido.tfg.domain.user.services.UserService;
+
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,16 +36,12 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final OrganizationService organizationService;
-    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Project>> getProjects(@RequestParam(required = false) String organizationId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.getCurrentUser(auth.getName());
-
         List<Project> projects;
         if (organizationId != null) {
-            // Check if user has access to this organization
+            // Check if organization exists
             try {
                 organizationService.getById(organizationId);
                 projects = projectService.getProjectsByOrganization(organizationId);
@@ -58,8 +49,8 @@ public class ProjectController {
                 return ResponseEntity.badRequest().build();
             }
         } else {
-            // Return projects where user is a member
-            projects = projectService.getProjectsByMember(currentUser.getId());
+            // Return all projects since there's only one admin user
+            projects = projectService.getAllProjects();
         }
 
         return ResponseEntity.ok().body(projects);
@@ -74,10 +65,7 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<?> createProject(@RequestBody @Valid CreateProjectRequest request)
             throws URISyntaxException, ProjectException {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.getCurrentUser(auth.getName());
-
-        // Verify user has access to the organization
+        // Verify organization exists
         try {
             organizationService.getById(request.getOrganizationId());
         } catch (Exception e) {
@@ -87,8 +75,7 @@ public class ProjectController {
         Project project = new Project();
         project.setName(request.getName())
                .setDescription(request.getDescription())
-               .setOrganizationId(request.getOrganizationId())
-               .setMemberIds(List.of(currentUser.getId()));
+               .setOrganizationId(request.getOrganizationId());
 
         Project created = projectService.createProject(project);
 
@@ -130,19 +117,5 @@ public class ProjectController {
             @RequestBody UpdateProjectStatusRequest request) throws ProjectException {
         projectService.updateStatus(id, request.getStatus());
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{id}/members")
-    public ResponseEntity<?> addMember(@PathVariable("id") String projectId,
-            @RequestBody AddMemberRequest request) throws ProjectException {
-        projectService.addMember(projectId, request.getUserId());
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{id}/members/{userId}")
-    public ResponseEntity<?> removeMember(@PathVariable("id") String projectId,
-            @PathVariable("userId") String userId) throws ProjectException {
-        projectService.removeMember(projectId, userId);
-        return ResponseEntity.noContent().build();
     }
 }

@@ -5,8 +5,7 @@ import { environment } from 'src/environments/environment';
 import {
   Organization,
   CreateOrganizationRequest,
-  UpdateOrganizationRequest,
-  AddMemberRequest
+  UpdateOrganizationRequest
 } from './organizations.model';
 
 const baseUrl = environment.baseUrl;
@@ -35,13 +34,5 @@ export class OrganizationService {
 
   deleteOrganization(id: string): Observable<void> {
     return this.http.delete<void>(`${baseUrl}/api/organizations/${id}`);
-  }
-
-  addMember(organizationId: string, request: AddMemberRequest): Observable<void> {
-    return this.http.post<void>(`${baseUrl}/api/organizations/${organizationId}/members`, request);
-  }
-
-  removeMember(organizationId: string, userId: string): Observable<void> {
-    return this.http.delete<void>(`${baseUrl}/api/organizations/${organizationId}/members/${userId}`);
   }
 }

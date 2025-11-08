@@ -16,17 +16,11 @@ public interface OrganizationService {
 
     List<Organization> getOrganizationsByOwner(String ownerId);
 
-    List<Organization> getOrganizationsByMember(String memberId);
-
     List<Organization> getAllOrganizations();
 
     void deleteOrganization(String organizationId) throws OrganizationException;
 
     boolean organizationNameExists(String name);
-
-    void addMember(String organizationId, String userId) throws OrganizationException;
-
-    void removeMember(String organizationId, String userId) throws OrganizationException;
 
     void addProject(String organizationId, String projectId) throws OrganizationException;
 }

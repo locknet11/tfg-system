@@ -33,9 +33,6 @@ public class Project extends BaseEntity {
     private String organizationId;
 
     @Field
-    private List<String> memberIds = new ArrayList<>();
-
-    @Field
     private ProjectStatus status = ProjectStatus.ACTIVE;
 
 }

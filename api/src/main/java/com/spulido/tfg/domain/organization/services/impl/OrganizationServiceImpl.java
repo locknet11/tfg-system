@@ -49,11 +49,6 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public List<Organization> getOrganizationsByMember(String memberId) {
-        return repository.findByMemberIdsContaining(memberId);
-    }
-
-    @Override
     public List<Organization> getAllOrganizations() {
         return repository.findAll();
     }
@@ -70,22 +65,6 @@ public class OrganizationServiceImpl implements OrganizationService {
     public boolean organizationNameExists(String name) {
         Optional<Organization> orgOptional = repository.findByName(name);
         return orgOptional.isPresent();
-    }
-
-    @Override
-    public void addMember(String organizationId, String userId) throws OrganizationException {
-        Organization organization = getById(organizationId);
-        if (!organization.getMemberIds().contains(userId)) {
-            organization.getMemberIds().add(userId);
-            repository.save(organization);
-        }
-    }
-
-    @Override
-    public void removeMember(String organizationId, String userId) throws OrganizationException {
-        Organization organization = getById(organizationId);
-        organization.getMemberIds().remove(userId);
-        repository.save(organization);
     }
 
     @Override

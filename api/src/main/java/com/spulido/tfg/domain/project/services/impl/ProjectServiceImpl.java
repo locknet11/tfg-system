@@ -50,11 +50,6 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<Project> getProjectsByMember(String memberId) {
-        return repository.findByMemberIdsContaining(memberId);
-    }
-
-    @Override
     public List<Project> getProjectsByOrganizationAndStatus(String organizationId, ProjectStatus status) {
         return repository.findByOrganizationIdAndStatus(organizationId, status);
     }
@@ -76,22 +71,6 @@ public class ProjectServiceImpl implements ProjectService {
     public boolean projectNameExists(String name) {
         Optional<Project> projectOptional = repository.findByName(name);
         return projectOptional.isPresent();
-    }
-
-    @Override
-    public void addMember(String projectId, String userId) throws ProjectException {
-        Project project = getById(projectId);
-        if (!project.getMemberIds().contains(userId)) {
-            project.getMemberIds().add(userId);
-            repository.save(project);
-        }
-    }
-
-    @Override
-    public void removeMember(String projectId, String userId) throws ProjectException {
-        Project project = getById(projectId);
-        project.getMemberIds().remove(userId);
-        repository.save(project);
     }
 
     @Override

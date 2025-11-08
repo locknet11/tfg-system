@@ -33,9 +33,6 @@ public class Organization extends BaseEntity {
     private String ownerId;
 
     @Field
-    private List<String> memberIds = new ArrayList<>();
-
-    @Field
     private List<String> projectIds = new ArrayList<>();
 
 }
