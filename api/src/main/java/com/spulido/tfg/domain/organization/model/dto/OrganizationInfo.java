@@ -11,6 +11,7 @@ import java.util.List;
 public class OrganizationInfo {
     private String id;
     private String name;
+    private String organizationIdentifier;
     private String description;
     private String ownerId;
     private List<String> projectIds;

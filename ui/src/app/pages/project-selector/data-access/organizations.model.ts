@@ -1,6 +1,7 @@
 export interface Organization {
   id: string;
   name: string;
+  organizationIdentifier: string;
   description?: string;
   ownerId: string;
   projectIds: string[];
@@ -11,6 +12,7 @@ export interface Organization {
 export interface OrganizationInfo {
   id: string;
   name: string;
+  organizationIdentifier: string;
   description?: string;
   ownerId: string;
   projectIds: string[];

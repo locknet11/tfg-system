@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
+import com.spulido.tfg.common.util.IdentifierGenerator;
 import com.spulido.tfg.domain.project.db.ProjectRepository;
 import com.spulido.tfg.domain.project.exception.ProjectException;
 import com.spulido.tfg.domain.project.model.Project;
@@ -23,6 +24,14 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectNameExists(project.getName())) {
             throw new ProjectException("project.name.alreadyExists");
         }
+        
+        // Generate unique project identifier
+        String identifier;
+        do {
+            identifier = IdentifierGenerator.generateProjectIdentifier();
+        } while (repository.findByProjectIdentifier(identifier).isPresent());
+        
+        project.setProjectIdentifier(identifier);
         return repository.save(project);
     }
 

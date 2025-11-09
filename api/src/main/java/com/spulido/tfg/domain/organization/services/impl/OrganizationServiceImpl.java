@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
+import com.spulido.tfg.common.util.IdentifierGenerator;
 import com.spulido.tfg.domain.organization.db.OrganizationRepository;
 import com.spulido.tfg.domain.organization.exception.OrganizationException;
 import com.spulido.tfg.domain.organization.model.Organization;
@@ -22,6 +23,14 @@ public class OrganizationServiceImpl implements OrganizationService {
         if (organizationNameExists(organization.getName())) {
             throw new OrganizationException("organization.name.alreadyExists");
         }
+        
+        // Generate unique organization identifier
+        String identifier;
+        do {
+            identifier = IdentifierGenerator.generateOrganizationIdentifier();
+        } while (repository.findByOrganizationIdentifier(identifier).isPresent());
+        
+        organization.setOrganizationIdentifier(identifier);
         return repository.save(organization);
     }
 

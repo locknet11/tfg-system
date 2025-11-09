@@ -1,12 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { ToastService } from 'src/app/shared/services/toast.service';
-import { Target } from '../data-access/targets.model';
+import { TargetsService } from '../data-access/targets.service';
+import { TargetInfo } from '../data-access/targets.model';
+import { CreateTargetModalComponent } from './modals/create-target-modal/create-target-modal.component';
+import { EditTargetModalComponent } from './modals/edit-target-modal/edit-target-modal.component';
+import { AgentSetupModalComponent } from './modals/agent-setup-modal/agent-setup-modal.component';
 
 @Component({
   selector: 'app-targets',
@@ -16,60 +21,77 @@ import { Target } from '../data-access/targets.model';
     TableModule,
     ButtonModule,
     TagModule,
+    TooltipModule,
     ConfirmDialogModule,
+    CreateTargetModalComponent,
+    EditTargetModalComponent,
+    AgentSetupModalComponent,
   ],
-  providers: [ConfirmationService],
+  providers: [ConfirmationService, TargetsService],
   templateUrl: './targets.component.html',
   styleUrls: ['./targets.component.scss'],
 })
 export class TargetsComponent implements OnInit {
-  targets: Target[] = [
-    {
-      id: '1',
-      systemName: 'Servidor Web Principal',
-      ipOrDomain: '10.0.0.1',
-      status: 'online',
-      assignedAgent: 'Agente-001',
-    },
-    {
-      id: '2',
-      systemName: 'Base de Datos Clientes',
-      ipOrDomain: 'db.clientes.prod',
-      status: 'offline',
-      assignedAgent: 'Agente-002',
-    },
-    {
-      id: '3',
-      systemName: 'API Gateway',
-      ipOrDomain: 'api.cloudguard.com',
-      status: 'in_review',
-      assignedAgent: 'Agente-003',
-    },
-    {
-      id: '4',
-      systemName: 'Servidor de Staging',
-      ipOrDomain: '172.16.0.10',
-      status: 'online',
-      assignedAgent: 'Agente-004',
-    },
-  ];
+  targets = signal<TargetInfo[]>([]);
+  totalRecords = signal(0);
+  rows = signal(10);
+
+  createTargetModal = viewChild.required(CreateTargetModalComponent);
+  editTargetModal = viewChild.required(EditTargetModalComponent);
+  agentSetupModal = viewChild.required(AgentSetupModalComponent);
 
   constructor(
     private confirmationService: ConfirmationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private targetsService: TargetsService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // this.getTargets();
+  }
+
+  getTargets(pageEvent?: TableLazyLoadEvent) {
+    let page = 0;
+    let size = 10;
+    if (pageEvent && pageEvent.first && pageEvent.rows) {
+      page = pageEvent.first / pageEvent.rows;
+      size = pageEvent.rows;
+    }
+    this.targetsService.getTargets(page, size).subscribe({
+      next: res => {
+        this.targets.set(res.content);
+        this.totalRecords.set(res.totalElements);
+        this.rows.set(res.size);
+      },
+    });
+  }
 
   addTarget() {
-    this.toastService.success($localize`Add target functionality`);
+    this.createTargetModal().show();
   }
 
-  editTarget(target: Target) {
-    this.toastService.success($localize`Edit target: ${target.systemName}`);
+  editTarget(target: TargetInfo) {
+    this.editTargetModal().show(target);
   }
 
-  deleteConfirm(event: Event, target: Target) {
+  showAgentSetup(target: TargetInfo) {
+    // Get organization and project from localStorage
+    const selectedOrgStr = localStorage.getItem('selectedOrganization');
+    const selectedProjectStr = localStorage.getItem('selectedProject');
+    
+    if (!selectedOrgStr || !selectedProjectStr) {
+      this.toastService.error($localize`Organization or project information not found`);
+      return;
+    }
+
+    const selectedOrg = JSON.parse(selectedOrgStr);
+    const selectedProject = JSON.parse(selectedProjectStr);
+
+    // Use short identifiers instead of MongoDB IDs
+    this.agentSetupModal().show(selectedOrg.organizationIdentifier, selectedProject.projectIdentifier, target.uniqueId);
+  }
+
+  deleteConfirm(event: Event, target: TargetInfo) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: $localize`Do you want to delete this target?`,
@@ -86,18 +108,33 @@ export class TargetsComponent implements OnInit {
     });
   }
 
-  private deleteTarget(target: Target) {
-    this.targets = this.targets.filter(t => t.id !== target.id);
-    this.toastService.success($localize`Target deleted successfully`);
+  private deleteTarget(target: TargetInfo) {
+    this.targetsService.deleteTarget(target.id).subscribe({
+      next: res => {
+        this.toastService.success($localize`Target deleted successfully`);
+        this.getTargets();
+      },
+      error: err => {
+        console.error(err);
+      },
+    });
+  }
+
+  onTargetCreated(target?: any) {
+    this.getTargets();
+  }
+
+  onTargetUpdated() {
+    this.getTargets();
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'online':
+      case 'ONLINE':
         return $localize`Online`;
-      case 'offline':
+      case 'OFFLINE':
         return $localize`Offline`;
-      case 'in_review':
+      case 'IN_REVIEW':
         return $localize`In Review`;
       default:
         return status;
@@ -108,11 +145,11 @@ export class TargetsComponent implements OnInit {
     status: string
   ): 'success' | 'danger' | 'warning' | 'info' | 'secondary' | 'contrast' {
     switch (status) {
-      case 'online':
+      case 'ONLINE':
         return 'success';
-      case 'offline':
+      case 'OFFLINE':
         return 'danger';
-      case 'in_review':
+      case 'IN_REVIEW':
         return 'warning';
       default:
         return 'info';

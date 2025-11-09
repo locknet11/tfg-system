@@ -27,6 +27,10 @@ public class Organization extends BaseEntity {
     private String name;
 
     @Field
+    @Indexed(unique = true)
+    private String organizationIdentifier;
+
+    @Field
     private String description;
 
     @Field

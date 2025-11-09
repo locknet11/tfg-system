@@ -50,10 +50,8 @@ const routes: Routes = [
       },
       {
         path: 'targets',
-        loadComponent: () =>
-          import('./pages/targets/feature/targets.component').then(
-            x => x.TargetsComponent
-          ),
+        loadChildren: () =>
+          import('./pages/targets/targets.routes').then(x => x.TargetsRoutes),
       },
       {
         path: 'agents',

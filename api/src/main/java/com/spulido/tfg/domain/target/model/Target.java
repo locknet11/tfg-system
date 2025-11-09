@@ -1,6 +1,5 @@
-package com.spulido.tfg.domain.project.model;
+package com.spulido.tfg.domain.target.model;
 
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -12,29 +11,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Document(collection = "projects")
+@Document(collection = "targets")
 @NoArgsConstructor
 @Getter
 @Setter
 @Accessors(chain = true)
 @AllArgsConstructor
-public class Project extends BaseEntity {
+public class Target extends BaseEntity {
 
     @Field
-    @Indexed(unique = true)
-    private String name;
-
-    @Field
-    @Indexed(unique = true)
-    private String projectIdentifier;
+    private String systemName;
 
     @Field
     private String description;
 
     @Field
-    private String organizationId;
+    private OperatingSystem os;
 
     @Field
-    private ProjectStatus status = ProjectStatus.ACTIVE;
+    private String uniqueId;
+
+    @Field
+    private String projectId;
+
+    @Field
+    private String ipOrDomain;
+
+    @Field
+    private TargetStatus status;
+
+    @Field
+    private String assignedAgent;
 
 }

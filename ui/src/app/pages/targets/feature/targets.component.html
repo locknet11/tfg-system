@@ -10,42 +10,68 @@
   </div>
 
   <p-table
-    [value]="targets"
+    [value]="targets()"
     [tableStyle]="{ 'min-width': '50rem' }"
-    styleClass="targets-table">
+    styleClass="targets-table"
+    [lazy]="true"
+    (onLazyLoad)="getTargets($event)"
+    [rows]="rows()"
+    [totalRecords]="totalRecords()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    i18n-currentPageReportTemplate
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true">
     <ng-template pTemplate="header">
       <tr>
         <th i18n>SYSTEM NAME</th>
-        <th i18n>IP OR DOMAIN</th>
+        <th i18n>DESCRIPTION</th>
+        <th i18n>OS</th>
         <th i18n>STATUS</th>
-        <th i18n>ASSIGNED AGENT</th>
+        <th i18n>IP OR DOMAIN</th>
         <th style="width: 8rem"></th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-target>
       <tr>
         <td>{{ target.systemName }}</td>
-        <td>{{ target.ipOrDomain }}</td>
+        <td>{{ target.description || '-' }}</td>
+        <td>{{ target.os || '-' }}</td>
         <td>
           <p-tag
             [value]="getStatusLabel(target.status)"
             [severity]="getStatusSeverity(target.status)"></p-tag>
         </td>
-        <td>{{ target.assignedAgent }}</td>
+        <td>{{ target.ipOrDomain || '-' }}</td>
         <td>
           <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-cog"
+              (onClick)="showAgentSetup(target)"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              pTooltip="Agent Setup"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
             <p-button
               icon="pi pi-pencil"
               (onClick)="editTarget(target)"
               [rounded]="true"
               [text]="true"
-              severity="secondary"></p-button>
+              severity="secondary"
+              pTooltip="Edit"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
             <p-button
               icon="pi pi-trash"
               (onClick)="deleteConfirm($event, target)"
               [rounded]="true"
               [text]="true"
-              severity="danger"></p-button>
+              severity="danger"
+              pTooltip="Delete"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
           </div>
         </td>
       </tr>
@@ -53,4 +79,10 @@
   </p-table>
 
   <p-confirmDialog></p-confirmDialog>
+
+  <app-create-target-modal
+    (targetCreated)="onTargetCreated()"></app-create-target-modal>
+  <app-edit-target-modal
+    (targetUpdated)="onTargetUpdated()"></app-edit-target-modal>
+  <app-agent-setup-modal></app-agent-setup-modal>
 </div>

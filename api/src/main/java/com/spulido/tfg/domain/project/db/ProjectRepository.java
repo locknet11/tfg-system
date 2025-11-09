@@ -9,6 +9,7 @@ import com.spulido.tfg.domain.project.model.ProjectStatus;
 
 public interface ProjectRepository extends MongoRepository<Project, String> {
     Optional<Project> findByName(String name);
+    Optional<Project> findByProjectIdentifier(String projectIdentifier);
     List<Project> findByOrganizationId(String organizationId);
 
     List<Project> findByOrganizationIdAndStatus(String organizationId, ProjectStatus status);

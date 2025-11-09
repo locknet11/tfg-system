@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class ProjectInfo {
     private String id;
     private String name;
+    private String projectIdentifier;
     private String description;
     private String organizationId;
     private ProjectStatus status;

@@ -1,0 +1,59 @@
+<p-dialog
+  [header]="'Create target'"
+  i18n-header
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '30vw' }"
+  [dismissableMask]="true">
+  <form [formGroup]="createTargetForm" (ngSubmit)="submit()">
+    <div class="grid formgrid p-fluid">
+      <div class="field mb-4 col-12">
+        <label for="systemName" class="font-medium text-900" i18n
+          >System name</label
+        >
+        <input
+          id="systemName"
+          formControlName="systemName"
+          type="text"
+          pInputText />
+      </div>
+      <div class="field mb-4 col-12">
+        <label class="font-medium text-900" i18n>Description</label>
+        <textarea
+          formControlName="description"
+          rows="3"
+          pInputTextarea></textarea>
+      </div>
+      <div class="field col-12 mb-4">
+        <label class="font-medium text-900" i18n>Operating System</label>
+        <p-dropdown
+          formControlName="os"
+          [options]="operatingSystems"
+          optionValue="value"
+          optionLabel="label"></p-dropdown>
+      </div>
+    </div>
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button
+        pButton
+        label="Cancel"
+        i18n-label
+        icon="pi pi-times"
+        type="button"
+        (click)="hide()"
+        class="p-button-secondary"></button>
+      <button
+        pButton
+        pRipple
+        type="submit"
+        label="Create"
+        i18n-label
+        icon="pi pi-plus"
+        [disabled]="createTargetForm.invalid"></button>
+    </div>
+  </form>
+</p-dialog>
+
+<app-agent-setup-modal></app-agent-setup-modal>

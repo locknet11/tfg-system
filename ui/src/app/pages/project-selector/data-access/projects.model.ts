@@ -1,6 +1,7 @@
 export interface Project {
   id: string;
   name: string;
+  projectIdentifier: string;
   description?: string;
   organizationId: string;
   status: ProjectStatus;
@@ -11,6 +12,7 @@ export interface Project {
 export interface ProjectInfo {
   id: string;
   name: string;
+  projectIdentifier: string;
   description?: string;
   organizationId: string;
   status: ProjectStatus;
