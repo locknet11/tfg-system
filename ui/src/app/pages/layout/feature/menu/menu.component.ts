@@ -25,6 +25,11 @@ export class MenuComponent implements OnInit {
       {
         items: [
           {
+            label: $localize`Dashboard`,
+            icon: 'pi pi-home',
+            routerLink: ['dashboard'],
+          },
+          {
             label: $localize`Targets`,
             icon: 'pi pi-flag',
             routerLink: ['targets'],

@@ -1,1 +1,113 @@
-<p>dashboard works!</p>
+<div class="p-6">
+  <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-1 md:grid-cols-3 w-full gap-6 mb-8">
+    <p-card
+      styleClass="hover:shadow-4 transition-all transition-duration-300 h-full w-full">
+      <div class="flex align-items-center justify-content-between w-full">
+        <div class="flex align-items-center">
+          <div
+            class="flex align-items-center justify-content-center bg-blue-100 border-round mr-3"
+            style="width: 4rem; height: 4rem">
+            <i class="pi pi-server text-blue-600 text-3xl"></i>
+          </div>
+          <div>
+            <div class="text-900 font-bold text-2xl mb-3">
+              {{ kpis?.targetsCount || 0 }}
+            </div>
+            <div class="text-600">Target Systems</div>
+          </div>
+        </div>
+        <div class="hidden md:block">
+          <i class="pi pi-angle-right text-blue-400 text-xl"></i>
+        </div>
+      </div>
+    </p-card>
+    <p-card
+      styleClass="hover:shadow-4 transition-all transition-duration-300 h-full w-full">
+      <div class="flex align-items-center justify-content-between w-full">
+        <div class="flex align-items-center">
+          <div
+            class="flex align-items-center justify-content-center bg-green-100 border-round mr-3"
+            style="width: 4rem; height: 4rem">
+            <i class="pi pi-shield text-green-600 text-3xl"></i>
+          </div>
+          <div>
+            <div class="text-900 font-bold text-2xl mb-3">
+              {{ kpis?.activeAgentsCount || 0 }}
+            </div>
+            <div class="text-600">Active Agents</div>
+          </div>
+        </div>
+        <div class="hidden md:block">
+          <i class="pi pi-angle-right text-green-400 text-xl"></i>
+        </div>
+      </div>
+    </p-card>
+    <p-card
+      styleClass="hover:shadow-4 transition-all transition-duration-300 h-full w-full">
+      <div class="flex align-items-center justify-content-between w-full">
+        <div class="flex align-items-center">
+          <div
+            class="flex align-items-center justify-content-center bg-red-100 border-round mr-3"
+            style="width: 4rem; height: 4rem">
+            <i class="pi pi-check-circle text-red-600 text-3xl"></i>
+          </div>
+          <div>
+            <div class="text-900 font-bold text-2xl mb-3">
+              {{ kpis?.fixedVulnerabilitiesCount || 0 }}
+            </div>
+            <div class="text-600">Fixed Vulnerabilities</div>
+          </div>
+        </div>
+        <div class="hidden md:block">
+          <i class="pi pi-angle-right text-red-400 text-xl"></i>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Critical Vulnerabilities -->
+  <p-card header="Latest Critical Vulnerabilities" styleClass="mb-8">
+    <p-table [value]="vulnerabilities" [paginator]="true" [rows]="5">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>CVE</th>
+          <th>Description</th>
+          <th>Severity</th>
+          <th>Target System</th>
+          <th>Reported Date</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-vuln>
+        <tr>
+          <td>{{ vuln.cve }}</td>
+          <td>{{ vuln.description }}</td>
+          <td>
+            <p-badge
+              [value]="vuln.severity"
+              severity="danger"
+              *ngIf="vuln.severity === 'Critical'"></p-badge>
+            <span *ngIf="vuln.severity !== 'Critical'">{{
+              vuln.severity
+            }}</span>
+          </td>
+          <td>{{ vuln.targetSystem }}</td>
+          <td>{{ vuln.reportedDate | date: 'short' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Chart -->
+  <div>
+    <p-card header="Vulnerabilities Detected per Month">
+      <p-chart
+        height="300px"
+        type="bar"
+        [data]="chartData"
+        [options]="chartOptions"></p-chart>
+    </p-card>
+  </div>
+</div>
