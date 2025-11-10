@@ -1,5 +1,5 @@
 <div class="p-6 pt-0">
-  <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+  <h1 class="text-2xl font-bold mb-6" i18n>Dashboard</h1>
 
   <!-- KPIs -->
   <div class="flex-column md:flex-row flex w-full gap-6 mb-4">
@@ -16,7 +16,7 @@
             <div class="text-900 font-bold text-2xl mb-3">
               {{ kpis?.targetsCount || 0 }}
             </div>
-            <div class="text-600">Target Systems</div>
+            <div class="text-600" i18n>Target Systems</div>
           </div>
         </div>
         <div class="hidden md:block">
@@ -37,7 +37,7 @@
             <div class="text-900 font-bold text-2xl mb-3">
               {{ kpis?.activeAgentsCount || 0 }}
             </div>
-            <div class="text-600">Active Agents</div>
+            <div class="text-600" i18n>Active Agents</div>
           </div>
         </div>
         <div class="hidden md:block">
@@ -58,7 +58,7 @@
             <div class="text-900 font-bold text-2xl mb-3">
               {{ kpis?.fixedVulnerabilitiesCount || 0 }}
             </div>
-            <div class="text-600">Fixed Vulnerabilities</div>
+            <div class="text-600" i18n>Fixed Vulnerabilities</div>
           </div>
         </div>
         <div class="hidden md:block">
@@ -69,15 +69,15 @@
   </div>
 
   <!-- Critical Vulnerabilities -->
-  <p-card header="Latest Critical Vulnerabilities" styleClass="mb-4">
+  <p-card header="Latest Critical Vulnerabilities" i18n-header styleClass="mb-4">
     <p-table [value]="vulnerabilities" [paginator]="true" [rows]="5">
       <ng-template pTemplate="header">
         <tr>
-          <th>CVE</th>
-          <th>Description</th>
-          <th>Severity</th>
-          <th>Target System</th>
-          <th>Reported Date</th>
+          <th i18n>CVE</th>
+          <th i18n>Description</th>
+          <th i18n>Severity</th>
+          <th i18n>Target System</th>
+          <th i18n>Reported Date</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-vuln>
@@ -102,7 +102,7 @@
 
   <!-- Chart -->
   <div>
-    <p-card header="Vulnerabilities Detected per Month">
+    <p-card header="Vulnerabilities Detected per Month" i18n-header>
       <p-chart
         height="300px"
         type="bar"

@@ -11,4 +11,7 @@ public interface TargetRepository extends MongoRepository<Target, String> {
     Optional<Target> findByIpOrDomain(String ipOrDomain);
     
     Optional<Target> findByUniqueId(String uniqueId);
+
+    @Query("{ 'assignedAgent' : ?0 }")
+    Optional<Target> findByAssignedAgent(String agentId);
 }

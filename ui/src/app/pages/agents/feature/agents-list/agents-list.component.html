@@ -1,3 +1,93 @@
 <div class="agents-list-container">
-  <p i18n>Agent list component - To be implemented</p>
+  <div class="flex justify-content-between align-items-center mb-4">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        pInputText
+        placeholder="Search"
+        i18n-placeholder
+        (input)="onSearch($any($event.target).value)" />
+    </span>
+  </div>
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <p-table
+    [value]="agents()"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="agents-table"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [rows]="size()"
+    [totalRecords]="total()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    i18n-currentPageReportTemplate
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true"
+    [loading]="loading()"
+    [sortField]="sortField()"
+    [sortOrder]="sortOrder()"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    dataKey="id">
+     <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="name" i18n>
+          NAME <p-sortIcon field="name"></p-sortIcon>
+        </th>
+        <th pSortableColumn="targetSystem" i18n>
+          ASSIGNED TO <p-sortIcon field="targetSystem"></p-sortIcon>
+        </th>
+        <th i18n>STATUS</th>
+        <th pSortableColumn="version" i18n>
+          VERSION <p-sortIcon field="version"></p-sortIcon>
+        </th>
+        <th pSortableColumn="lastConnection" i18n>
+          LAST CONNECTION <p-sortIcon field="lastConnection"></p-sortIcon>
+        </th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-agent>
+      <tr>
+        <td>{{ agent.name }}</td>
+        <td>{{ agent.targetSystem || '-' }}</td>
+        <td>
+          <p-tag
+            [value]="statusLabel(agent.status)"
+            [severity]="statusSeverity(agent.status)"></p-tag>
+        </td>
+        <td>{{ agent.version }}</td>
+        <td>{{ agent.lastConnection | date: 'short' }}</td>
+        <td>
+          <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-bolt"
+              label="Action"
+              i18n-label
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              [disabled]="true"
+              pTooltip="Action (coming soon)"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+            <p-button
+              icon="pi pi-trash"
+              (onClick)="delete(agent)"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              label="Delete"
+              i18n-label
+              pTooltip="Delete"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 </div>
