@@ -26,4 +26,6 @@ public interface ProjectService {
     boolean projectNameExists(String name);
 
     void updateStatus(String projectId, ProjectStatus status) throws ProjectException;
+
+    Project getByProjectIdentifier(String projectIdentifier) throws ProjectException;
 }

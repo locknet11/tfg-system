@@ -84,4 +84,10 @@ public class OrganizationServiceImpl implements OrganizationService {
             repository.save(organization);
         }
     }
+
+    @Override
+    public Organization getByOrganizationIdentifier(String organizationIdentifier) throws OrganizationException {
+        return repository.findByOrganizationIdentifier(organizationIdentifier)
+                .orElseThrow(() -> new OrganizationException("organization.error.notfound"));
+    }
 }

@@ -59,6 +59,7 @@ public class WebSecurity {
                         .requestMatchers(HttpMethod.POST, "/auth/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/setup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-setup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/agent/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new AuthenticationEntryPointHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

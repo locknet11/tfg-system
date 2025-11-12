@@ -20,4 +20,6 @@ public interface TargetService {
     boolean ipOrDomainExists(String ipOrDomain);
     
     boolean uniqueIdExists(String uniqueId);
+
+    Target getByUniqueId(String uniqueId) throws TargetException;
 }

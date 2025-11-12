@@ -19,7 +19,7 @@ export class AgentSetupModalComponent {
 
   show(organizationId: string, projectId: string, uniqueId: string) {
     const baseUrl = environment.baseUrl;
-    const url = `${baseUrl}/agent/${organizationId}/${projectId}/${uniqueId}`;
+    const url = `${baseUrl}/api/agent/${organizationId}/${projectId}/${uniqueId}`;
     this.agentUrl.set(url);
     this.curlCommand.set(`curl -sSL ${url} | bash`);
     this.visible.set(true);

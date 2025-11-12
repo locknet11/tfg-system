@@ -1,16 +1,4 @@
 <div class="agents-list-container">
-  <div class="flex justify-content-between align-items-center mb-4">
-    <span class="p-input-icon-left">
-      <i class="pi pi-search"></i>
-      <input
-        type="text"
-        pInputText
-        placeholder="Search"
-        i18n-placeholder
-        (input)="onSearch($any($event.target).value)" />
-    </span>
-  </div>
-
   <p-toast></p-toast>
   <p-confirmDialog></p-confirmDialog>
 
@@ -19,6 +7,7 @@
     [tableStyle]="{ 'min-width': '50rem' }"
     styleClass="agents-table"
     [lazy]="true"
+    [lazyLoadOnInit]="true"
     (onLazyLoad)="onLazyLoad($event)"
     [rows]="size()"
     [totalRecords]="total()"
@@ -28,25 +17,15 @@
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [showCurrentPageReport]="true"
     [loading]="loading()"
-    [sortField]="sortField()"
-    [sortOrder]="sortOrder()"
     [rowsPerPageOptions]="[5, 10, 20]"
     dataKey="id">
      <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="name" i18n>
-          NAME <p-sortIcon field="name"></p-sortIcon>
-        </th>
-        <th pSortableColumn="targetSystem" i18n>
-          ASSIGNED TO <p-sortIcon field="targetSystem"></p-sortIcon>
-        </th>
+        <th i18n>NAME</th>
+        <th i18n>ASSIGNED TO</th>
         <th i18n>STATUS</th>
-        <th pSortableColumn="version" i18n>
-          VERSION <p-sortIcon field="version"></p-sortIcon>
-        </th>
-        <th pSortableColumn="lastConnection" i18n>
-          LAST CONNECTION <p-sortIcon field="lastConnection"></p-sortIcon>
-        </th>
+        <th i18n>VERSION</th>
+        <th i18n>LAST CONNECTION</th>
         <th style="width: 8rem"></th>
       </tr>
     </ng-template>

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.mongodb.MongoWriteException;
 import com.spulido.tfg.common.LangUtils;
+import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.user.exception.UserException;
 
 import lombok.RequiredArgsConstructor;
@@ -106,6 +107,16 @@ public class CustomExceptionHandler {
 		Map<String, Object> response = null;
 		ErrorDetails errorDetails = ErrorDetails.builder()
 				.code(ErrorCode.USER_EXCEPTION)
+				.detail(ex.getLocalizedMessage()).build();
+		response = new GenericErrorResponse(errorDetails, null).mapOf();
+		return ResponseEntity.badRequest().body(response);
+	}
+
+	@ExceptionHandler(AgentException.class)
+	public ResponseEntity<?> handleAgentExceptions(AgentException ex) {
+		Map<String, Object> response = null;
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(ErrorCode.AGENT_EXCEPTION)
 				.detail(ex.getLocalizedMessage()).build();
 		response = new GenericErrorResponse(errorDetails, null).mapOf();
 		return ResponseEntity.badRequest().body(response);

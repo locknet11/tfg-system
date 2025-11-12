@@ -32,7 +32,8 @@ public enum ErrorCode {
 	ROLE_INVALID("exception.roleInvalid"),
 	UNAUTHORIZED("exception.unauthorized"),
 	USER_EXCEPTION("exception.userException"),
-	RESOURCE_ALREADY_EXISTS("exception.resourceAlreadyExists");
+	RESOURCE_ALREADY_EXISTS("exception.resourceAlreadyExists"),
+	AGENT_EXCEPTION("exception.agentException");
 
 	private final String defaultMessage;
 }

@@ -23,4 +23,6 @@ public interface OrganizationService {
     boolean organizationNameExists(String name);
 
     void addProject(String organizationId, String projectId) throws OrganizationException;
+
+    Organization getByOrganizationIdentifier(String organizationIdentifier) throws OrganizationException;
 }

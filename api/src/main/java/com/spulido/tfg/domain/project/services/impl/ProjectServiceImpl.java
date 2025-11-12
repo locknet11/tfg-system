@@ -88,4 +88,10 @@ public class ProjectServiceImpl implements ProjectService {
         project.setStatus(status);
         repository.save(project);
     }
+
+    @Override
+    public Project getByProjectIdentifier(String projectIdentifier) throws ProjectException {
+        return repository.findByProjectIdentifier(projectIdentifier)
+                .orElseThrow(() -> new ProjectException("project.error.notfound"));
+    }
 }

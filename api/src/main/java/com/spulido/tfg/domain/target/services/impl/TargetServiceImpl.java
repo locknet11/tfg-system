@@ -77,4 +77,10 @@ public class TargetServiceImpl implements TargetService {
         return repository.findByUniqueId(uniqueId).isPresent();
     }
 
+    @Override
+    public Target getByUniqueId(String uniqueId) throws TargetException {
+        return repository.findByUniqueId(uniqueId)
+                .orElseThrow(() -> new TargetException("target.error.notfound"));
+    }
+
 }

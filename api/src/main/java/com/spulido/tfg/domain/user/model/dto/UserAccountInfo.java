@@ -12,8 +12,6 @@ public class UserAccountInfo {
     String id;
     String email;
     String fullName;
-    String company;
-    String cuit;
     Role role;
     List<ModuleAccess> moduleAccess;
 }
