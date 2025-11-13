@@ -28,12 +28,22 @@ export class RequestInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     // get token and insert in header
     const token = this.localStorageService.getToken();
+    const selectedOrganization = this.localStorageService.getSelectedOrganization();
+    const selectedProject = this.localStorageService.getSelectedProject();
+
+    const headers: any = {};
     if (token) {
-      req = req.clone({
-        setHeaders: {
-          Authorization: token,
-        },
-      });
+      headers.Authorization = token;
+    }
+    if (selectedOrganization?.id) {
+      headers['X-Organization-Id'] = selectedOrganization.id;
+    }
+    if (selectedProject?.id) {
+      headers['X-Project-Id'] = selectedProject.id;
+    }
+
+    if (Object.keys(headers).length > 0) {
+      req = req.clone({ setHeaders: headers });
     }
 
     return next.handle(req).pipe(

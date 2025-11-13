@@ -4,6 +4,7 @@ export interface Target {
   description?: string;
   os: OperatingSystem;
   uniqueId: string;
+  organizationId: string;
   projectId: string;
   ipOrDomain?: string;
   status: TargetStatus;
@@ -34,6 +35,7 @@ export interface TargetInfo {
   description?: string;
   os: OperatingSystem;
   uniqueId: string;
+  organizationId: string;
   projectId: string;
   ipOrDomain?: string;
   status: TargetStatus;
@@ -44,6 +46,7 @@ export interface CreateTargetRequest {
   systemName: string;
   description?: string;
   os: OperatingSystem;
+  organizationId: string;
   projectId: string;
 }
 

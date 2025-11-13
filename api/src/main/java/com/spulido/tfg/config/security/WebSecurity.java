@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class WebSecurity {
 
     private final JwtRequestFilter jwtRequestFilter;
+    private final ProjectContextFilter projectContextFilter;
 
     @Value("${allowedOrigins}")
     private String[] allowedOrigins;
@@ -63,7 +64,8 @@ public class WebSecurity {
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new AuthenticationEntryPointHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(projectContextFilter, JwtRequestFilter.class);
 
         return http.build();
     }

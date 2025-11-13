@@ -12,6 +12,7 @@ public class TargetInfo {
     String description;
     OperatingSystem os;
     String uniqueId;
+    String organizationId;
     String projectId;
     String ipOrDomain;
     TargetStatus status;

@@ -95,6 +95,7 @@ export class CreateTargetModalComponent {
         systemName,
         description,
         os,
+        organizationId: selectedOrg.id,
         projectId: selectedProject.id,
       };
 

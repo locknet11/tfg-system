@@ -30,6 +30,7 @@ public class TargetServiceMapper {
         target.setSystemName(request.getSystemName())
                 .setDescription(request.getDescription())
                 .setOs(request.getOs())
+                .setOrganizationId(request.getOrganizationId())
                 .setProjectId(request.getProjectId())
                 .setCreatedAt(LocalDateTime.now());
         return target;

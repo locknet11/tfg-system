@@ -38,18 +38,19 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public AgentsList listAgents(PageRequest pageRequest) {
-        Page<Agent> page = repository.findAll(pageRequest);
+        Page<Agent> page = repository.findAllScoped(pageRequest);
         return new AgentsList(page.getContent(), pageRequest, page.getTotalElements());
     }
 
     @Override
     public Agent getById(String id) {
-        return repository.findById(id).orElse(null);
+        return repository.findByIdScoped(id).orElse(null);
     }
 
     @Override
     public void deleteAgent(String id) {
-        repository.deleteById(id);
+        // Delete using scoped query to ensure user can only delete their own agents
+        repository.findByIdScoped(id).ifPresent(repository::delete);
     }
 
     @Override
@@ -85,6 +86,8 @@ public class AgentServiceImpl implements AgentService {
             agent.setStatus(AgentStatus.ACTIVE);
             agent.setLastConnection(LocalDateTime.now());
             agent.setVersion("1.0.0");
+            agent.setOrganizationId(organization.getId());
+            agent.setProjectId(project.getId());
 
             Agent savedAgent = repository.save(agent);
 

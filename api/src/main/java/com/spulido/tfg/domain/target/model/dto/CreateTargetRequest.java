@@ -17,6 +17,9 @@ public class CreateTargetRequest {
     @NotNull(message = "Operating system is required")
     private OperatingSystem os;
 
+    @NotBlank(message = "Organization ID is required")
+    private String organizationId;
+
     @NotBlank(message = "Project ID is required")
     private String projectId;
 

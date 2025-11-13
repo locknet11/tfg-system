@@ -50,18 +50,19 @@ public class TargetServiceImpl implements TargetService {
 
     @Override
     public Target getById(String id) throws TargetException {
-        return repository.findById(id).orElseThrow(() -> new TargetException("target.error.notfound"));
+        return repository.findByIdScoped(id).orElseThrow(() -> new TargetException("target.error.notfound"));
     }
 
     @Override
     public TargetsList listTargets(PageRequest pageRequest) {
-        Page<Target> page = repository.findAll(pageRequest);
+        Page<Target> page = repository.findAllScoped(pageRequest);
         return new TargetsList(page.getContent(), pageRequest, page.getTotalElements());
     }
 
     @Override
     public void deleteTarget(String targetId) {
-        repository.deleteById(targetId);
+        // Delete using scoped query to ensure user can only delete their own targets
+        repository.findByIdScoped(targetId).ifPresent(repository::delete);
     }
 
     @Override

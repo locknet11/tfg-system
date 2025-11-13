@@ -13,6 +13,8 @@ export interface Agent {
   version: string;
   lastConnection: Date;
   targetSystem?: string;
+  organizationId?: string;
+  projectId?: string;
 }
 
 export interface AgentsList {

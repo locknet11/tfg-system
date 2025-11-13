@@ -30,4 +30,10 @@ public class AgentInfo {
 
     @JsonProperty("targetSystem")
     private String targetSystem;
+
+    @JsonProperty("organizationId")
+    private String organizationId;
+
+    @JsonProperty("projectId")
+    private String projectId;
 }
