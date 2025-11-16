@@ -17,14 +17,6 @@ Diseño e implementación de un sistema autónomo para la remediación automáti
 
 ## Arquitectura del Sistema
 
-```mermaid
-graph TD
-    UI[Dashboard web (Angular 17)] -->|HTTP/HTTPS| API[API Spring Boot]
-    API -->|Persistencia| DB[(MongoDB)]
-    Agent[Agente Standalone\nSpring Boot + GraalVM] -->|TLS + API Key| API
-    API -->|Alertas/Reportes| UI
-```
-
 1. **Plataforma central** (carpeta `api/` y `ui/`):
    - Exposición de endpoints REST, autenticación JWT, gestión de organizaciones, targets, usuarios y políticas.
    - Dashboard web con métricas, alertas y administración del ecosistema.
@@ -39,6 +31,7 @@ graph TD
 ## Componentes Principales
 
 ### 1. API (`api/`)
+
 - **Stack**: Java 17, Spring Boot 3.1, Spring Security, MongoDB, JWT.
 - **Características**:
   - Autenticación vía `/authenticate` y registro inicial.
@@ -48,11 +41,13 @@ graph TD
   - `MONGODB_URI`, `MONGODB_DATABASE_NAME`, `JWT_SECRET`, `ALLOWED_ORIGINS`, `APPLICATION_DOMAIN`, `MAIL_*`.
 
 ### 2. UI (`ui/`)
+
 - **Stack**: Angular 17, PrimeNG, PrimeFlex, TailwindCSS, Chart.js.
 - **Funcionalidad**: Dashboard administrativo para monitorear agentes, organizaciones, reportes y alertas. Incluye flujos de autenticación, selección de proyectos y gestión de plantillas.
 - **Internacionalización**: Archivos `messages.json` / `messages.es.json`; el idioma base es inglés con soporte a español.
 
 ### 3. Agente Standalone (`agents/unix/`)
+
 - **Stack**: Java 17, Spring Boot 3.5 (modo standalone), GraalVM Native Image.
 - **Módulos**:
   - `WorkerCoordinator`: agenda y coordina trabajos recibidos de la plataforma central.
@@ -64,14 +59,14 @@ graph TD
 
 ## Requisitos Previos
 
-| Herramienta | Versión recomendada | Uso |
-|-------------|---------------------|-----|
-| Java JDK    | 17 (Liberica, Temurin o GraalVM) | API y agente |
-| Maven       | 3.9.x               | Construcción backend y agente |
-| Node.js     | 18 LTS              | Construcción UI |
-| npm         | 9.x                 | Gestión de dependencias UI |
-| MongoDB     | 6.x (local o cloud) | Persistencia |
-| GraalVM JDK | 21.0.x (opcional)   | Compilación nativa del agente |
+| Herramienta | Versión recomendada              | Uso                           |
+| ----------- | -------------------------------- | ----------------------------- |
+| Java JDK    | 17 (Liberica, Temurin o GraalVM) | API y agente                  |
+| Maven       | 3.9.x                            | Construcción backend y agente |
+| Node.js     | 18 LTS                           | Construcción UI               |
+| npm         | 9.x                              | Gestión de dependencias UI    |
+| MongoDB     | 6.x (local o cloud)              | Persistencia                  |
+| GraalVM JDK | 21.0.x (opcional)                | Compilación nativa del agente |
 
 > Nota: Para desarrollar sobre macOS, Linux o WSL. En Windows se recomienda WSL2 para compatibilidad con scripts de shell.
 
