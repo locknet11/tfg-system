@@ -3,8 +3,6 @@ AGENTS Guide (Angular + Spring Boot)
 - Modules: ui/ (Angular 17), api/ (Spring Boot 3), agents/unix/ (Spring Boot + GraalVM native).
 - Build: ui → `cd ui && npm ci && npm run build`; api → `cd api && ./mvnw clean package`; agents/unix → `cd agents/unix && ./mvnw clean package`.
 - Native agent (macOS/GraalVM): `cd agents/unix && sh package-macos.sh` or `./mvnw -Pnative native:compile -DmainClass=com.spulido.agent.AgentApplication`.
-- Test (Java): run in api/ or agents/unix → `./mvnw test`; single test → `./mvnw -Dtest=ClassName#method test` (method optional).
-- Test (UI): `cd ui && npm test`; single spec file → `npm test -- --include src/app/.../foo.spec.ts` (or use `fit`/`fdescribe`).
 - Lint/format (UI): Prettier 3.2.5 present; check `npx prettier --check .`, write `npx prettier --write .` (see ui/.prettierrc.json).
 - Lint (UI): No ESLint configured; rely on Angular strict TS and Prettier.
 - Java style: no formatter plugin; follow standard Spring/Java conventions; use Lombok where present; avoid wildcard imports; order imports: `java.*`, `jakarta.*`, `org.*`, project packages, static last.
@@ -14,7 +12,21 @@ AGENTS Guide (Angular + Spring Boot)
 - Error handling (UI): centralize HTTP errors in `src/app/shared/interceptors/request.interceptor.ts`; use `catchError` and rethrow with context; avoid `console.log` in production code.
 - Error handling (API): validate inputs with `jakarta.validation` annotations; map exceptions via `@ControllerAdvice`; return meaningful HTTP statuses/bodies.
 - Testing tips: make unit tests deterministic; avoid network/filesystem in unit scope; for Angular, use TestBed + spies, not real HTTP.
-- i18n/UI: keep text in `ui/src/i18n/*.json`; do not hardcode user‑visible strings.
+- i18n/UI: keep text in `ui/src/i18n/*.json`; the correct way of adding i18n is:
+
+```
+// in template
+
+<tag i18n>Text</tag>
+<primeng-component header="My header" i18n-header></primeng-component>
+
+// in component
+
+let text = $localize`This text`
+```
+
+Always the human friendly text must be in English. Do not use references like @@template.xxx.xxx
+
 - Security: never commit secrets; use environment/config files only.
 - Tools: No Cursor (.cursor/rules, .cursorrules) or Copilot instructions detected.
 - Scope: This file applies to the entire repository rooted here.

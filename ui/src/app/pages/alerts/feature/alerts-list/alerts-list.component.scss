@@ -1,0 +1,37 @@
+.alerts-list-container {
+  padding: 2rem;
+}
+
+::ng-deep {
+  .alerts-table {
+    background: var(--surface-card);
+    border-radius: 12px;
+    overflow: hidden;
+
+    .p-datatable-thead > tr > th {
+      background: var(--surface-card);
+      color: var(--text-color-secondary);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1.25rem 1rem;
+      border: none;
+    }
+
+    .p-datatable-tbody > tr {
+      background: var(--surface-card);
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: var(--surface-hover);
+      }
+
+      > td {
+        padding: 1.25rem 1rem;
+        border: none;
+        border-top: 1px solid var(--surface-border);
+      }
+    }
+  }
+}

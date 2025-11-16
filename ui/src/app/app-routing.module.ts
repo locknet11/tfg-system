@@ -61,6 +61,11 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'alerts',
+        loadChildren: () =>
+          import('./pages/alerts/alerts.routes').then(x => x.alertsRoutes),
+      },
+      {
         path: 'page-not-found',
         loadComponent: () =>
           import('./pages/page-not-found/page-not-found.component').then(

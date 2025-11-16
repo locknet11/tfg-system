@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.mongodb.MongoWriteException;
 import com.spulido.tfg.common.LangUtils;
 import com.spulido.tfg.domain.agent.exception.AgentException;
+import com.spulido.tfg.domain.alerts.exception.AlertException;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
 
@@ -125,6 +126,16 @@ public class CustomExceptionHandler {
 
 	@ExceptionHandler(TemplateException.class)
 	public ResponseEntity<?> handleTemplateExceptions(TemplateException ex) {
+		Map<String, Object> response = null;
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(ErrorCode.BAD_REQUEST)
+				.detail(ex.getLocalizedMessage()).build();
+		response = new GenericErrorResponse(errorDetails, null).mapOf();
+		return ResponseEntity.badRequest().body(response);
+	}
+
+	@ExceptionHandler(AlertException.class)
+	public ResponseEntity<?> handleAlertExceptions(AlertException ex) {
 		Map<String, Object> response = null;
 		ErrorDetails errorDetails = ErrorDetails.builder()
 				.code(ErrorCode.BAD_REQUEST)

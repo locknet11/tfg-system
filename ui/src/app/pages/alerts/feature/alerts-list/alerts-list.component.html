@@ -1,0 +1,91 @@
+<div class="alerts-list-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold m-0" i18n>Alerts</h1>
+    <p-button
+      (onClick)="createAlert()"
+      icon="pi pi-plus"
+      label="Create Alert"
+      i18n-label
+      styleClass="p-button-success"></p-button>
+  </div>
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <p-table
+    [value]="filteredAlerts()"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="alerts-table"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [rows]="sizeSig()"
+    [totalRecords]="totalSig()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    i18n-currentPageReportTemplate
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true"
+    [loading]="loadingSig()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th i18n>EMAIL</th>
+        <th i18n>CONDITIONS</th>
+        <th i18n>STATUS</th>
+        <th i18n>LAST TRIGGERED</th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-alert>
+      <tr>
+        <td>{{ alert.sendTo }}</td>
+        <td>
+          <p-tag
+            *ngFor="let condition of alert.conditions"
+            [value]="whenConditionLabel(condition)"
+            severity="info"
+            [style]="{ 'margin-right': '0.5rem', 'margin-bottom': '0.25rem' }"
+          ></p-tag>
+        </td>
+        <td>
+          <p-tag
+            [value]="alert.enabled ? 'Enabled' : 'Disabled'"
+            [severity]="alert.enabled ? 'success' : 'danger'"
+          ></p-tag>
+        </td>
+        <td>
+          <ng-container *ngIf="alert.lastTriggeredAt; else neverTpl">
+            {{ alert.lastTriggeredAt | date: 'short' }}
+          </ng-container>
+          <ng-template #neverTpl>
+            <span>-</span>
+          </ng-template>
+        </td>
+        <td>
+          <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-pencil"
+              (onClick)="editAlert(alert)"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              pTooltip="Edit"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+            <p-button
+              icon="pi pi-trash"
+              (onClick)="deleteAlert(alert)"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              pTooltip="Delete"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <app-create-alert-modal (alertCreated)="loadAlerts()"></app-create-alert-modal>
+  <app-edit-alert-modal (alertUpdated)="loadAlerts()"></app-edit-alert-modal>
+</div>

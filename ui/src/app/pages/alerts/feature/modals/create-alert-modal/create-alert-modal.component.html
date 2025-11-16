@@ -1,0 +1,76 @@
+<p-dialog
+  header="Create Alert Configuration"
+  i18n-header
+  [(visible)]="visibleSig"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="flex flex-column gap-3">
+      <div class="flex flex-column gap-2">
+        <label for="sendTo" i18n>Email Address</label>
+        <input
+          pInputText
+          id="sendTo"
+          formControlName="sendTo"
+          type="email"
+          placeholder="Enter email address"
+          i18n-placeholder
+          [class.ng-invalid]="isFieldInvalid('sendTo')"
+          [class.ng-dirty]="isFieldInvalid('sendTo')"
+        />
+        <small class="p-error" *ngIf="isFieldInvalid('sendTo')" i18n>
+          Valid email address is required
+        </small>
+      </div>
+
+      <div class="flex flex-column gap-2">
+        <label for="conditions" i18n>Alert Conditions</label>
+        <p-multiSelect
+          id="conditions"
+          formControlName="conditions"
+          [options]="conditionOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select conditions"
+          i18n-placeholder
+          [style]="{ width: '100%' }"
+          [class.ng-invalid]="isFieldInvalid('conditions')"
+          [class.ng-dirty]="isFieldInvalid('conditions')"
+        ></p-multiSelect>
+        <small class="p-error" *ngIf="isFieldInvalid('conditions')" i18n>
+          At least one condition is required
+        </small>
+      </div>
+
+      <div class="flex align-items-center gap-2">
+        <p-checkbox
+          formControlName="enabled"
+          [binary]="true"
+          inputId="enabled"
+        ></p-checkbox>
+        <label for="enabled" i18n>Enable this alert</label>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        i18n-label
+        class="p-button-text"
+        (click)="hide()"
+      ></button>
+      <button
+        pButton
+        type="submit"
+        label="Create"
+        i18n-label
+        icon="pi pi-check"
+      ></button>
+    </div>
+  </form>
+</p-dialog>
