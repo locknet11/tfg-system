@@ -2,26 +2,23 @@ package com.spulido.tfg.domain.plan.model;
 
 import java.util.List;
 
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import com.spulido.tfg.domain.BaseEntity;
-
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-// This entity describes the plan to be executed by an agent
-
-@Document(collection = "plans")
+// This value object describes the plan to be executed by an agent or derived from a template
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors(chain = true)
 @AllArgsConstructor
-public class Plan extends BaseEntity {
+@Accessors(chain = true)
+@Builder
+public class Plan {
 
     @Field
     private String notes;
@@ -31,5 +28,4 @@ public class Plan extends BaseEntity {
 
     @Field
     private List<Step> steps;
-
 }

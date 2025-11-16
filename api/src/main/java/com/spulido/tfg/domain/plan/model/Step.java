@@ -4,6 +4,17 @@ import java.util.List;
 
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Step {
 
     @Field
@@ -14,5 +25,4 @@ public class Step {
 
     @Field
     private List<String> logs;
-
 }

@@ -1,0 +1,82 @@
+<div class="templates-list-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 i18n>Templates</h1>
+    <p-button
+      label="Create Template"
+      i18n-label
+      icon="pi pi-plus"
+      styleClass="p-button-success"
+      (onClick)="createTemplate()"></p-button>
+  </div>
+
+  <div class="mb-4">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        placeholder="Search templates..."
+        i18n-placeholder
+        [ngModel]="querySig()"
+        (ngModelChange)="onSearchChange($event)" />
+    </span>
+  </div>
+
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <p-table
+    [value]="filteredTemplates()"
+    [loading]="loadingSig()"
+    [paginator]="false"
+    [rows]="sizeSig()"
+    styleClass="templates-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th i18n>Name</th>
+        <th i18n>Description</th>
+        <th i18n>Steps</th>
+        <th i18n>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-template>
+      <tr>
+        <td>{{ template.name }}</td>
+        <td>{{ template.description }}</td>
+        <td>{{ template.plan.steps.length }}</td>
+        <td>
+          <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              (onClick)="editTemplate(template)"
+              pTooltip="Edit"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (onClick)="deleteTemplate(template)"
+              pTooltip="Delete"
+              i18n-pTooltip
+              tooltipPosition="top"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-paginator
+    [rows]="sizeSig()"
+    [totalRecords]="totalSig()"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    (onPageChange)="onPageChange($event)"></p-paginator>
+
+  <app-create-template-modal
+    (templateCreated)="loadTemplates()"></app-create-template-modal>
+  <app-edit-template-modal
+    (templateEdited)="loadTemplates()"></app-edit-template-modal>
+</div>

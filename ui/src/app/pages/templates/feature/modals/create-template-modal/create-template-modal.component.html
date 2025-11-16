@@ -1,0 +1,88 @@
+<p-dialog
+  header="Create Template"
+  i18n-header
+  [visible]="visible()"
+  (visibleChange)="visible.set($event); resetForm()"
+  (onHide)="resetForm()"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '50vw' }"
+  [dismissableMask]="true">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="grid formgrid p-fluid">
+      <div class="field mb-4 col-12">
+        <label for="name" i18n>Name</label>
+        <input pInputText id="name" formControlName="name" />
+      </div>
+
+      <div class="field mb-4 col-12">
+        <label for="description" i18n>Description</label>
+        <textarea
+          pInputTextarea
+          id="description"
+          formControlName="description"></textarea>
+      </div>
+
+      <div formGroupName="plan" class="w-full">
+        <div class="field col-12 mb-4">
+          <label for="notes" i18n>Plan Notes</label>
+          <textarea
+            pInputTextarea
+            id="notes"
+            styleClass="w-full"
+            class="w-full"
+            formControlName="notes"></textarea>
+        </div>
+        <div class="field mb-4 col-12">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <h4 i18n>Steps</h4>
+
+            <p-button
+              label="Add Step"
+              i18n-label
+              icon="pi pi-plus"
+              (onClick)="addStep()"></p-button>
+          </div>
+          <div formArrayName="steps">
+            <div
+              *ngFor="let step of steps.controls; let i = index"
+              [formGroupName]="i"
+              class="flex align-items-center mb-2 mt-3">
+              <!-- number with index -->
+              <span class="mr-2">{{ i + 1 }}.</span>
+              <p-dropdown
+                [options]="stepActions"
+                optionLabel="label"
+                optionValue="value"
+                formControlName="action"
+                placeholder="Select Action"
+                appendTo="body"
+                i18n-placeholder></p-dropdown>
+              <p-button
+                icon="pi pi-trash"
+                class="p-button-danger ml-2"
+                [severity]="'danger'"
+                (onClick)="removeStep(i)"></p-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button
+        label="Cancel"
+        i18n-label
+        icon="pi pi-times"
+        type="button"
+        (click)="hide()"
+        class="p-button-secondary"></p-button>
+      <p-button
+        label="Create"
+        i18n-label
+        icon="pi pi-plus"
+        type="submit"
+        [disabled]="form.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

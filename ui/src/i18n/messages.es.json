@@ -73,6 +73,21 @@
     "2949150997160654358": "Últimos 30 días",
     "314681230385581844": "Listado de Agentes",
     "4196232656388343089": "Métricas",
-    "7347311526867613056": "Componente de listado de agentes - Por implementar"
+    "7347311526867613056": "Componente de listado de agentes - Por implementar",
+    "templates_title": "Plantillas",
+    "create_template": "Crear Plantilla",
+    "search_templates": "Buscar plantillas...",
+    "edit_template": "Editar Plantilla",
+    "create_template_title": "Crear Plantilla",
+    "name": "Nombre",
+    "notes": "Notas",
+    "description": "Descripción",
+    "allow_templating": "Permitir Plantillas",
+    "steps": "Pasos",
+    "add_step": "Agregar Paso",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "are_you_sure": "Estás seguro?",
+    "select_action": "Seleccionar acción"
   }
 }

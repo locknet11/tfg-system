@@ -13,9 +13,9 @@ const routes: Routes = [
   {
     path: 'project-selector',
     loadComponent: () =>
-      import('./pages/project-selector/feature/project-selector.component').then(
-        x => x.ProjectSelectorComponent
-      ),
+      import(
+        './pages/project-selector/feature/project-selector.component'
+      ).then(x => x.ProjectSelectorComponent),
   },
   {
     path: '',
@@ -29,13 +29,6 @@ const routes: Routes = [
         x => x.LayoutComponent
       ),
     children: [
-      {
-        path: 'mainpage',
-        loadComponent: () =>
-          import('./pages/mainpage/mainpage.component').then(
-            x => x.MainpageComponent
-          ),
-      },
       {
         path: 'dashboard',
         loadComponent: () =>
@@ -58,6 +51,13 @@ const routes: Routes = [
         loadComponent: () =>
           import('./pages/agents/feature/agents.component').then(
             x => x.AgentsComponent
+          ),
+      },
+      {
+        path: 'templates',
+        loadChildren: () =>
+          import('./pages/templates/templates.routes').then(
+            x => x.templatesRoutes
           ),
       },
       {

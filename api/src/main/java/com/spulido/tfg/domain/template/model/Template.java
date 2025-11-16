@@ -1,7 +1,4 @@
-package com.spulido.tfg.domain.agent.model;
-
-import java.time.LocalDateTime;
-import java.util.List;
+package com.spulido.tfg.domain.template.model;
 
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,36 +14,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Document(collection = "agents")
-@CompoundIndex(name = "org_proj_idx", def = "{ 'organizationId': 1, 'projectId': 1 }")
-@NoArgsConstructor
+@Document(collection = "templates")
+@CompoundIndex(name = "template_scope_idx", def = "{ 'organizationId': 1, 'projectId': 1 }")
 @Getter
 @Setter
-@Accessors(chain = true)
+@NoArgsConstructor
 @AllArgsConstructor
-public class Agent extends BaseEntity implements ScopedEntity {
+@Accessors(chain = true)
+public class Template extends BaseEntity implements ScopedEntity {
 
     @Field
     private String name;
 
     @Field
-    private AgentStatus status;
+    private String description;
 
     @Field
-    private String version;
-
-    @Field
-    private LocalDateTime lastConnection;
+    private Plan plan;
 
     @Field
     private String organizationId;
 
     @Field
     private String projectId;
-
-    @Field
-    private Plan plan;
-
-    @Field
-    private List<Plan> planHistory;
 }
