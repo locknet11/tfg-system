@@ -18,11 +18,11 @@ import lombok.Setter;
 public class Step {
 
     @Field
-    private StepExecutionStatus status;
+    private StepExecutionStatus status = StepExecutionStatus.PENDING;
 
     @Field
     private StepAction action;
 
     @Field
-    private List<String> logs;
+    private List<String> logs = List.of();
 }

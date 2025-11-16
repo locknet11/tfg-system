@@ -6,6 +6,7 @@ import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.Agent;
 import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
+import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
 
 public interface AgentService {
@@ -16,4 +17,6 @@ public interface AgentService {
     void deleteAgent(String id);
 
     AgentRegistrationResponse registerAgent(RegisterAgentRequest request) throws AgentException;
+
+    Agent assignPlan(String agentId, AssignPlanRequest request) throws AgentException;
 }

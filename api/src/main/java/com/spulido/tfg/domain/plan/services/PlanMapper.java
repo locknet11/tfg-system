@@ -20,7 +20,6 @@ public class PlanMapper {
         }
         return PlanInfo.builder()
                 .notes(plan.getNotes())
-                .allowTemplating(plan.isAllowTemplating())
                 .steps(buildStepInfos(plan.getSteps()))
                 .build();
     }

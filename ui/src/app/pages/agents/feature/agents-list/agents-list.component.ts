@@ -10,11 +10,12 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AgentsService } from '../../data-access/agents.service';
 import { Agent, AgentStatus } from '../../data-access/agents.model';
+import { AssignPlanModalComponent } from '../assign-plan-modal/assign-plan-modal.component';
 
 @Component({
   selector: 'app-agents-list',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, TagModule, InputTextModule, TooltipModule, ConfirmDialogModule, ToastModule],
+  imports: [CommonModule, TableModule, ButtonModule, TagModule, InputTextModule, TooltipModule, ConfirmDialogModule, ToastModule, AssignPlanModalComponent],
   templateUrl: './agents-list.component.html',
   styleUrls: ['./agents-list.component.scss'],
   providers: [AgentsService, ConfirmationService, MessageService],
@@ -26,6 +27,9 @@ export class AgentsListComponent {
 
   page = signal<number>(0);
   size = signal<number>(10);
+
+  showAssignPlanModal = false;
+  selectedAgentId = '';
 
   AgentStatus = AgentStatus;
 
@@ -104,5 +108,14 @@ export class AgentsListComponent {
         });
       }
     });
+  }
+
+  openAssignPlanModal(agentId: string) {
+    this.selectedAgentId = agentId;
+    this.showAssignPlanModal = true;
+  }
+
+  onPlanAssigned() {
+    this.fetch(this.page(), this.size());
   }
 }

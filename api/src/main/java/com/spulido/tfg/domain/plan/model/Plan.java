@@ -24,8 +24,5 @@ public class Plan {
     private String notes;
 
     @Field
-    private boolean allowTemplating;
-
-    @Field
     private List<Step> steps;
 }

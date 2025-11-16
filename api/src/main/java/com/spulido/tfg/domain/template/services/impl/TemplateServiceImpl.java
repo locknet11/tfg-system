@@ -81,7 +81,6 @@ public class TemplateServiceImpl implements TemplateService {
                 .collect(Collectors.toList());
         return Plan.builder()
                 .notes(plan.getNotes())
-                .allowTemplating(plan.isAllowTemplating())
                 .steps(normalizedSteps)
                 .build();
     }

@@ -28,7 +28,6 @@ public class TemplateServiceMapper {
         public Template requestToTemplate(TemplateRequest request) {
                 Plan plan = Plan.builder()
                                 .notes(request.getPlan().getNotes())
-                                .allowTemplating(request.getPlan().isAllowTemplating())
                                 .steps(request.getPlan().getSteps().stream()
                                                 .map(stepRequest -> Step.builder()
                                                                 .action(stepRequest.getAction())
@@ -77,7 +76,6 @@ public class TemplateServiceMapper {
                 }
                 return Plan.builder()
                                 .notes(template.getPlan().getNotes())
-                                .allowTemplating(template.getPlan().isAllowTemplating())
                                 .steps(template.getPlan().getSteps().stream()
                                                 .map(step -> Step.builder()
                                                                 .action(step.getAction())

@@ -1,0 +1,113 @@
+<p-dialog
+  header="Assign Plan to Agent"
+  i18n-header
+  [(visible)]="showModal"
+  [modal]="true"
+  [style]="{width: '50vw'}"
+  [closable]="true"
+  (onHide)="closeModal()"
+>
+  <div class="p-fluid">
+    <div class="p-field">
+      <p-inputSwitch
+        [(ngModel)]="useTemplate"
+        (onChange)="toggleMode()"
+        label="Use Existing Template"
+        i18n-label
+      ></p-inputSwitch>
+    </div>
+
+    <div *ngIf="useTemplate" class="p-field">
+      <label for="template" i18n>Select Template</label>
+      <p-dropdown
+        id="template"
+        [(ngModel)]="selectedTemplateId"
+        [options]="templates"
+        placeholder="Select Template"
+        i18n-placeholder
+        [showClear]="true"
+        [filter]="true"
+      ></p-dropdown>
+    </div>
+
+    <div *ngIf="!useTemplate">
+      <div class="p-field">
+        <label for="notes" i18n>Notes</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          pInputTextarea
+          rows="3"
+          [autoResize]="true"
+        ></textarea>
+      </div>
+
+      <div class="p-field">
+        <p-checkbox
+          formControlName="allowTemplating"
+          [binary]="true"
+          label="Allow Templating"
+          i18n-label
+        ></p-checkbox>
+      </div>
+
+      <div class="p-field">
+        <label i18n>Steps</label>
+        <p-table [value]="stepsFormArray.controls" [showCurrentPageReport]="true" i18n-currentPageReport>
+          <ng-template pTemplate="header">
+            <tr>
+              <th i18n>Action</th>
+              <th i18n>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-step let-i="rowIndex">
+            <tr [formGroupName]="i">
+              <td>
+                <p-dropdown
+                  formControlName="action"
+                  [options]="stepActionOptions"
+                  placeholder="Select Action"
+                  i18n-placeholder
+                ></p-dropdown>
+              </td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  (click)="removeStep(i)"
+                  severity="danger"
+                  tooltip="Remove Step"
+                  i18n-tooltip
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p-button
+          label="Add Step"
+          i18n-label
+          icon="pi pi-plus"
+          (click)="addStep()"
+          styleClass="p-button-secondary"
+        ></p-button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancel"
+      i18n-label
+      icon="pi pi-times"
+      (click)="closeModal()"
+      severity="secondary"
+    ></p-button>
+    <p-button
+      label="Assign"
+      i18n-label
+      icon="pi pi-check"
+      (click)="submitForm()"
+      [loading]="submitting"
+      [disabled]="!planForm.valid && !useTemplate"
+    ></p-button>
+  </ng-template>
+</p-dialog>

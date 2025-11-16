@@ -12,8 +12,6 @@ public class PlanRequest {
 
     private String notes;
 
-    private boolean allowTemplating;
-
     @NotEmpty
     private List<PlanStepRequest> steps;
 }
