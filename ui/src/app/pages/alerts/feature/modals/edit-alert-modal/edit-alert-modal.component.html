@@ -5,8 +5,7 @@
   [modal]="true"
   [style]="{ width: '40rem' }"
   [draggable]="false"
-  [resizable]="false"
->
+  [resizable]="false">
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="flex flex-column gap-3">
       <div class="flex flex-column gap-2">
@@ -19,8 +18,7 @@
           placeholder="Enter email address"
           i18n-placeholder
           [class.ng-invalid]="isFieldInvalid('sendTo')"
-          [class.ng-dirty]="isFieldInvalid('sendTo')"
-        />
+          [class.ng-dirty]="isFieldInvalid('sendTo')" />
         <small class="p-error" *ngIf="isFieldInvalid('sendTo')" i18n>
           Valid email address is required
         </small>
@@ -34,12 +32,12 @@
           [options]="conditionOptions"
           optionLabel="label"
           optionValue="value"
+          appendTo="body"
           placeholder="Select conditions"
           i18n-placeholder
           [style]="{ width: '100%' }"
           [class.ng-invalid]="isFieldInvalid('conditions')"
-          [class.ng-dirty]="isFieldInvalid('conditions')"
-        ></p-multiSelect>
+          [class.ng-dirty]="isFieldInvalid('conditions')"></p-multiSelect>
         <small class="p-error" *ngIf="isFieldInvalid('conditions')" i18n>
           At least one condition is required
         </small>
@@ -49,8 +47,7 @@
         <p-checkbox
           formControlName="enabled"
           [binary]="true"
-          inputId="enabled"
-        ></p-checkbox>
+          inputId="enabled"></p-checkbox>
         <label for="enabled" i18n>Enable this alert</label>
       </div>
     </div>
@@ -62,15 +59,13 @@
         label="Cancel"
         i18n-label
         class="p-button-text"
-        (click)="hide()"
-      ></button>
+        (click)="hide()"></button>
       <button
         pButton
         type="submit"
         label="Save"
         i18n-label
-        icon="pi pi-check"
-      ></button>
+        icon="pi pi-check"></button>
     </div>
   </form>
 </p-dialog>
