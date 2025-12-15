@@ -1,8 +1,11 @@
 package com.spulido.tfg.domain.agent.services.impl;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,7 @@ import com.spulido.tfg.domain.target.model.Target;
 import com.spulido.tfg.domain.target.model.TargetStatus;
 import com.spulido.tfg.domain.target.services.TargetService;
 import com.spulido.tfg.domain.template.exception.TemplateException;
+import com.spulido.tfg.domain.script.services.ScriptService;
 import com.spulido.tfg.domain.template.model.Template;
 import com.spulido.tfg.domain.template.services.TemplateService;
 
@@ -41,11 +45,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AgentServiceImpl implements AgentService {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int API_KEY_LENGTH = 32;
+
     private final AgentRepository repository;
     private final OrganizationService organizationService;
     private final ProjectService projectService;
     private final TargetService targetService;
     private final TemplateService templateService;
+    private final ScriptService scriptService;
+
+    @Value("${api.base-url:http://localhost:8080}")
+    private String apiBaseUrl;
 
     @Override
     public AgentsList listAgents(PageRequest pageRequest) {
@@ -92,6 +103,9 @@ public class AgentServiceImpl implements AgentService {
                 throw new AgentException("agent.error.targetAlreadyHasAgent");
             }
 
+            // Generate unique API key for agent authentication
+            String apiKey = generateApiKey();
+
             // Create new Agent with targetUniqueId in name
             Agent agent = new Agent();
             agent.setName("Agent-" + request.getTargetUniqueId());
@@ -100,6 +114,7 @@ public class AgentServiceImpl implements AgentService {
             agent.setVersion("1.0.0");
             agent.setOrganizationId(organization.getId());
             agent.setProjectId(project.getId());
+            agent.setApiKey(apiKey);
 
             Agent savedAgent = repository.save(agent);
 
@@ -113,12 +128,23 @@ public class AgentServiceImpl implements AgentService {
 
             targetService.updateTarget(target);
 
+            // Generate install script
+            String installScript = scriptService.generateInstallScript(
+                    target.getOs(),
+                    apiBaseUrl,
+                    organization.getOrganizationIdentifier(),
+                    project.getProjectIdentifier(),
+                    request.getTargetUniqueId(),
+                    target.getPreauthCode());
+
             // Build response
             AgentRegistrationResponse response = new AgentRegistrationResponse();
             response.setAgentId(savedAgent.getId());
             response.setTargetId(target.getId());
             response.setIpAddress(request.getClientIp());
             response.setStatus(savedAgent.getStatus().toString());
+            response.setApiKey(apiKey);
+            response.setInstallScript(installScript);
 
             return response;
 
@@ -190,5 +216,11 @@ public class AgentServiceImpl implements AgentService {
                 })
                 .toList());
         return plan;
+    }
+
+    private String generateApiKey() {
+        byte[] randomBytes = new byte[API_KEY_LENGTH];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 }

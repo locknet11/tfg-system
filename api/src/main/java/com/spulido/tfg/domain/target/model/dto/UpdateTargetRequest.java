@@ -13,4 +13,5 @@ public class UpdateTargetRequest {
     String ipOrDomain;
     TargetStatus status;
     String assignedAgent;
+    String preauthCode;
 }

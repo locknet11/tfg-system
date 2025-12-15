@@ -23,4 +23,6 @@ public class CreateTargetRequest {
     @NotBlank(message = "Project ID is required")
     private String projectId;
 
+    private String preauthCode;
+
 }

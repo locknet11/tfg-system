@@ -30,6 +30,7 @@ public class WebSecurity {
 
     private final JwtRequestFilter jwtRequestFilter;
     private final ProjectContextFilter projectContextFilter;
+    private final AgentApiKeyFilter agentApiKeyFilter;
 
     @Value("${allowedOrigins}")
     private String[] allowedOrigins;
@@ -60,10 +61,15 @@ public class WebSecurity {
                         .requestMatchers(HttpMethod.POST, "/auth/validate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/setup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/check-setup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/agent/**").permitAll()
+                        // Agent registration endpoint (public - agent registers itself)
+                        .requestMatchers(HttpMethod.POST, "/api/agent/{orgId}/{projId}/{targetId}").permitAll()
+                        // Agent communication endpoints (require API key authentication)
+                        .requestMatchers("/api/agent/comm/**").hasRole("AGENT")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new AuthenticationEntryPointHandler()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Add agent API key filter before JWT filter
+                .addFilterBefore(agentApiKeyFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(projectContextFilter, JwtRequestFilter.class);
 

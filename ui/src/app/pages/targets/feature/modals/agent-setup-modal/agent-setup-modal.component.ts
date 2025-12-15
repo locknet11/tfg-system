@@ -17,11 +17,16 @@ export class AgentSetupModalComponent {
   agentUrl = signal('');
   curlCommand = signal('');
 
-  show(organizationId: string, projectId: string, uniqueId: string) {
+  show(
+    organizationId: string,
+    projectId: string,
+    uniqueId: string,
+    preauthCode: string
+  ) {
     const baseUrl = environment.baseUrl;
-    const url = `${baseUrl}/api/agent/${organizationId}/${projectId}/${uniqueId}`;
+    const url = `${baseUrl}/api/agent/${organizationId}/${projectId}/${uniqueId}?preauthCode=${encodeURIComponent(preauthCode)}`;
     this.agentUrl.set(url);
-    this.curlCommand.set(`curl -sSL ${url} | bash`);
+    this.curlCommand.set(`curl -sSL "${url}" | bash`);
     this.visible.set(true);
   }
 

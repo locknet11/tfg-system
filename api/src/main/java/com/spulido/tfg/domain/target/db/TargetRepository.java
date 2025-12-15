@@ -29,4 +29,6 @@ public interface TargetRepository extends MongoRepository<Target, String> {
 
     @Query("{ 'assignedAgent' : ?0 }")
     Optional<Target> findByAssignedAgent(String agentId);
+
+    Optional<Target> findByPreauthCode(String preauthCode);
 }

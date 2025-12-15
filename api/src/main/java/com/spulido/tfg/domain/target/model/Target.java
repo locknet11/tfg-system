@@ -1,6 +1,7 @@
 package com.spulido.tfg.domain.target.model;
 
 import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -48,5 +49,9 @@ public class Target extends BaseEntity implements ScopedEntity {
 
     @Field
     private String assignedAgent;
+
+    @Field
+    @Indexed(unique = true)
+    private String preauthCode;
 
 }

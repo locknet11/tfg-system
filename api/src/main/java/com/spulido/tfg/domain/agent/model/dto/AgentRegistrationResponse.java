@@ -10,4 +10,6 @@ public class AgentRegistrationResponse {
     private String targetId;
     private String ipAddress;
     private String status;
+    private String apiKey;
+    private String installScript;
 }

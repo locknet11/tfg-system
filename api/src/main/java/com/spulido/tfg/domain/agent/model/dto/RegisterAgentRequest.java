@@ -10,4 +10,5 @@ public class RegisterAgentRequest {
     private String projectIdentifier;
     private String targetUniqueId;
     private String clientIp;
+    private String preauthCode;
 }

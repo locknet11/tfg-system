@@ -56,6 +56,9 @@ public class TargetServiceMapper {
         if (request.getAssignedAgent() != null) {
             target.setAssignedAgent(request.getAssignedAgent());
         }
+        if (request.getPreauthCode() != null) {
+            target.setPreauthCode(request.getPreauthCode());
+        }
         target.setUpdatedAt(LocalDateTime.now());
         return target;
     }

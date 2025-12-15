@@ -27,24 +27,31 @@ public class TargetServiceImpl implements TargetService {
         do {
             uniqueId = IdentifierGenerator.generateTargetUniqueId();
         } while (uniqueIdExists(uniqueId));
-        
+
         target.setUniqueId(uniqueId);
-        
+
+        if (target.getPreauthCode() == null || target.getPreauthCode().isEmpty()) {
+            target.setPreauthCode(generatePreauthCode());
+        }
+
         // Set default values for fields that will be populated later by agent
         target.setStatus(TargetStatus.OFFLINE);
         target.setAssignedAgent(null);
         target.setIpOrDomain(null);
-        
+
         return repository.save(target);
+    }
+
+    private String generatePreauthCode() {
+        String code;
+        do {
+            code = IdentifierGenerator.generate(12, false);
+        } while (repository.findByPreauthCode(code).isPresent());
+        return code;
     }
 
     @Override
     public Target updateTarget(Target target) throws TargetException {
-        Target existing = getById(target.getId());
-        if (target.getIpOrDomain() != null && !target.getIpOrDomain().equals(existing.getIpOrDomain()) 
-            && ipOrDomainExists(target.getIpOrDomain())) {
-            throw new TargetException("target.error.ipOrDomainExists");
-        }
         return repository.save(target);
     }
 

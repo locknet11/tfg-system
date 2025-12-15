@@ -47,11 +47,13 @@ public class AgentServiceMapper {
             String organizationIdentifier,
             String projectIdentifier,
             String targetUniqueId,
+            String preauthCode,
             HttpServletRequest httpRequest) {
         RegisterAgentRequest request = new RegisterAgentRequest();
         request.setOrganizationIdentifier(organizationIdentifier);
         request.setProjectIdentifier(projectIdentifier);
         request.setTargetUniqueId(targetUniqueId);
+        request.setPreauthCode(preauthCode);
         request.setClientIp(extractClientIp(httpRequest));
         return request;
     }

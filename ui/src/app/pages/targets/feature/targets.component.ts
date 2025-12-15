@@ -78,9 +78,14 @@ export class TargetsComponent implements OnInit {
     // Get organization and project from localStorage
     const selectedOrgStr = localStorage.getItem('selectedOrganization');
     const selectedProjectStr = localStorage.getItem('selectedProject');
-    
+
     if (!selectedOrgStr || !selectedProjectStr) {
       this.toastService.error($localize`Organization or project information not found`);
+      return;
+    }
+
+    if (!target.preauthCode) {
+      this.toastService.error($localize`Pre-authorization code missing for this target`);
       return;
     }
 
@@ -88,7 +93,12 @@ export class TargetsComponent implements OnInit {
     const selectedProject = JSON.parse(selectedProjectStr);
 
     // Use short identifiers instead of MongoDB IDs
-    this.agentSetupModal().show(selectedOrg.organizationIdentifier, selectedProject.projectIdentifier, target.uniqueId);
+    this.agentSetupModal().show(
+      selectedOrg.organizationIdentifier,
+      selectedProject.projectIdentifier,
+      target.uniqueId,
+      target.preauthCode
+    );
   }
 
   deleteConfirm(event: Event, target: TargetInfo) {

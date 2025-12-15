@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.spulido.tfg.domain.shared.ResponseList;
 import com.spulido.tfg.domain.target.exception.TargetException;
 import com.spulido.tfg.domain.target.model.Target;
+
 import com.spulido.tfg.domain.target.model.dto.CreateTargetRequest;
 import com.spulido.tfg.domain.target.model.dto.TargetInfo;
 import com.spulido.tfg.domain.target.model.dto.UpdateTargetRequest;
@@ -56,7 +57,8 @@ public class TargetController {
     @PostMapping()
     public ResponseEntity<?> createTarget(@RequestBody @Valid CreateTargetRequest request)
             throws URISyntaxException, TargetException {
-        Target created = targetService.createTarget(targetMapper.createTargetRequestToTarget(request));
+        Target target = targetMapper.createTargetRequestToTarget(request);
+        Target created = targetService.createTarget(target);
         TargetInfo dto = targetMapper.targetToTargetInfo(created);
         return ResponseEntity.created(new URI(String.format("/api/targets/%s", dto.getId()))).body(dto);
     }

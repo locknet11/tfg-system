@@ -17,4 +17,5 @@ public class TargetInfo {
     String ipOrDomain;
     TargetStatus status;
     String assignedAgent;
+    String preauthCode;
 }

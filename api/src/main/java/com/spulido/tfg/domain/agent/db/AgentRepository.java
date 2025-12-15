@@ -17,4 +17,7 @@ public interface AgentRepository extends MongoRepository<Agent, String> {
     
     @Query("{ '_id': ?0, 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, 'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }")
     Optional<Agent> findByIdScoped(String id);
+
+    // Find agent by API key (for agent authentication)
+    Optional<Agent> findByApiKey(String apiKey);
 }

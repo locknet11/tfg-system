@@ -43,7 +43,7 @@ import { AgentSetupModalComponent } from '../agent-setup-modal/agent-setup-modal
 export class CreateTargetModalComponent {
   visible = signal(false);
   targetCreated = output<TargetInfo>();
-  
+
   agentSetupModal = viewChild.required(AgentSetupModalComponent);
 
   createTargetForm: FormGroup = this.fb.nonNullable.group({
@@ -81,16 +81,19 @@ export class CreateTargetModalComponent {
       // Get selected project from localStorage
       const selectedProjectStr = localStorage.getItem('selectedProject');
       const selectedOrgStr = localStorage.getItem('selectedOrganization');
-      
+
       if (!selectedProjectStr || !selectedOrgStr) {
-        this.toastService.error($localize`Please select an organization and project first`);
+        this.toastService.error(
+          $localize`Please select an organization and project first`
+        );
         return;
       }
 
       const selectedProject = JSON.parse(selectedProjectStr);
       const selectedOrg = JSON.parse(selectedOrgStr);
 
-      const { systemName, description, os } = this.createTargetForm.getRawValue();
+      const { systemName, description, os } =
+        this.createTargetForm.getRawValue();
       const request: CreateTargetRequest = {
         systemName,
         description,
@@ -104,9 +107,14 @@ export class CreateTargetModalComponent {
           this.toastService.success($localize`Target created successfully`);
           this.targetCreated.emit(res);
           this.hide();
-          
+
           // Show agent setup modal with the generated URL using short identifiers
-          this.agentSetupModal().show(selectedOrg.organizationIdentifier, selectedProject.projectIdentifier, res.uniqueId);
+          this.agentSetupModal().show(
+            selectedOrg.organizationIdentifier,
+            selectedProject.projectIdentifier,
+            res.uniqueId,
+            res.preauthCode!
+          );
         },
         error: err => {
           this.toastService.error($localize`Error creating target`);

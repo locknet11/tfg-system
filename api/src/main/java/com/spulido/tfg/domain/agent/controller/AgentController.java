@@ -2,6 +2,7 @@ package com.spulido.tfg.domain.agent.controller;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,21 +59,27 @@ public class AgentController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{organizationIdentifier}/{projectIdentifier}/{targetUniqueId}")
-    public ResponseEntity<?> registerAgent(
-            @PathVariable("organizationIdentifier") String organizationIdentifier,
-            @PathVariable("projectIdentifier") String projectIdentifier,
-            @PathVariable("targetUniqueId") String targetUniqueId,
+    @PostMapping(value = "/{organizationIdentifier}/{projectIdentifier}/{targetUniqueId}", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> registerAgent(
+            @PathVariable String organizationIdentifier,
+            @PathVariable String projectIdentifier,
+            @PathVariable String targetUniqueId,
+            @RequestParam(name = "preauthCode", required = false) String preauthCode,
             HttpServletRequest httpRequest) throws AgentException {
 
         RegisterAgentRequest request = mapper.pathVariablesToRegisterRequest(
                 organizationIdentifier,
                 projectIdentifier,
                 targetUniqueId,
+                preauthCode,
                 httpRequest);
 
         AgentRegistrationResponse response = agentService.registerAgent(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(response.getInstallScript());
     }
 
     @PutMapping("/{id}/plan")

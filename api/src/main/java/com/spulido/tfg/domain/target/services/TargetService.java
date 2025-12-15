@@ -18,7 +18,7 @@ public interface TargetService {
     void deleteTarget(String targetId);
 
     boolean ipOrDomainExists(String ipOrDomain);
-    
+
     boolean uniqueIdExists(String uniqueId);
 
     Target getByUniqueId(String uniqueId) throws TargetException;

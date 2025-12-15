@@ -9,6 +9,7 @@ export interface Target {
   ipOrDomain?: string;
   status: TargetStatus;
   assignedAgent?: string;
+  preauthCode?: string;
 }
 
 export enum TargetStatus {
@@ -18,7 +19,7 @@ export enum TargetStatus {
 }
 
 export enum OperatingSystem {
-  LINUX = 'LINUX'
+  LINUX = 'LINUX',
 }
 
 export interface TargetsList {
@@ -40,6 +41,7 @@ export interface TargetInfo {
   ipOrDomain?: string;
   status: TargetStatus;
   assignedAgent?: string;
+  preauthCode?: string;
 }
 
 export interface CreateTargetRequest {
