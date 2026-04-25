@@ -53,7 +53,31 @@ public class ScriptServiceImpl implements ScriptService {
     private String getTemplateNameForOs(OperatingSystem os) {
         return switch (os) {
             case LINUX -> "unix.sh.ftl";
-            // Add more OS types here when needed
         };
+    }
+
+    private String getErrorTemplateNameForOs(OperatingSystem os) {
+        return switch (os) {
+            case LINUX -> "unix-error.sh.ftl";
+        };
+    }
+
+    @Override
+    public String generateInstallErrorScript(OperatingSystem os, String targetUniqueId, String errorMessage) {
+        String templateName = getErrorTemplateNameForOs(os);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("targetUniqueId", targetUniqueId);
+        model.put("errorMessage", errorMessage);
+
+        try {
+            Template template = freemarkerConfiguration.getTemplate(templateName);
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
+            return writer.toString();
+        } catch (Exception e) {
+            log.error("Error generating install error script for OS: {}", os, e);
+            throw new RuntimeException("Failed to generate installation error script", e);
+        }
     }
 }

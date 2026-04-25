@@ -15,8 +15,10 @@ PROJECT_ID="${projectIdentifier}"
 TARGET_UNIQUE_ID="${targetUniqueId}"
 PREAUTH_CODE="${preauthCode}"
 
-echo "Instalando el agente de seguridad para el target: $TARGET_UNIQUE_ID"
+echo "Installing security agent for target: $TARGET_UNIQUE_ID"
 echo "API URL: $API_URL"
 echo "Organization: $ORGANIZATION_ID"
 echo "Project: $PROJECT_ID"
 echo "Target: $TARGET_UNIQUE_ID"
+
+exit 0
