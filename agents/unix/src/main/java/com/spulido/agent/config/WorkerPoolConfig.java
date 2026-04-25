@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.spulido.agent.worker.CommandExecutor;
+import com.spulido.agent.worker.TaskExecutionService;
+
 @Configuration
 @EnableAsync
 public class WorkerPoolConfig {
@@ -18,5 +21,17 @@ public class WorkerPoolConfig {
         executor.setThreadNamePrefix("worker-");
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    public CommandExecutor commandExecutor() {
+        return (command, timeoutSeconds) -> {
+            throw new UnsupportedOperationException("Command execution not yet implemented");
+        };
+    }
+
+    @Bean
+    public TaskExecutionService taskExecutionService(CommandExecutor commandExecutor) {
+        return new TaskExecutionService(commandExecutor);
     }
 }
