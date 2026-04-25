@@ -270,3 +270,8 @@ Los reportes generados quedarán almacenados en formato digital/documental en la
 - **A4:** Código de ejemplo de agente auto-replicable y API centralizada.
 
 ---
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
