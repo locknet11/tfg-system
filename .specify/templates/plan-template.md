@@ -31,7 +31,13 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Repository guidance reviewed: `AGENTS.md` and any relevant `.agents/skills/*/SKILL.md`
+- English-only rule satisfied for code, UI text, docs, and comments
+- Proposed design is the smallest correct change and avoids unnecessary abstraction
+- Stack rules captured for affected modules (`ui/`, `api/`, `agents/unix/`)
+- Verification steps identified for every affected module
+- Git actions identified; explicit user approval required before any git command runs
+- Unknown or ambiguous requirements resolved or called out before implementation
 
 ## Project Structure
 

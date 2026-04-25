@@ -90,6 +90,17 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
+### Cross-Cutting Requirements
+
+- **Internationalization**: State any user-facing text, translation, or localization
+  requirements. Human-friendly text must be authored in English.
+- **Accessibility**: State keyboard, ARIA, focus, and accessibility expectations for UI
+  changes.
+- **Validation and Error Handling**: State request validation, failure behavior, and error
+  reporting expectations.
+- **Security Constraints**: State secret handling, authentication, authorization, and data
+  protection requirements relevant to the feature.
+
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
@@ -126,3 +137,9 @@
 - [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+
+## Constitution Notes
+
+- Confirm which repository guidance from `AGENTS.md` applies.
+- Confirm whether `.agents/skills/` introduces stack-specific constraints for this work.
+- Record any open question that must be answered before implementation rather than guessed.
