@@ -45,6 +45,11 @@ export class MenuComponent implements OnInit {
             routerLink: ['templates'],
           },
           {
+            label: $localize`Vulnerabilities`,
+            icon: 'pi pi-shield',
+            routerLink: ['vulnerabilities'],
+          },
+          {
             label: $localize`Alerts`,
             icon: 'pi pi-bell',
             routerLink: ['alerts'],

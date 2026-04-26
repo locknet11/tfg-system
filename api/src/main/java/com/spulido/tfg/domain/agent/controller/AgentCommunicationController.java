@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,10 @@ import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
 import com.spulido.tfg.domain.plan.model.Plan;
 import com.spulido.tfg.domain.plan.model.dto.PlanInfo;
 import com.spulido.tfg.domain.plan.services.PlanMapper;
+import com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord;
+import com.spulido.tfg.domain.vulnerability.model.dto.VulnerabilityLookupRequest;
+import com.spulido.tfg.domain.vulnerability.model.dto.VulnerabilityLookupResponse;
+import com.spulido.tfg.domain.vulnerability.services.VulnerabilityMapper;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +42,7 @@ public class AgentCommunicationController {
 
     private final AgentCommunicationService communicationService;
     private final PlanMapper planMapper;
+    private final VulnerabilityMapper vulnerabilityMapper;
 
     /**
      * Heartbeat endpoint - updates the agent's lastConnection timestamp.
@@ -85,5 +91,19 @@ public class AgentCommunicationController {
         Plan plan = communicationService.updateStepStatus(agentId, stepIndex, request);
 
         return ResponseEntity.ok(planMapper.planToInfo(plan));
+    }
+
+    /**
+     * Lookup vulnerability and exploit data for a service+version.
+     * Uses lazy-loading: returns cached data if available, otherwise queries NVD.
+     */
+    @PostMapping("/vulnerabilities/lookup")
+    public ResponseEntity<VulnerabilityLookupResponse> lookupVulnerabilities(
+            @RequestBody @Valid VulnerabilityLookupRequest request) throws Exception {
+
+        ServiceVulnerabilityRecord record = communicationService.lookupVulnerabilities(
+                request.getServiceName(), request.getServiceVersion());
+
+        return ResponseEntity.ok(vulnerabilityMapper.recordToResponse(record));
     }
 }

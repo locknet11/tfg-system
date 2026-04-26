@@ -33,7 +33,9 @@ public enum ErrorCode {
 	UNAUTHORIZED("exception.unauthorized"),
 	USER_EXCEPTION("exception.userException"),
 	RESOURCE_ALREADY_EXISTS("exception.resourceAlreadyExists"),
-	AGENT_EXCEPTION("exception.agentException");
+	AGENT_EXCEPTION("exception.agentException"),
+	VULNERABILITY_NOT_FOUND("exception.vulnerabilityNotFound"),
+	EXTERNAL_API_ERROR("exception.externalApiError");
 
 	private final String defaultMessage;
 }
