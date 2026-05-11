@@ -19,6 +19,7 @@ import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.alerts.exception.AlertException;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
+import com.spulido.tfg.domain.vulnerability.exception.VulnerabilityException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -142,6 +143,21 @@ public class CustomExceptionHandler {
 				.detail(ex.getLocalizedMessage()).build();
 		response = new GenericErrorResponse(errorDetails, null).mapOf();
 		return ResponseEntity.badRequest().body(response);
+	}
+
+	@ExceptionHandler(VulnerabilityException.class)
+	public ResponseEntity<?> handleVulnerabilityExceptions(VulnerabilityException ex) {
+		boolean isNotFound = ex.getMessage() != null && ex.getMessage().contains("not found");
+		ErrorCode code = isNotFound ? ErrorCode.VULNERABILITY_NOT_FOUND : ErrorCode.EXTERNAL_API_ERROR;
+		HttpStatus status = isNotFound ? HttpStatus.NOT_FOUND : HttpStatus.BAD_GATEWAY;
+
+		Map<String, Object> response = null;
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(code)
+				.detail(ex.getLocalizedMessage()).build();
+		response = new GenericErrorResponse(errorDetails, null).mapOf();
+		log.error("Vulnerability exception: {}", ex.getMessage());
+		return ResponseEntity.status(status).body(response);
 	}
 
 	@ExceptionHandler(Exception.class)

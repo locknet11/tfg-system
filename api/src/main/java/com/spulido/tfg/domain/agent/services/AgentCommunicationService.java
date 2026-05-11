@@ -38,4 +38,16 @@ public interface AgentCommunicationService {
      * @throws AgentException if agent not found or step index invalid
      */
     Plan updateStepStatus(String agentId, int stepIndex, UpdateStepRequest request) throws AgentException;
+
+    /**
+     * Looks up vulnerability and exploit data for a specific service+version.
+     * Uses lazy-loading: returns cached data if available, otherwise queries external APIs.
+     *
+     * @param serviceName the service name (e.g., "openssh")
+     * @param serviceVersion the service version (e.g., "8.9p1")
+     * @return the vulnerability record
+     * @throws Exception if lookup fails
+     */
+    com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord lookupVulnerabilities(
+            String serviceName, String serviceVersion) throws Exception;
 }

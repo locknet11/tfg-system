@@ -1,0 +1,96 @@
+<div class="vulnerabilities-page">
+  <div class="page-header">
+    <h2 i18n>Vulnerability Knowledge Base</h2>
+  </div>
+
+  <div class="filters">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        type="text"
+        pInputText
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+        [placeholder]="'Search by service name'"
+        i18n-placeholder
+        id="vuln-search-input" />
+    </span>
+
+    <p-dropdown
+      [options]="severityOptions"
+      [(ngModel)]="selectedSeverity"
+      (onChange)="onSeverityChange()"
+      [placeholder]="'Filter by severity'"
+      i18n-placeholder
+      id="vuln-severity-filter"></p-dropdown>
+  </div>
+
+  <p-table
+    [value]="records()"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="sizeSig()"
+    [totalRecords]="totalSig()"
+    [loading]="loadingSig()"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first} - {last} / {totalRecords}"
+    styleClass="p-datatable-sm"
+    id="vuln-data-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th i18n>Service</th>
+        <th i18n>Version</th>
+        <th i18n>CVEs</th>
+        <th i18n>Max Severity</th>
+        <th i18n>Status</th>
+        <th i18n>Fetched At</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-record>
+      <tr class="clickable-row" (click)="viewDetail(record)">
+        <td>
+          <strong>{{ record.serviceName }}</strong>
+        </td>
+        <td>{{ record.serviceVersion }}</td>
+        <td>
+          <span class="cve-count">{{ record.totalCves }}</span>
+        </td>
+        <td>
+          <p-tag
+            *ngIf="record.maxSeverity"
+            [value]="record.maxSeverity"
+            [severity]="getSeverityClass(record.maxSeverity)"></p-tag>
+          <span *ngIf="!record.maxSeverity" class="no-data" i18n>None</span>
+        </td>
+        <td>
+          <p-tag
+            [value]="record.status"
+            [severity]="
+              record.status === 'FETCHED' ? 'success' : 'info'
+            "></p-tag>
+        </td>
+        <td>{{ record.fetchedAt | date: 'medium' }}</td>
+        <td>
+          <button
+            pButton
+            icon="pi pi-eye"
+            class="p-button-text p-button-sm"
+            [pTooltip]="'View details'"
+            i18n-pTooltip
+            (click)="viewDetail(record); $event.stopPropagation()"
+            id="vuln-view-{{ record.serviceKey }}"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center" i18n>
+          No vulnerability records found.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

@@ -1,0 +1,40 @@
+.vulnerabilities-page {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+
+  .filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .clickable-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--surface-hover);
+    }
+  }
+
+  .cve-count {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .no-data {
+    color: var(--text-color-secondary);
+    font-style: italic;
+  }
+}

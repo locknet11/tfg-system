@@ -61,6 +61,13 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'vulnerabilities',
+        loadChildren: () =>
+          import('./pages/vulnerabilities/vulnerabilities.routes').then(
+            x => x.vulnerabilitiesRoutes
+          ),
+      },
+      {
         path: 'alerts',
         loadChildren: () =>
           import('./pages/alerts/alerts.routes').then(x => x.alertsRoutes),

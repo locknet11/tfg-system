@@ -14,6 +14,8 @@ import com.spulido.tfg.domain.agent.model.dto.UpdateStepRequest;
 import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
 import com.spulido.tfg.domain.plan.model.Plan;
 import com.spulido.tfg.domain.plan.model.Step;
+import com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord;
+import com.spulido.tfg.domain.vulnerability.services.VulnerabilityLookupService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AgentCommunicationServiceImpl implements AgentCommunicationService {
 
     private final AgentRepository agentRepository;
+    private final VulnerabilityLookupService vulnerabilityLookupService;
 
     @Override
     public Agent updateHeartbeat(String agentId) throws AgentException {
@@ -87,5 +90,11 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
         log.info("Agent {} updated step {} to status {}", agent.getName(), stepIndex, request.getStatus());
 
         return plan;
+    }
+
+    @Override
+    public ServiceVulnerabilityRecord lookupVulnerabilities(
+            String serviceName, String serviceVersion) throws Exception {
+        return vulnerabilityLookupService.lookup(serviceName, serviceVersion);
     }
 }
