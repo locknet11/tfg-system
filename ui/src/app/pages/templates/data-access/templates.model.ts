@@ -24,6 +24,7 @@ export enum StepAction {
   NETWORK_SCAN = 'NETWORK_SCAN',
   GENERATE_REPORT = 'GENERATE_REPORT',
   SEND_REPORT = 'SEND_REPORT',
+  EXPLOITATION_KNOWLEDGE = 'EXPLOITATION_KNOWLEDGE',
 }
 
 export enum StepExecutionStatus {
@@ -45,6 +46,8 @@ export function stepActionLabel(action: StepAction): string {
       return $localize`Generate report`;
     case StepAction.SEND_REPORT:
       return $localize`Send report`;
+    case StepAction.EXPLOITATION_KNOWLEDGE:
+      return $localize`Exploitation knowledge`;
     default:
       return action;
   }

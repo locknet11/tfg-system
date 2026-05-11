@@ -76,7 +76,7 @@ public class AgentCommunicationController {
             return ResponseEntity.noContent().build();
         }
 
-        return ResponseEntity.ok(planMapper.planToInfo(plan));
+        return ResponseEntity.ok(planMapper.planToInfo(plan, agentId));
     }
 
     /**

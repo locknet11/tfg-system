@@ -1,30 +1,53 @@
 package com.spulido.agent.worker;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
+import com.spulido.agent.config.AgentConfig;
 import com.spulido.agent.domain.task.AgentJob;
 import com.spulido.agent.domain.task.JobStatus;
+import com.spulido.agent.domain.task.StepAction;
 import com.spulido.agent.domain.task.TaskDefinition;
+import com.spulido.agent.worker.http.AgentHttpClient;
+import com.spulido.agent.worker.http.dto.PlanResponse;
+import com.spulido.agent.worker.http.dto.PlanStepResponse;
+import com.spulido.agent.worker.step.EchoStepHandler;
+import com.spulido.agent.worker.step.ExploitationKnowledgeStepHandler;
+import com.spulido.agent.worker.step.StepHandler;
 import com.spulido.agent.utils.AgentLifecycle;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Component
-@Slf4j
-@RequiredArgsConstructor
 public class WorkerCoordinator {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkerCoordinator.class);
 
     private final ThreadPoolTaskExecutor executor;
     private final TaskExecutionService taskExecutionService;
+    private final AgentHttpClient httpClient;
+    private final AgentConfig config;
     private final AgentLifecycle agentLifecycle;
-    private RestTemplate restTemplate = new RestTemplate();
+
+    private String targetIp;
+
+    public WorkerCoordinator(ThreadPoolTaskExecutor executor,
+                             TaskExecutionService taskExecutionService,
+                             AgentHttpClient httpClient,
+                             AgentConfig config,
+                             AgentLifecycle agentLifecycle) {
+        this.executor = executor;
+        this.taskExecutionService = taskExecutionService;
+        this.httpClient = httpClient;
+        this.config = config;
+        this.agentLifecycle = agentLifecycle;
+    }
 
     int counter = 0;
 
@@ -36,16 +59,30 @@ public class WorkerCoordinator {
     }
 
     private void runJob() {
-        List<TaskDefinition> steps = buildJobSteps();
-        if (steps.isEmpty()) {
-            log.info("No jobs to execute");
+        PlanResponse planResponse = httpClient.fetchPlan();
+        if (planResponse == null || planResponse.getSteps() == null || planResponse.getSteps().isEmpty()) {
+            log.info("No plan received from central");
             return;
         }
 
-        String jobId = "job-" + counter;
-        log.info("Executing job: {}", jobId);
+        this.targetIp = planResponse.getTargetIp();
+        log.info("Received plan with {} steps, target IP: {}", planResponse.getSteps().size(), targetIp);
 
-        AgentJob job = taskExecutionService.executeJob(jobId, steps);
+        List<TaskDefinition> steps = new ArrayList<>();
+        List<StepAction> actions = new ArrayList<>();
+
+        for (int i = 0; i < planResponse.getSteps().size(); i++) {
+            PlanStepResponse planStep = planResponse.getSteps().get(i);
+            StepAction action = parseStepAction(planStep.getAction());
+            String command = mapActionToCommand(action, planStep);
+            steps.add(new TaskDefinition("step-" + i, i, command, 60));
+            actions.add(action);
+        }
+
+        String jobId = "job-" + counter;
+        log.info("Executing job: {} with actions: {}", jobId, actions);
+
+        AgentJob job = taskExecutionService.executeJob(jobId, steps, actions);
 
         if (job.getStatus() == JobStatus.FAILED) {
             log.warn("Job {} failed: {}", job.getJobId(), job.getFailureReason());
@@ -54,9 +91,39 @@ public class WorkerCoordinator {
         }
     }
 
-    private List<TaskDefinition> buildJobSteps() {
-        return Arrays.asList(
-                new TaskDefinition("step-1", 0, "echo hello", 30),
-                new TaskDefinition("step-2", 1, "echo world", 30));
+    private StepAction parseStepAction(String actionStr) {
+        if (actionStr == null) {
+            return StepAction.ECHO;
+        }
+        try {
+            return StepAction.valueOf(actionStr);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown step action: {}, falling back to ECHO", actionStr);
+            return StepAction.ECHO;
+        }
+    }
+
+    private String mapActionToCommand(StepAction action, PlanStepResponse planStep) {
+        switch (action) {
+            case EXPLOITATION_KNOWLEDGE:
+                return "exploitation-knowledge";
+            case ECHO:
+                return "echo Running step: " + (planStep.getAction() != null ? planStep.getAction() : "unknown");
+            default:
+                return "echo Simulating: " + action;
+        }
+    }
+
+    public static Map<StepAction, StepHandler> createDefaultStepHandlers(AgentHttpClient httpClient) {
+        Map<StepAction, StepHandler> handlers = new HashMap<>();
+        handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
+        handlers.put(StepAction.ECHO, new EchoStepHandler());
+        handlers.put(StepAction.SYSTEM_SCAN, new EchoStepHandler());
+        handlers.put(StepAction.SERVICE_SCAN, new EchoStepHandler());
+        handlers.put(StepAction.NETWORK_SCAN, new EchoStepHandler());
+        handlers.put(StepAction.GENERATE_REPORT, new EchoStepHandler());
+        handlers.put(StepAction.SEND_REPORT, new EchoStepHandler());
+        handlers.put(StepAction.SELF_DESTRUCT, new EchoStepHandler());
+        return handlers;
     }
 }

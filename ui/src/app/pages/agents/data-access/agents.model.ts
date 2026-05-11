@@ -3,7 +3,7 @@ export enum AgentStatus {
   CREATED = 'CREATED',
   ACTIVE = 'ACTIVE',
   UNRESPONSIVE = 'UNRESPONSIVE',
-  KILLED = 'KILLED'
+  KILLED = 'KILLED',
 }
 
 export interface Agent {
@@ -45,14 +45,15 @@ export enum StepAction {
   NETWORK_SCAN = 'NETWORK_SCAN',
   GENERATE_REPORT = 'GENERATE_REPORT',
   SEND_REPORT = 'SEND_REPORT',
-  SELF_DESTRUCT = 'SELF_DESTRUCT'
+  EXPLOITATION_KNOWLEDGE = 'EXPLOITATION_KNOWLEDGE',
+  SELF_DESTRUCT = 'SELF_DESTRUCT',
 }
 
 export enum StepExecutionStatus {
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
   COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 export interface Step {

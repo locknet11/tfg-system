@@ -1,4 +1,4 @@
-package com.spulido.tfg.domain.plan.model;
+package com.spulido.agent.domain.task;
 
 public enum StepAction {
     SYSTEM_SCAN,
@@ -7,5 +7,6 @@ public enum StepAction {
     GENERATE_REPORT,
     SEND_REPORT,
     EXPLOITATION_KNOWLEDGE,
-    SELF_DESTRUCT
+    SELF_DESTRUCT,
+    ECHO
 }

@@ -19,6 +19,7 @@ import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.alerts.exception.AlertException;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
+import com.spulido.tfg.domain.exploitation.exception.ExploitationKnowledgeException;
 import com.spulido.tfg.domain.vulnerability.exception.VulnerabilityException;
 
 import lombok.RequiredArgsConstructor;
@@ -143,6 +144,35 @@ public class CustomExceptionHandler {
 				.detail(ex.getLocalizedMessage()).build();
 		response = new GenericErrorResponse(errorDetails, null).mapOf();
 		return ResponseEntity.badRequest().body(response);
+	}
+
+	@ExceptionHandler(ExploitationKnowledgeException.class)
+	public ResponseEntity<?> handleExploitationKnowledgeExceptions(ExploitationKnowledgeException ex) {
+		Map<String, Object> body = new java.util.HashMap<>();
+		body.put("exceptionCode", ex.getExceptionCode());
+		body.put("message", ex.getLocalizedMessage());
+		body.put("timestamp", java.time.Instant.now().toString());
+
+		HttpStatus status;
+		switch (ex.getExceptionCode()) {
+			case "NO_EXPLOIT_AVAILABLE":
+			case "NO_SERVICE_DATA":
+			case "AGENT_NOT_FOUND":
+			case "TARGET_NOT_FOUND":
+				status = HttpStatus.BAD_REQUEST;
+				break;
+			case "TARGET_NOT_AUTHORIZED":
+				status = HttpStatus.FORBIDDEN;
+				break;
+			case "EXTERNAL_SERVICE_UNAVAILABLE":
+				status = HttpStatus.BAD_GATEWAY;
+				break;
+			default:
+				status = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+
+		log.error("Exploitation knowledge exception: {} - {}", ex.getExceptionCode(), ex.getMessage());
+		return ResponseEntity.status(status).body(body);
 	}
 
 	@ExceptionHandler(VulnerabilityException.class)

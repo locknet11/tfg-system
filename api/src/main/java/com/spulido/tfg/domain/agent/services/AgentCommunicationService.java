@@ -50,4 +50,17 @@ public interface AgentCommunicationService {
      */
     com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord lookupVulnerabilities(
             String serviceName, String serviceVersion) throws Exception;
+
+    /**
+     * Requests exploitation knowledge for a target's discovered services.
+     *
+     * @param agentId the agent's ID
+     * @param request the exploitation knowledge request containing target and services
+     * @return the exploitation knowledge response with scripts
+     * @throws Exception if processing fails
+     */
+    com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeResponse requestExploitationKnowledge(
+            String agentId,
+            com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeRequest request)
+            throws Exception;
 }
