@@ -73,6 +73,13 @@ const routes: Routes = [
           import('./pages/alerts/alerts.routes').then(x => x.alertsRoutes),
       },
       {
+        path: 'replication-requests',
+        loadComponent: () =>
+          import(
+            './pages/replication-requests/feature/replication-requests.component'
+          ).then(x => x.ReplicationRequestsComponent),
+      },
+      {
         path: 'page-not-found',
         loadComponent: () =>
           import('./pages/page-not-found/page-not-found.component').then(

@@ -69,7 +69,10 @@
   </div>
 
   <!-- Critical Vulnerabilities -->
-  <p-card header="Latest Critical Vulnerabilities" i18n-header styleClass="mb-4">
+  <p-card
+    header="Latest Critical Vulnerabilities"
+    i18n-header
+    styleClass="mb-4">
     <p-table [value]="vulnerabilities" [paginator]="true" [rows]="5">
       <ng-template pTemplate="header">
         <tr>

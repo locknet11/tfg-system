@@ -24,6 +24,8 @@ import com.spulido.tfg.domain.project.model.dto.CreateProjectRequest;
 import com.spulido.tfg.domain.project.model.dto.ProjectInfo;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectRequest;
 import com.spulido.tfg.domain.project.model.dto.UpdateProjectStatusRequest;
+import com.spulido.tfg.domain.project.model.dto.UpdateReplicationPolicyRequest;
+import com.spulido.tfg.domain.replication.model.ReplicationPolicy;
 import com.spulido.tfg.domain.project.services.ProjectService;
 import com.spulido.tfg.domain.project.services.ProjectServiceMapper;
 
@@ -119,5 +121,20 @@ public class ProjectController {
             @RequestBody UpdateProjectStatusRequest request) throws ProjectException {
         projectService.updateStatus(id, request.getStatus());
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/replication-policy")
+    public ResponseEntity<ProjectInfo> updateReplicationPolicy(@PathVariable("id") String id,
+            @RequestBody @Valid UpdateReplicationPolicyRequest request) throws ProjectException {
+        ReplicationPolicy policy = new ReplicationPolicy();
+        policy.setMode(request.getMode());
+        policy.setMinSeverity(request.getMinSeverity());
+        policy.setNotifyAdmin(request.getNotifyAdmin());
+
+        Project project = projectService.getById(id);
+        project.setReplicationPolicy(policy);
+        Project updated = projectService.updateProject(project);
+        ProjectInfo projectInfo = projectMapper.projectToProjectInfo(updated);
+        return ResponseEntity.ok().body(projectInfo);
     }
 }

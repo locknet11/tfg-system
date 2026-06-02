@@ -19,7 +19,7 @@
     [loading]="loading()"
     [rowsPerPageOptions]="[5, 10, 20]"
     dataKey="id">
-     <ng-template pTemplate="header">
+    <ng-template pTemplate="header">
       <tr>
         <th i18n>NAME</th>
         <th i18n>ASSIGNED TO</th>
@@ -31,7 +31,15 @@
     </ng-template>
     <ng-template pTemplate="body" let-agent>
       <tr>
-        <td>{{ agent.name }}</td>
+        <td>
+          {{ agent.name }}
+          <i
+            *ngIf="agent.replicatedFrom"
+            class="pi pi-copy ml-1"
+            style="color: var(--primary-color)"
+            pTooltip="Replicated from parent agent"
+            i18n-pTooltip></i>
+        </td>
         <td>{{ agent.targetSystem || '-' }}</td>
         <td>
           <p-tag
@@ -74,6 +82,5 @@
     [agentId]="selectedAgentId"
     [showModal]="showAssignPlanModal"
     (modalClosed)="showAssignPlanModal = false"
-    (planAssigned)="onPlanAssigned()"
-  ></app-assign-plan-modal>
+    (planAssigned)="onPlanAssigned()"></app-assign-plan-modal>
 </div>

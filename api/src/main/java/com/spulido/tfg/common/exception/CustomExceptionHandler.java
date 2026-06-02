@@ -20,6 +20,7 @@ import com.spulido.tfg.domain.alerts.exception.AlertException;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
 import com.spulido.tfg.domain.exploitation.exception.ExploitationKnowledgeException;
+import com.spulido.tfg.domain.replication.exception.ReplicationException;
 import com.spulido.tfg.domain.vulnerability.exception.VulnerabilityException;
 
 import lombok.RequiredArgsConstructor;
@@ -173,6 +174,38 @@ public class CustomExceptionHandler {
 
 		log.error("Exploitation knowledge exception: {} - {}", ex.getExceptionCode(), ex.getMessage());
 		return ResponseEntity.status(status).body(body);
+	}
+
+	@ExceptionHandler(ReplicationException.class)
+	public ResponseEntity<?> handleReplicationExceptions(ReplicationException ex) {
+		HttpStatus status;
+		switch (ex.getErrorCode()) {
+			case REPLICATION_TOKEN_NOT_FOUND:
+				status = HttpStatus.NOT_FOUND;
+				break;
+			case REPLICATION_TOKEN_EXPIRED:
+				status = HttpStatus.GONE;
+				break;
+			case REPLICATION_TOKEN_CONSUMED:
+				status = HttpStatus.FORBIDDEN;
+				break;
+			case REPLICATION_REQUEST_NOT_PENDING:
+			case REPLICATION_DUPLICATE_REQUEST:
+				status = HttpStatus.CONFLICT;
+				break;
+			case REPLICATION_REQUEST_NOT_FOUND:
+			case REPLICATION_POLICY_NOT_FOUND:
+				status = HttpStatus.NOT_FOUND;
+				break;
+			default:
+				status = HttpStatus.INTERNAL_SERVER_ERROR;
+				break;
+		}
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(ex.getErrorCode())
+				.detail(ex.getMessage()).build();
+		log.error("Replication exception: {}", ex.getMessage());
+		return ResponseEntity.status(status).body(new GenericErrorResponse(errorDetails, null).mapOf());
 	}
 
 	@ExceptionHandler(VulnerabilityException.class)

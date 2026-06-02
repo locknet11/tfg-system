@@ -10,6 +10,7 @@ public class AgentConfig {
     private String centralUrl;
     private String apiKey;
     private String agentId;
+    private String centralPublicKey;
 
     public String getCentralUrl() {
         return centralUrl;
@@ -33,5 +34,13 @@ public class AgentConfig {
 
     public void setAgentId(String agentId) {
         this.agentId = agentId;
+    }
+
+    public String getCentralPublicKey() {
+        return centralPublicKey;
+    }
+
+    public void setCentralPublicKey(String centralPublicKey) {
+        this.centralPublicKey = centralPublicKey;
     }
 }

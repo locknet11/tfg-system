@@ -32,6 +32,9 @@ export class TargetsService {
   }
 
   updateById(request: UpdateTargetRequest, targetId: string) {
-    return this.http.put<TargetInfo>(`${baseUrl}/api/targets/${targetId}`, request);
+    return this.http.put<TargetInfo>(
+      `${baseUrl}/api/targets/${targetId}`,
+      request
+    );
   }
 }

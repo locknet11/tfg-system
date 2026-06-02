@@ -29,4 +29,3 @@ export interface UpdateOrganizationRequest {
   name: string;
   description?: string;
 }
-

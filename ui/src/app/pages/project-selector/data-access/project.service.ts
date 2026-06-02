@@ -7,7 +7,8 @@ import {
   ProjectInfo,
   CreateProjectRequest,
   UpdateProjectRequest,
-  UpdateProjectStatusRequest
+  UpdateProjectStatusRequest,
+  UpdateReplicationPolicyRequest,
 } from './projects.model';
 
 const baseUrl = environment.baseUrl;
@@ -34,7 +35,10 @@ export class ProjectService {
     return this.http.post<ProjectInfo>(`${baseUrl}/api/projects`, request);
   }
 
-  updateProject(id: string, request: UpdateProjectRequest): Observable<ProjectInfo> {
+  updateProject(
+    id: string,
+    request: UpdateProjectRequest
+  ): Observable<ProjectInfo> {
     return this.http.put<ProjectInfo>(`${baseUrl}/api/projects/${id}`, request);
   }
 
@@ -42,7 +46,20 @@ export class ProjectService {
     return this.http.delete<void>(`${baseUrl}/api/projects/${id}`);
   }
 
-  updateProjectStatus(id: string, request: UpdateProjectStatusRequest): Observable<void> {
+  updateProjectStatus(
+    id: string,
+    request: UpdateProjectStatusRequest
+  ): Observable<void> {
     return this.http.put<void>(`${baseUrl}/api/projects/${id}/status`, request);
+  }
+
+  updateReplicationPolicy(
+    id: string,
+    request: UpdateReplicationPolicyRequest
+  ): Observable<ProjectInfo> {
+    return this.http.put<ProjectInfo>(
+      `${baseUrl}/api/projects/${id}/replication-policy`,
+      request
+    );
   }
 }

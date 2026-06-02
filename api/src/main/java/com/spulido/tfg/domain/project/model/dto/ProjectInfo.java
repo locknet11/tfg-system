@@ -1,6 +1,7 @@
 package com.spulido.tfg.domain.project.model.dto;
 
 import com.spulido.tfg.domain.project.model.ProjectStatus;
+import com.spulido.tfg.domain.replication.model.ReplicationPolicy;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ public class ProjectInfo {
     private String description;
     private String organizationId;
     private ProjectStatus status;
+    private ReplicationPolicy replicationPolicy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

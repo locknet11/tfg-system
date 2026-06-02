@@ -35,7 +35,15 @@ public enum ErrorCode {
 	RESOURCE_ALREADY_EXISTS("exception.resourceAlreadyExists"),
 	AGENT_EXCEPTION("exception.agentException"),
 	VULNERABILITY_NOT_FOUND("exception.vulnerabilityNotFound"),
-	EXTERNAL_API_ERROR("exception.externalApiError");
+	EXTERNAL_API_ERROR("exception.externalApiError"),
+	REPLICATION_REQUEST_NOT_FOUND("exception.replicationRequestNotFound"),
+	REPLICATION_REQUEST_NOT_PENDING("exception.replicationRequestNotPending"),
+	REPLICATION_DUPLICATE_REQUEST("exception.replicationDuplicateRequest"),
+	REPLICATION_TOKEN_NOT_FOUND("exception.replicationTokenNotFound"),
+	REPLICATION_TOKEN_EXPIRED("exception.replicationTokenExpired"),
+	REPLICATION_TOKEN_CONSUMED("exception.replicationTokenConsumed"),
+	REPLICATION_POLICY_NOT_FOUND("exception.replicationPolicyNotFound"),
+	BINARY_INTEGRITY_CHECK_FAILED("exception.binaryIntegrityCheckFailed");
 
 	private final String defaultMessage;
 }

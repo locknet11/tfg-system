@@ -63,6 +63,8 @@ public class WebSecurity {
                         .requestMatchers(HttpMethod.GET, "/auth/check-setup").permitAll()
                         // Agent registration endpoint (public - agent registers itself)
                         .requestMatchers(HttpMethod.POST, "/api/agent/{orgId}/{projId}/{targetId}").permitAll()
+                        // Binary download endpoint (public - replication token is auth)
+                        .requestMatchers(HttpMethod.GET, "/api/agent/binary/**").permitAll()
                         // Agent communication endpoints (require API key authentication)
                         .requestMatchers("/api/agent/comm/**").hasRole("AGENT")
                         .anyRequest().authenticated())

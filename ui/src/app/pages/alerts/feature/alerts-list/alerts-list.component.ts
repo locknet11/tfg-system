@@ -99,8 +99,6 @@ export class AlertsListComponent {
     });
   }
 
-
-
   loadAlerts() {
     this.loadingSig.set(true);
     this.alertsService.list(this.pageSig(), this.sizeSig()).subscribe({

@@ -51,6 +51,8 @@ public class AlertEvent {
     public enum AlertEventType {
         VULNERABILITY_DETECTED,
         REMEDIATION_COMPLETED,
-        SCAN_COMPLETED
+        SCAN_COMPLETED,
+        REPLICATION_REQUESTED,
+        AGENT_REPLICATED
     }
 }

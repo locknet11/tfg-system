@@ -34,14 +34,47 @@ public class WorkerPoolConfig {
     @Bean
     public CommandExecutor commandExecutor() {
         return (command, timeoutSeconds) -> {
-            throw new UnsupportedOperationException("Command execution not yet implemented");
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", command);
+                processBuilder.redirectErrorStream(true);
+                Process process = processBuilder.start();
+
+                boolean finished = process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                    return com.spulido.agent.domain.task.TaskResult.failure(
+                            "cmd-" + System.currentTimeMillis(),
+                            "Command timed out",
+                            "Timed out after " + timeoutSeconds + " seconds");
+                }
+
+                String output = new String(process.getInputStream().readAllBytes());
+                int exitCode = process.exitValue();
+
+                if (exitCode == 0) {
+                    return com.spulido.agent.domain.task.TaskResult.success(
+                            "cmd-" + System.currentTimeMillis(),
+                            "Command completed. Output: " + output);
+                } else {
+                    return com.spulido.agent.domain.task.TaskResult.failure(
+                            "cmd-" + System.currentTimeMillis(),
+                            "Command failed with exit code " + exitCode,
+                            "Exit code: " + exitCode + ". Output: " + output);
+                }
+            } catch (Exception e) {
+                return com.spulido.agent.domain.task.TaskResult.failure(
+                        "cmd-" + System.currentTimeMillis(),
+                        "Command execution error",
+                        e.getMessage() != null ? e.getMessage() : "Unknown error");
+            }
         };
     }
 
     @Bean
     public TaskExecutionService taskExecutionService(CommandExecutor commandExecutor,
-                                                     AgentHttpClient agentHttpClient) {
+                                                      AgentHttpClient agentHttpClient,
+                                                      AgentConfig agentConfig) {
         return new TaskExecutionService(commandExecutor,
-                WorkerCoordinator.createDefaultStepHandlers(agentHttpClient));
+                WorkerCoordinator.createDefaultStepHandlers(agentHttpClient, commandExecutor, agentConfig));
     }
 }

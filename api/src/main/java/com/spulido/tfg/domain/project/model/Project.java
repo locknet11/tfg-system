@@ -37,4 +37,7 @@ public class Project extends BaseEntity {
     @Field
     private ProjectStatus status = ProjectStatus.ACTIVE;
 
+    @Field
+    private com.spulido.tfg.domain.replication.model.ReplicationPolicy replicationPolicy;
+
 }

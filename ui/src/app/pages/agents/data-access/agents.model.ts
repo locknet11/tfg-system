@@ -16,6 +16,8 @@ export interface Agent {
   targetSystem?: string;
   organizationId?: string;
   projectId?: string;
+  replicatedFrom?: string;
+  replicatedAt?: string;
 }
 
 export interface AgentsList {
@@ -46,6 +48,10 @@ export enum StepAction {
   GENERATE_REPORT = 'GENERATE_REPORT',
   SEND_REPORT = 'SEND_REPORT',
   EXPLOITATION_KNOWLEDGE = 'EXPLOITATION_KNOWLEDGE',
+  REQUEST_REPLICATION = 'REQUEST_REPLICATION',
+  EXECUTE_EXPLOIT = 'EXECUTE_EXPLOIT',
+  TRANSFER_AGENT = 'TRANSFER_AGENT',
+  REPLICATE = 'REPLICATE',
   SELF_DESTRUCT = 'SELF_DESTRUCT',
 }
 

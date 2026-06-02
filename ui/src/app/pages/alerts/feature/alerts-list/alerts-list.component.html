@@ -43,14 +43,15 @@
             *ngFor="let condition of alert.conditions"
             [value]="whenConditionLabel(condition)"
             severity="info"
-            [style]="{ 'margin-right': '0.5rem', 'margin-bottom': '0.25rem' }"
-          ></p-tag>
+            [style]="{
+              'margin-right': '0.5rem',
+              'margin-bottom': '0.25rem'
+            }"></p-tag>
         </td>
         <td>
           <p-tag
             [value]="alert.enabled ? 'Enabled' : 'Disabled'"
-            [severity]="alert.enabled ? 'success' : 'danger'"
-          ></p-tag>
+            [severity]="alert.enabled ? 'success' : 'danger'"></p-tag>
         </td>
         <td>
           <ng-container *ngIf="alert.lastTriggeredAt; else neverTpl">
@@ -86,6 +87,7 @@
     </ng-template>
   </p-table>
 
-  <app-create-alert-modal (alertCreated)="loadAlerts()"></app-create-alert-modal>
+  <app-create-alert-modal
+    (alertCreated)="loadAlerts()"></app-create-alert-modal>
   <app-edit-alert-modal (alertUpdated)="loadAlerts()"></app-edit-alert-modal>
 </div>

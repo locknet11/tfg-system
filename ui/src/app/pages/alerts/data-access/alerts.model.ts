@@ -33,7 +33,10 @@ export function whenConditionLabel(condition: WhenCondition): string {
   }
 }
 
-export function getAllWhenConditions(): { label: string; value: WhenCondition }[] {
+export function getAllWhenConditions(): {
+  label: string;
+  value: WhenCondition;
+}[] {
   return Object.values(WhenCondition).map(condition => ({
     label: whenConditionLabel(condition),
     value: condition,

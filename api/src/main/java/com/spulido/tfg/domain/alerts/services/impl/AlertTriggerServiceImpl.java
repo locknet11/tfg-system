@@ -81,6 +81,12 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
             case ON_SCAN_COMPLETED:
                 return event.getType() == AlertEvent.AlertEventType.SCAN_COMPLETED;
 
+            case ON_REPLICATION_REQUESTED:
+                return event.getType() == AlertEvent.AlertEventType.REPLICATION_REQUESTED;
+
+            case ON_AGENT_REPLICATED:
+                return event.getType() == AlertEvent.AlertEventType.AGENT_REPLICATED;
+
             default:
                 return false;
         }

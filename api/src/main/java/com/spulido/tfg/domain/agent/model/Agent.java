@@ -57,4 +57,13 @@ public class Agent extends BaseEntity implements ScopedEntity {
 
     @Field
     private String preauthCode;
+
+    @Field
+    private String replicatedFrom;
+
+    @Field
+    private LocalDateTime replicatedAt;
+
+    @Field
+    private com.spulido.tfg.domain.replication.model.ReplicationExploitInfo replicationExploit;
 }

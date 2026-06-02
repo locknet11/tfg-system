@@ -19,6 +19,9 @@ export class AgentsService {
   }
 
   assignPlan(agentId: string, request: AssignPlanRequest) {
-    return this.http.put<Agent>(`${baseUrl}/api/agent/${agentId}/plan`, request);
+    return this.http.put<Agent>(
+      `${baseUrl}/api/agent/${agentId}/plan`,
+      request
+    );
   }
 }

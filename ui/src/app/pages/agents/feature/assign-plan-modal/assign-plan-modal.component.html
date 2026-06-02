@@ -3,18 +3,16 @@
   i18n-header
   [(visible)]="showModal"
   [modal]="true"
-  [style]="{width: '50vw'}"
+  [style]="{ width: '50vw' }"
   [closable]="true"
-  (onHide)="closeModal()"
->
+  (onHide)="closeModal()">
   <div class="p-fluid">
     <div class="p-field">
       <p-inputSwitch
         [(ngModel)]="useTemplate"
         (onChange)="toggleMode()"
         label="Use Existing Template"
-        i18n-label
-      ></p-inputSwitch>
+        i18n-label></p-inputSwitch>
     </div>
 
     <div *ngIf="useTemplate" class="p-field">
@@ -26,8 +24,7 @@
         placeholder="Select Template"
         i18n-placeholder
         [showClear]="true"
-        [filter]="true"
-      ></p-dropdown>
+        [filter]="true"></p-dropdown>
     </div>
 
     <div *ngIf="!useTemplate">
@@ -38,8 +35,7 @@
           formControlName="notes"
           pInputTextarea
           rows="3"
-          [autoResize]="true"
-        ></textarea>
+          [autoResize]="true"></textarea>
       </div>
 
       <div class="p-field">
@@ -47,13 +43,15 @@
           formControlName="allowTemplating"
           [binary]="true"
           label="Allow Templating"
-          i18n-label
-        ></p-checkbox>
+          i18n-label></p-checkbox>
       </div>
 
       <div class="p-field">
         <label i18n>Steps</label>
-        <p-table [value]="stepsFormArray.controls" [showCurrentPageReport]="true" i18n-currentPageReport>
+        <p-table
+          [value]="stepsFormArray.controls"
+          [showCurrentPageReport]="true"
+          i18n-currentPageReport>
           <ng-template pTemplate="header">
             <tr>
               <th i18n>Action</th>
@@ -67,8 +65,7 @@
                   formControlName="action"
                   [options]="stepActionOptions"
                   placeholder="Select Action"
-                  i18n-placeholder
-                ></p-dropdown>
+                  i18n-placeholder></p-dropdown>
               </td>
               <td>
                 <p-button
@@ -76,8 +73,7 @@
                   (click)="removeStep(i)"
                   severity="danger"
                   tooltip="Remove Step"
-                  i18n-tooltip
-                ></p-button>
+                  i18n-tooltip></p-button>
               </td>
             </tr>
           </ng-template>
@@ -87,8 +83,7 @@
           i18n-label
           icon="pi pi-plus"
           (click)="addStep()"
-          styleClass="p-button-secondary"
-        ></p-button>
+          styleClass="p-button-secondary"></p-button>
       </div>
     </div>
   </div>
@@ -99,15 +94,13 @@
       i18n-label
       icon="pi pi-times"
       (click)="closeModal()"
-      severity="secondary"
-    ></p-button>
+      severity="secondary"></p-button>
     <p-button
       label="Assign"
       i18n-label
       icon="pi pi-check"
       (click)="submitForm()"
       [loading]="submitting"
-      [disabled]="!planForm.valid && !useTemplate"
-    ></p-button>
+      [disabled]="!planForm.valid && !useTemplate"></p-button>
   </ng-template>
 </p-dialog>

@@ -36,4 +36,10 @@ public class AgentInfo {
 
     @JsonProperty("projectId")
     private String projectId;
+
+    @JsonProperty("replicatedFrom")
+    private String replicatedFrom;
+
+    @JsonProperty("replicatedAt")
+    private java.time.LocalDateTime replicatedAt;
 }

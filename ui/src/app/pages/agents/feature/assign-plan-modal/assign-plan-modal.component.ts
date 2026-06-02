@@ -1,6 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { InputSwitchModule } from 'primeng/inputswitch';
@@ -10,7 +16,13 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
-import { AssignPlanRequest, Plan, Step, StepAction, StepExecutionStatus } from '../../data-access/agents.model';
+import {
+  AssignPlanRequest,
+  Plan,
+  Step,
+  StepAction,
+  StepExecutionStatus,
+} from '../../data-access/agents.model';
 import { AgentsService } from '../../data-access/agents.service';
 import { TemplatesService } from '../../../templates/data-access/templates.service';
 
@@ -27,10 +39,10 @@ import { TemplatesService } from '../../../templates/data-access/templates.servi
     InputTextareaModule,
     CheckboxModule,
     TableModule,
-    ButtonModule
+    ButtonModule,
   ],
   templateUrl: './assign-plan-modal.component.html',
-  styleUrls: ['./assign-plan-modal.component.scss']
+  styleUrls: ['./assign-plan-modal.component.scss'],
 })
 export class AssignPlanModalComponent {
   @Input() agentId!: string;
@@ -46,7 +58,7 @@ export class AssignPlanModalComponent {
 
   stepActionOptions = Object.values(StepAction).map(action => ({
     label: this.formatActionLabel(action),
-    value: action
+    value: action,
   }));
 
   constructor(
@@ -58,7 +70,7 @@ export class AssignPlanModalComponent {
     this.planForm = this.fb.group({
       notes: [''],
       allowTemplating: [false],
-      steps: this.fb.array([], Validators.required)
+      steps: this.fb.array([], Validators.required),
     });
   }
 
@@ -68,19 +80,19 @@ export class AssignPlanModalComponent {
 
   loadTemplates() {
     this.templatesService.list('', 0, 100).subscribe({
-      next: (response) => {
+      next: response => {
         this.templates = response.content.map(template => ({
           label: template.name,
-          value: template.id
+          value: template.id,
         }));
       },
-      error: (err) => {
+      error: err => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to load templates: ${err.message}`
+          detail: `Failed to load templates: ${err.message}`,
         });
-      }
+      },
     });
   }
 
@@ -96,7 +108,7 @@ export class AssignPlanModalComponent {
 
   addStep() {
     const stepGroup = this.fb.group({
-      action: [null, Validators.required]
+      action: [null, Validators.required],
     });
     this.stepsFormArray.push(stepGroup);
   }
@@ -116,31 +128,36 @@ export class AssignPlanModalComponent {
 
     const request: AssignPlanRequest = {
       useTemplate: this.useTemplate,
-      templateId: this.useTemplate ? this.selectedTemplateId || undefined : undefined,
-      plan: !this.useTemplate ? this.buildPlanFromForm() : undefined
+      templateId: this.useTemplate
+        ? this.selectedTemplateId || undefined
+        : undefined,
+      plan: !this.useTemplate ? this.buildPlanFromForm() : undefined,
     };
 
     this.submitting = true;
-    this.agentsService.assignPlan(this.agentId, request).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Plan assigned successfully'
-        });
-        this.closeModal();
-        this.planAssigned.emit();
-      },
-      error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to assign plan: ${err.message}`
-        });
-      }
-    }).add(() => {
-      this.submitting = false;
-    });
+    this.agentsService
+      .assignPlan(this.agentId, request)
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Plan assigned successfully',
+          });
+          this.closeModal();
+          this.planAssigned.emit();
+        },
+        error: err => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to assign plan: ${err.message}`,
+          });
+        },
+      })
+      .add(() => {
+        this.submitting = false;
+      });
   }
 
   private buildPlanFromForm(): Plan {
@@ -151,8 +168,8 @@ export class AssignPlanModalComponent {
       steps: formValue.steps.map((step: any) => ({
         status: StepExecutionStatus.PENDING,
         action: step.action,
-        logs: []
-      }))
+        logs: [],
+      })),
     };
   }
 
@@ -162,6 +179,9 @@ export class AssignPlanModalComponent {
   }
 
   private formatActionLabel(action: StepAction): string {
-    return action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    return action
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, l => l.toUpperCase());
   }
 }

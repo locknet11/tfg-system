@@ -10,6 +10,9 @@ import com.spulido.agent.worker.http.dto.ExploitationKnowledgeRequest;
 import com.spulido.agent.worker.http.dto.ExploitationKnowledgeResponse;
 import com.spulido.agent.worker.http.dto.HeartbeatResponse;
 import com.spulido.agent.worker.http.dto.PlanResponse;
+import com.spulido.agent.worker.http.dto.ReplicationRequestBody;
+import com.spulido.agent.worker.http.dto.ReplicationRequestResponse;
+import com.spulido.agent.worker.http.dto.ReplicationStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusUpdate;
 
@@ -51,5 +54,22 @@ public class AgentHttpClient {
         StepStatusUpdate body = new StepStatusUpdate(status, logs);
         restTemplate.put(url, body);
         return new StepStatusResponse();
+    }
+
+    public ReplicationRequestResponse submitReplicationRequest(ReplicationRequestBody request) {
+        String url = config.getCentralUrl() + "/api/agent/comm/replication-request";
+        log.info("Submitting replication request to central: {}", url);
+        return restTemplate.postForObject(url, request, ReplicationRequestResponse.class);
+    }
+
+    public ReplicationStatusResponse pollReplicationStatus(String requestId) {
+        String url = config.getCentralUrl() + "/api/agent/comm/replication-request/" + requestId + "/status";
+        log.info("Polling replication request status: {}", url);
+        return restTemplate.getForObject(url, ReplicationStatusResponse.class);
+    }
+
+    public byte[] downloadBinary(String downloadUrl) {
+        log.info("Downloading agent binary from: {}", downloadUrl);
+        return restTemplate.getForObject(downloadUrl, byte[].class);
     }
 }

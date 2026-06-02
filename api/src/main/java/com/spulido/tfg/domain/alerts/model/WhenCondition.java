@@ -28,5 +28,15 @@ public enum WhenCondition {
     /**
      * Triggered when a scheduled scan completes (with or without findings).
      */
-    ON_SCAN_COMPLETED
+    ON_SCAN_COMPLETED,
+
+    /**
+     * Triggered when a replication request is created (PENDING or APPROVED).
+     */
+    ON_REPLICATION_REQUESTED,
+
+    /**
+     * Triggered when a new agent is successfully registered via autoreplication.
+     */
+    ON_AGENT_REPLICATED
 }

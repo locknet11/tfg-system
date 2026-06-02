@@ -15,7 +15,17 @@ import { AssignPlanModalComponent } from '../assign-plan-modal/assign-plan-modal
 @Component({
   selector: 'app-agents-list',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, TagModule, InputTextModule, TooltipModule, ConfirmDialogModule, ToastModule, AssignPlanModalComponent],
+  imports: [
+    CommonModule,
+    TableModule,
+    ButtonModule,
+    TagModule,
+    InputTextModule,
+    TooltipModule,
+    ConfirmDialogModule,
+    ToastModule,
+    AssignPlanModalComponent,
+  ],
   templateUrl: './agents-list.component.html',
   styleUrls: ['./agents-list.component.scss'],
   providers: [AgentsService, ConfirmationService, MessageService],
@@ -33,7 +43,11 @@ export class AgentsListComponent {
 
   AgentStatus = AgentStatus;
 
-  constructor(private agentsService: AgentsService, private confirm: ConfirmationService, private messages: MessageService) {}
+  constructor(
+    private agentsService: AgentsService,
+    private confirm: ConfirmationService,
+    private messages: MessageService
+  ) {}
 
   fetch(page: number, size: number) {
     this.loading.set(true);
@@ -45,20 +59,28 @@ export class AgentsListComponent {
       },
       error: () => {
         this.loading.set(false);
-        this.messages.add({ severity: 'error', summary: $localize`Error`, detail: $localize`Failed to load agents` });
-      }
+        this.messages.add({
+          severity: 'error',
+          summary: $localize`Error`,
+          detail: $localize`Failed to load agents`,
+        });
+      },
     });
   }
 
   onLazyLoad(event: any) {
-    const newPage = Math.floor((event.first || 0) / (event.rows || this.size()));
+    const newPage = Math.floor(
+      (event.first || 0) / (event.rows || this.size())
+    );
     const newSize = event.rows || this.size();
     this.page.set(newPage);
     this.size.set(newSize);
     this.fetch(newPage, newSize);
   }
 
-  statusSeverity(status: AgentStatus): 'success' | 'info' | 'warning' | 'danger' | 'secondary' {
+  statusSeverity(
+    status: AgentStatus
+  ): 'success' | 'info' | 'warning' | 'danger' | 'secondary' {
     switch (status) {
       case AgentStatus.ACTIVE:
         return 'success';
@@ -101,12 +123,21 @@ export class AgentsListComponent {
       accept: () => {
         this.agentsService.delete(agent.id).subscribe({
           next: () => {
-            this.messages.add({ severity: 'success', summary: $localize`Success`, detail: $localize`Agent deleted` });
+            this.messages.add({
+              severity: 'success',
+              summary: $localize`Success`,
+              detail: $localize`Agent deleted`,
+            });
             this.fetch(this.page(), this.size());
           },
-          error: () => this.messages.add({ severity: 'error', summary: $localize`Error`, detail: $localize`Failed to delete agent` })
+          error: () =>
+            this.messages.add({
+              severity: 'error',
+              summary: $localize`Error`,
+              detail: $localize`Failed to delete agent`,
+            }),
         });
-      }
+      },
     });
   }
 

@@ -82,12 +82,21 @@ export class TemplatesListComponent {
       accept: () => {
         this.templatesService.delete(template.id).subscribe({
           next: () => {
-            this.messages.add({ severity: 'success', summary: $localize`Success`, detail: $localize`Template deleted` });
+            this.messages.add({
+              severity: 'success',
+              summary: $localize`Success`,
+              detail: $localize`Template deleted`,
+            });
             this.loadTemplates();
           },
-          error: () => this.messages.add({ severity: 'error', summary: $localize`Error`, detail: $localize`Failed to delete template` })
+          error: () =>
+            this.messages.add({
+              severity: 'error',
+              summary: $localize`Error`,
+              detail: $localize`Failed to delete template`,
+            }),
         });
-      }
+      },
     });
   }
 

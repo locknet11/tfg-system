@@ -21,7 +21,10 @@ import com.spulido.agent.worker.http.dto.PlanResponse;
 import com.spulido.agent.worker.http.dto.PlanStepResponse;
 import com.spulido.agent.worker.step.EchoStepHandler;
 import com.spulido.agent.worker.step.ExploitationKnowledgeStepHandler;
+import com.spulido.agent.worker.step.ExecuteExploitStepHandler;
+import com.spulido.agent.worker.step.RequestReplicationStepHandler;
 import com.spulido.agent.worker.step.StepHandler;
+import com.spulido.agent.worker.step.TransferAgentStepHandler;
 import com.spulido.agent.utils.AgentLifecycle;
 
 @Component
@@ -114,9 +117,16 @@ public class WorkerCoordinator {
         }
     }
 
-    public static Map<StepAction, StepHandler> createDefaultStepHandlers(AgentHttpClient httpClient) {
+    public static Map<StepAction, StepHandler> createDefaultStepHandlers(AgentHttpClient httpClient,
+                                                                          CommandExecutor commandExecutor,
+                                                                          AgentConfig agentConfig) {
         Map<StepAction, StepHandler> handlers = new HashMap<>();
         handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
+        handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
+        handlers.put(StepAction.EXECUTE_EXPLOIT, new ExecuteExploitStepHandler(commandExecutor));
+        handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, commandExecutor,
+                new BinaryIntegrityVerifier(agentConfig)));
+        handlers.put(StepAction.REPLICATE, new EchoStepHandler());
         handlers.put(StepAction.ECHO, new EchoStepHandler());
         handlers.put(StepAction.SYSTEM_SCAN, new EchoStepHandler());
         handlers.put(StepAction.SERVICE_SCAN, new EchoStepHandler());

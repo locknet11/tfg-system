@@ -25,6 +25,10 @@ export enum StepAction {
   GENERATE_REPORT = 'GENERATE_REPORT',
   SEND_REPORT = 'SEND_REPORT',
   EXPLOITATION_KNOWLEDGE = 'EXPLOITATION_KNOWLEDGE',
+  REQUEST_REPLICATION = 'REQUEST_REPLICATION',
+  EXECUTE_EXPLOIT = 'EXECUTE_EXPLOIT',
+  TRANSFER_AGENT = 'TRANSFER_AGENT',
+  REPLICATE = 'REPLICATE',
 }
 
 export enum StepExecutionStatus {
@@ -48,6 +52,14 @@ export function stepActionLabel(action: StepAction): string {
       return $localize`Send report`;
     case StepAction.EXPLOITATION_KNOWLEDGE:
       return $localize`Exploitation knowledge`;
+    case StepAction.REQUEST_REPLICATION:
+      return $localize`Request replication`;
+    case StepAction.EXECUTE_EXPLOIT:
+      return $localize`Execute exploit`;
+    case StepAction.TRANSFER_AGENT:
+      return $localize`Transfer agent`;
+    case StepAction.REPLICATE:
+      return $localize`Replicate`;
     default:
       return action;
   }

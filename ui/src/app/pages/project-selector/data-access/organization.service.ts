@@ -6,7 +6,7 @@ import {
   Organization,
   OrganizationInfo,
   CreateOrganizationRequest,
-  UpdateOrganizationRequest
+  UpdateOrganizationRequest,
 } from './organizations.model';
 
 const baseUrl = environment.baseUrl;
@@ -22,15 +22,28 @@ export class OrganizationService {
   }
 
   getOrganizationById(id: string): Observable<OrganizationInfo> {
-    return this.http.get<OrganizationInfo>(`${baseUrl}/api/organizations/${id}`);
+    return this.http.get<OrganizationInfo>(
+      `${baseUrl}/api/organizations/${id}`
+    );
   }
 
-  createOrganization(request: CreateOrganizationRequest): Observable<OrganizationInfo> {
-    return this.http.post<OrganizationInfo>(`${baseUrl}/api/organizations`, request);
+  createOrganization(
+    request: CreateOrganizationRequest
+  ): Observable<OrganizationInfo> {
+    return this.http.post<OrganizationInfo>(
+      `${baseUrl}/api/organizations`,
+      request
+    );
   }
 
-  updateOrganization(id: string, request: UpdateOrganizationRequest): Observable<OrganizationInfo> {
-    return this.http.put<OrganizationInfo>(`${baseUrl}/api/organizations/${id}`, request);
+  updateOrganization(
+    id: string,
+    request: UpdateOrganizationRequest
+  ): Observable<OrganizationInfo> {
+    return this.http.put<OrganizationInfo>(
+      `${baseUrl}/api/organizations/${id}`,
+      request
+    );
   }
 
   deleteOrganization(id: string): Observable<void> {

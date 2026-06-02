@@ -80,12 +80,16 @@ export class TargetsComponent implements OnInit {
     const selectedProjectStr = localStorage.getItem('selectedProject');
 
     if (!selectedOrgStr || !selectedProjectStr) {
-      this.toastService.error($localize`Organization or project information not found`);
+      this.toastService.error(
+        $localize`Organization or project information not found`
+      );
       return;
     }
 
     if (!target.preauthCode) {
-      this.toastService.error($localize`Pre-authorization code missing for this target`);
+      this.toastService.error(
+        $localize`Pre-authorization code missing for this target`
+      );
       return;
     }
 

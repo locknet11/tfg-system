@@ -223,11 +223,14 @@ export class ProjectSelectorComponent implements OnInit {
     if (this.selectorForm.invalid) return;
 
     const formData = this.selectorForm.getRawValue();
-    
+
     // Save selected context to localStorage
-    localStorage.setItem('selectedOrganization', JSON.stringify(formData.organization));
+    localStorage.setItem(
+      'selectedOrganization',
+      JSON.stringify(formData.organization)
+    );
     localStorage.setItem('selectedProject', JSON.stringify(formData.project));
-    
+
     this.toastService.success(
       $localize`Entering project: ${formData.project.name}`
     );
