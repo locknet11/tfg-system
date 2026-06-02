@@ -1,0 +1,50 @@
+networks:
+  targets:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  drupal:
+    image: vulhub/drupal:8.5.0
+    ports:
+      - "8081:80"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.10
+
+  tomcat:
+    build: ./targets/tomcat
+    ports:
+      - "8082:8080"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.11
+
+  flask:
+    image: vulhub/flask:1.1.1
+    volumes:
+      - ./targets/flask/src:/app
+    ports:
+      - "8000:8000"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.12
+
+  thinkphp:
+    image: vulhub/thinkphp:5.0.20
+    ports:
+      - "8083:80"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.13
+
+  docker-api:
+    build: ./targets/docker
+    privileged: true
+    ports:
+      - "2375:2375"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.14
