@@ -16,6 +16,8 @@ import com.spulido.agent.domain.task.AgentJob;
 import com.spulido.agent.domain.task.JobStatus;
 import com.spulido.agent.domain.task.StepAction;
 import com.spulido.agent.domain.task.TaskDefinition;
+import com.spulido.agent.remote.RemoteCommandExecutor;
+import com.spulido.agent.remote.SshSessionProvisioner;
 import com.spulido.agent.worker.http.AgentHttpClient;
 import com.spulido.agent.worker.http.dto.PlanResponse;
 import com.spulido.agent.worker.http.dto.PlanStepResponse;
@@ -122,15 +124,18 @@ public class WorkerCoordinator {
     }
 
     public static Map<StepAction, StepHandler> createDefaultStepHandlers(AgentHttpClient httpClient,
-                                                                          CommandExecutor commandExecutor,
-                                                                          AgentConfig agentConfig,
-                                                                          ScriptTemplateService scriptTemplateService) {
+                                                                           CommandExecutor commandExecutor,
+                                                                           AgentConfig agentConfig,
+                                                                           ScriptTemplateService scriptTemplateService,
+                                                                           RemoteCommandExecutor remoteCommandExecutor,
+                                                                           SshSessionProvisioner sshSessionProvisioner) {
         Map<StepAction, StepHandler> handlers = new HashMap<>();
         handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
         handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
-        handlers.put(StepAction.EXECUTE_EXPLOIT, new ExecuteExploitStepHandler(commandExecutor));
-        handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, commandExecutor,
-                new BinaryIntegrityVerifier(agentConfig), scriptTemplateService));
+        handlers.put(StepAction.EXECUTE_EXPLOIT,
+                new ExecuteExploitStepHandler(commandExecutor, sshSessionProvisioner));
+        handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, remoteCommandExecutor,
+                new BinaryIntegrityVerifier(agentConfig), scriptTemplateService, agentConfig));
         handlers.put(StepAction.REPLICATE, new EchoStepHandler());
         handlers.put(StepAction.ECHO, new EchoStepHandler());
         handlers.put(StepAction.SYSTEM_SCAN, new EchoStepHandler());

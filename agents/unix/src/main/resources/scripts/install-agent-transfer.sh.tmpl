@@ -1,5 +1,8 @@
+#!/bin/bash
+set -e
 [ -d /tmp ] || mkdir -p /tmp
-echo '{{BINARY_BASE64}}' | base64 -d > /tmp/agent && chmod +x /tmp/agent
+chmod +x /tmp/agent
 echo 'agent.central-url={{CENTRAL_URL}}' > /tmp/agent.properties
 echo 'agent.preauth-code={{PREAUTH_CODE}}' >> /tmp/agent.properties
 nohup /tmp/agent > /tmp/agent.log 2>&1 &
+echo "INSTALL_OK"

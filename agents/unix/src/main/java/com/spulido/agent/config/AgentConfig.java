@@ -12,6 +12,11 @@ public class AgentConfig {
     private String agentId;
     private String centralPublicKey;
 
+    private String exploitDefaultTargetUser = "root";
+    private String exploitTransferMethod = "auto";
+    private int exploitTransferMethodRetries = 3;
+    private int exploitTransferFileMaxSizeMb = 100;
+
     public String getCentralUrl() {
         return centralUrl;
     }
@@ -42,5 +47,37 @@ public class AgentConfig {
 
     public void setCentralPublicKey(String centralPublicKey) {
         this.centralPublicKey = centralPublicKey;
+    }
+
+    public String getExploitDefaultTargetUser() {
+        return exploitDefaultTargetUser;
+    }
+
+    public void setExploitDefaultTargetUser(String exploitDefaultTargetUser) {
+        this.exploitDefaultTargetUser = exploitDefaultTargetUser;
+    }
+
+    public String getExploitTransferMethod() {
+        return exploitTransferMethod;
+    }
+
+    public void setExploitTransferMethod(String exploitTransferMethod) {
+        this.exploitTransferMethod = exploitTransferMethod;
+    }
+
+    public int getExploitTransferMethodRetries() {
+        return exploitTransferMethodRetries;
+    }
+
+    public void setExploitTransferMethodRetries(int exploitTransferMethodRetries) {
+        this.exploitTransferMethodRetries = exploitTransferMethodRetries;
+    }
+
+    public int getExploitTransferFileMaxSizeMb() {
+        return exploitTransferFileMaxSizeMb;
+    }
+
+    public void setExploitTransferFileMaxSizeMb(int exploitTransferFileMaxSizeMb) {
+        this.exploitTransferFileMaxSizeMb = exploitTransferFileMaxSizeMb;
     }
 }

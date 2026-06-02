@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+[ -d /tmp ] || mkdir -p /tmp
+DOWNLOAD_URL="{{DOWNLOAD_URL}}"
+
+if command -v curl &> /dev/null; then
+    curl -sS -o /tmp/agent "$DOWNLOAD_URL"
+elif command -v wget &> /dev/null; then
+    wget -q -O /tmp/agent "$DOWNLOAD_URL"
+else
+    echo "FATAL: Neither curl nor wget available"
+    exit 1
+fi
+
+chmod +x /tmp/agent
+echo 'agent.central-url={{CENTRAL_URL}}' > /tmp/agent.properties
+echo 'agent.preauth-code={{PREAUTH_CODE}}' >> /tmp/agent.properties
+nohup /tmp/agent > /tmp/agent.log 2>&1 &
+echo "INSTALL_OK"

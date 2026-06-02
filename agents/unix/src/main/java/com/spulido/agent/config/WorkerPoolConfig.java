@@ -6,6 +6,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
+import com.spulido.agent.remote.RemoteCommandExecutor;
+import com.spulido.agent.remote.SshRemoteCommandExecutor;
+import com.spulido.agent.remote.SshSessionProvisioner;
 import com.spulido.agent.worker.CommandExecutor;
 import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.TaskExecutionService;
@@ -72,12 +75,24 @@ public class WorkerPoolConfig {
     }
 
     @Bean
+    public RemoteCommandExecutor remoteCommandExecutor(AgentConfig agentConfig) {
+        return new SshRemoteCommandExecutor(agentConfig);
+    }
+
+    @Bean
+    public SshSessionProvisioner sshSessionProvisioner(AgentConfig agentConfig) {
+        return new SshSessionProvisioner(agentConfig);
+    }
+
+    @Bean
     public TaskExecutionService taskExecutionService(CommandExecutor commandExecutor,
                                                       AgentHttpClient agentHttpClient,
                                                       AgentConfig agentConfig,
-                                                      ScriptTemplateService scriptTemplateService) {
+                                                      ScriptTemplateService scriptTemplateService,
+                                                      RemoteCommandExecutor remoteCommandExecutor,
+                                                      SshSessionProvisioner sshSessionProvisioner) {
         return new TaskExecutionService(commandExecutor,
                 WorkerCoordinator.createDefaultStepHandlers(agentHttpClient, commandExecutor, agentConfig,
-                        scriptTemplateService));
+                        scriptTemplateService, remoteCommandExecutor, sshSessionProvisioner));
     }
 }
