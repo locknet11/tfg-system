@@ -7,6 +7,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import com.spulido.agent.worker.CommandExecutor;
+import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.TaskExecutionService;
 import com.spulido.agent.worker.WorkerCoordinator;
 import com.spulido.agent.worker.http.AgentHttpClient;
@@ -73,8 +74,10 @@ public class WorkerPoolConfig {
     @Bean
     public TaskExecutionService taskExecutionService(CommandExecutor commandExecutor,
                                                       AgentHttpClient agentHttpClient,
-                                                      AgentConfig agentConfig) {
+                                                      AgentConfig agentConfig,
+                                                      ScriptTemplateService scriptTemplateService) {
         return new TaskExecutionService(commandExecutor,
-                WorkerCoordinator.createDefaultStepHandlers(agentHttpClient, commandExecutor, agentConfig));
+                WorkerCoordinator.createDefaultStepHandlers(agentHttpClient, commandExecutor, agentConfig,
+                        scriptTemplateService));
     }
 }

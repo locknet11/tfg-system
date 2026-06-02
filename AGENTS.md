@@ -6,6 +6,7 @@ AGENTS Guide (Angular + Spring Boot)
 - Lint/format (UI): Prettier 3.2.5 present; check `npx prettier --check .`, write `npx prettier --write .` (see ui/.prettierrc.json).
 - Lint (UI): No ESLint configured; rely on Angular strict TS and Prettier.
 - Java style: no formatter plugin; follow standard Spring/Java conventions; use Lombok where present; avoid wildcard imports; order imports: `java.*`, `jakarta.*`, `org.*`, project packages, static last.
+- Script/template boundary: all shell scripts, email bodies, JSON manifests, and multi-line structured text must live in resource template files (`src/main/resources/scripts/*.ftl`, `src/main/resources/templates/*.ftl`, `src/main/resources/scripts/*.sh.tmpl`). Use FreeMarker in `api/`; use `ClassPathResource` + simple `String.replace()` in `agents/unix/` (GraalVM-native safe). Never build scripts inline with `String.format`, `StringBuilder`, or string concatenation.
 - TS style: strict mode enabled; avoid `any`; use explicit types/interfaces from `ui/src/app/**/models`; prefer `readonly` and `const`.
 - Naming: TS files kebab-case; classes/components/services/pipes PascalCase; variables and functions camelCase; Observables suffix `$`.
 - Imports: group as framework (Angular), third‑party, project local; prefer relative within feature; do not use wildcard imports.

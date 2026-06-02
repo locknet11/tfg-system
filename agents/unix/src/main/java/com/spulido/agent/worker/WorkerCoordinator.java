@@ -106,26 +106,31 @@ public class WorkerCoordinator {
         }
     }
 
+    private static String formatCommand(String template, String action) {
+        return template.replace("{}", action != null ? action : "unknown");
+    }
+
     private String mapActionToCommand(StepAction action, PlanStepResponse planStep) {
         switch (action) {
             case EXPLOITATION_KNOWLEDGE:
                 return "exploitation-knowledge";
             case ECHO:
-                return "echo Running step: " + (planStep.getAction() != null ? planStep.getAction() : "unknown");
+                return formatCommand("echo Running step: {}", planStep.getAction());
             default:
-                return "echo Simulating: " + action;
+                return formatCommand("echo Simulating: {}", action.name());
         }
     }
 
     public static Map<StepAction, StepHandler> createDefaultStepHandlers(AgentHttpClient httpClient,
                                                                           CommandExecutor commandExecutor,
-                                                                          AgentConfig agentConfig) {
+                                                                          AgentConfig agentConfig,
+                                                                          ScriptTemplateService scriptTemplateService) {
         Map<StepAction, StepHandler> handlers = new HashMap<>();
         handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
         handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
         handlers.put(StepAction.EXECUTE_EXPLOIT, new ExecuteExploitStepHandler(commandExecutor));
         handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, commandExecutor,
-                new BinaryIntegrityVerifier(agentConfig)));
+                new BinaryIntegrityVerifier(agentConfig), scriptTemplateService));
         handlers.put(StepAction.REPLICATE, new EchoStepHandler());
         handlers.put(StepAction.ECHO, new EchoStepHandler());
         handlers.put(StepAction.SYSTEM_SCAN, new EchoStepHandler());

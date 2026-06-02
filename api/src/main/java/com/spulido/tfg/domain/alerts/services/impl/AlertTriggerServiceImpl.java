@@ -1,7 +1,11 @@
 package com.spulido.tfg.domain.alerts.services.impl;
 
+import java.io.StringWriter;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,6 +19,8 @@ import com.spulido.tfg.domain.alerts.model.AlertEvent;
 import com.spulido.tfg.domain.alerts.model.WhenCondition;
 import com.spulido.tfg.domain.alerts.services.AlertTriggerService;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +31,7 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
 
     private final AlertConfigurationRepository repository;
     private final JavaMailSender mailSender;
+    private final Configuration freemarkerConfiguration;
 
     @Override
     @Async
@@ -114,25 +121,39 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
     }
 
     private String buildEmailBody(AlertEvent event) {
-        StringBuilder body = new StringBuilder();
-        body.append("Security Alert\n\n");
-        body.append("Event Type: ").append(event.getType()).append("\n");
-        body.append("Timestamp: ").append(event.getTimestamp()).append("\n");
+        Map<String, Object> model = new HashMap<>();
+        model.put("eventType", event.getType() != null ? event.getType().toString() : "UNKNOWN");
+        model.put("timestamp", event.getTimestamp() != null ? event.getTimestamp().toString() : "");
 
         if (event.getSeverity() != null) {
-            body.append("Severity: ").append(event.getSeverity()).append("\n");
+            model.put("severity", event.getSeverity());
         }
 
         if (event.getPayload() != null && !event.getPayload().isEmpty()) {
-            body.append("\nDetails:\n");
-            event.getPayload().forEach((key, value) -> body.append("  ").append(key).append(": ").append(value)
-                    .append("\n"));
+            List<Map<String, String>> entries = event.getPayload().entrySet().stream()
+                    .map(e -> {
+                        Map<String, String> entry = new HashMap<>();
+                        entry.put("key", e.getKey());
+                        entry.put("value", String.valueOf(e.getValue()));
+                        return entry;
+                    })
+                    .collect(Collectors.toList());
+            model.put("payloadEntries", entries);
         }
 
-        body.append("\n---\n");
-        body.append("This is an automated alert from the TFG Security System.\n");
-
-        return body.toString();
+        try {
+            Template template = freemarkerConfiguration.getTemplate("alert-email.ftl");
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
+            return writer.toString();
+        } catch (Exception e) {
+            log.error("Failed to render email template", e);
+            return "Security Alert\n\n"
+                    + "Event Type: " + event.getType() + "\n"
+                    + "Timestamp: " + event.getTimestamp() + "\n"
+                    + "\n---\n"
+                    + "This is an automated alert from the TFG Security System.\n";
+        }
     }
 
     private void updateLastTriggeredAt(AlertConfiguration config) {

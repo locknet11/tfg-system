@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spulido.tfg.domain.replication.services.AgentBinaryService;
 import com.spulido.tfg.domain.replication.services.BinaryIntegrityService;
 
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class AgentBinaryServiceImpl implements AgentBinaryService {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final BinaryIntegrityService integrityService;
     private final String binaryPath;
@@ -42,14 +45,15 @@ public class AgentBinaryServiceImpl implements AgentBinaryService {
             binaryBytes = Files.readAllBytes(path);
             blake3Hash = integrityService.computeBlake3Hash(binaryBytes);
             String signature = integrityService.signHash(blake3Hash);
-            signedManifest = String.format(
-                    "{\"blake3Hash\":\"%s\",\"signature\":\"%s\",\"algorithm\":\"%s\"}",
-                    blake3Hash, signature, integrityService.getAlgorithm());
+            signedManifest = OBJECT_MAPPER.writeValueAsString(
+                    new AgentBinaryManifest(blake3Hash, signature, integrityService.getAlgorithm()));
             log.info("Agent binary loaded and signed — {} bytes, Blake3 hash: {}", binaryBytes.length, blake3Hash);
         } catch (IOException e) {
             log.error("Failed to load agent binary from {}", binaryPath, e);
         }
     }
+
+    private record AgentBinaryManifest(String blake3Hash, String signature, String algorithm) {}
 
     @Override
     public byte[] getBinaryBytes() {

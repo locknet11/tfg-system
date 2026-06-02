@@ -26,4 +26,13 @@ public interface ScriptService {
             OperatingSystem os,
             String targetUniqueId,
             String errorMessage);
+
+    String generateExploitScript(
+            String description,
+            String targetIp,
+            int targetPort,
+            String serviceName,
+            String serviceVersion,
+            String cveId,
+            String exploitUrl);
 }

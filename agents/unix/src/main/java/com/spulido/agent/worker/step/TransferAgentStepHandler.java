@@ -1,5 +1,6 @@
 package com.spulido.agent.worker.step;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import com.spulido.agent.domain.task.StepResult;
 import com.spulido.agent.domain.task.TaskResult;
 import com.spulido.agent.worker.BinaryIntegrityVerifier;
 import com.spulido.agent.worker.CommandExecutor;
+import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.http.AgentHttpClient;
 
 public class TransferAgentStepHandler implements StepHandler {
@@ -20,12 +22,15 @@ public class TransferAgentStepHandler implements StepHandler {
     private final AgentHttpClient httpClient;
     private final CommandExecutor commandExecutor;
     private final BinaryIntegrityVerifier integrityVerifier;
+    private final ScriptTemplateService scriptTemplateService;
 
     public TransferAgentStepHandler(AgentHttpClient httpClient, CommandExecutor commandExecutor,
-                                    BinaryIntegrityVerifier integrityVerifier) {
+                                    BinaryIntegrityVerifier integrityVerifier,
+                                    ScriptTemplateService scriptTemplateService) {
         this.httpClient = httpClient;
         this.commandExecutor = commandExecutor;
         this.integrityVerifier = integrityVerifier;
+        this.scriptTemplateService = scriptTemplateService;
     }
 
     @Override
@@ -58,15 +63,12 @@ public class TransferAgentStepHandler implements StepHandler {
                 return StepResult.failure(action, List.of("Binary integrity verification failed"));
             }
 
-            String installScript = String.format(
-                    "echo '%s' > /tmp/agent && chmod +x /tmp/agent && " +
-                    "echo 'agent.central-url=%s' > /tmp/agent.properties && " +
-                    "echo 'agent.preauth-code=%s' >> /tmp/agent.properties && " +
-                    "nohup /tmp/agent > /tmp/agent.log 2>&1 &",
-                    java.util.Base64.getEncoder().encodeToString(binary),
-                    centralUrl != null ? centralUrl : "http://localhost:8080",
-                    preauthCode != null ? preauthCode : ""
-            );
+            Map<String, String> replacements = new HashMap<>();
+            replacements.put("BINARY_BASE64", java.util.Base64.getEncoder().encodeToString(binary));
+            replacements.put("CENTRAL_URL", centralUrl != null ? centralUrl : "http://localhost:8080");
+            replacements.put("PREAUTH_CODE", preauthCode != null ? preauthCode : "");
+
+            String installScript = scriptTemplateService.renderTemplate("install-agent.sh.tmpl", replacements);
 
             TaskResult installResult = commandExecutor.execute(installScript, 30);
             if (!installResult.isSuccess()) {

@@ -63,6 +63,36 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
+    public String generateExploitScript(
+            String description,
+            String targetIp,
+            int targetPort,
+            String serviceName,
+            String serviceVersion,
+            String cveId,
+            String exploitUrl) {
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("description", description);
+        model.put("targetIp", targetIp);
+        model.put("targetPort", String.valueOf(targetPort));
+        model.put("serviceName", serviceName);
+        model.put("serviceVersion", serviceVersion);
+        model.put("cveId", cveId);
+        model.put("exploitUrl", exploitUrl != null ? exploitUrl : "unknown");
+
+        try {
+            Template template = freemarkerConfiguration.getTemplate("exploit.sh.ftl");
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
+            return writer.toString();
+        } catch (Exception e) {
+            log.error("Error generating exploit script for CVE: {}", cveId, e);
+            throw new RuntimeException("Failed to generate exploit script", e);
+        }
+    }
+
+    @Override
     public String generateInstallErrorScript(OperatingSystem os, String targetUniqueId, String errorMessage) {
         String templateName = getErrorTemplateNameForOs(os);
 
