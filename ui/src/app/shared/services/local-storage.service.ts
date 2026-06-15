@@ -23,8 +23,24 @@ export class LocalStorageService {
     return orgStr ? JSON.parse(orgStr) : null;
   }
 
+  setSelectedOrganization(organization: unknown) {
+    localStorage.setItem(
+      this.SELECTED_ORGANIZATION,
+      JSON.stringify(organization)
+    );
+  }
+
   getSelectedProject() {
     const projectStr = localStorage.getItem(this.SELECTED_PROJECT);
     return projectStr ? JSON.parse(projectStr) : null;
+  }
+
+  setSelectedProject(project: unknown) {
+    localStorage.setItem(this.SELECTED_PROJECT, JSON.stringify(project));
+  }
+
+  clearSelectedProjectContext(): void {
+    localStorage.removeItem(this.SELECTED_ORGANIZATION);
+    localStorage.removeItem(this.SELECTED_PROJECT);
   }
 }

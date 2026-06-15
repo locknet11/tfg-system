@@ -8,9 +8,6 @@
           alt="Logo"
           height="60"
           class="mb-4" />
-        <div class="text-900 text-2xl font-medium mb-2" i18n>
-          Select Organization & Project
-        </div>
         <div class="text-600 text-sm" i18n>
           Choose an organization and project to continue.
         </div>
@@ -26,6 +23,7 @@
             [options]="organizationDropdownOptions"
             optionLabel="name"
             placeholder="Select an organization"
+            i18n-placeholder
             [filter]="true"
             filterBy="name"
             [showClear]="true"
@@ -55,6 +53,7 @@
             [options]="projectDropdownOptions"
             optionLabel="name"
             placeholder="Select a project"
+            i18n-placeholder
             [filter]="true"
             filterBy="name"
             [showClear]="true"

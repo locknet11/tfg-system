@@ -61,6 +61,20 @@ export class RequestInterceptor implements HttpInterceptor {
     if (error.status === HttpStatusCode.Unauthorized) {
       this.accountService.logout();
       this.router.navigate(['login']);
+      return;
     }
+
+    if (this.isInvalidProjectContextError(error)) {
+      this.localStorageService.clearSelectedProjectContext();
+      this.router.navigate(['project-selector']);
+    }
+  }
+
+  private isInvalidProjectContextError(error: HttpErrorResponse): boolean {
+    return (
+      (error.status === HttpStatusCode.BadRequest ||
+        error.status === HttpStatusCode.NotFound) &&
+      error.error?.errorCode === 'INVALID_PROJECT_CONTEXT'
+    );
   }
 }

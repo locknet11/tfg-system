@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,14 +7,16 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
+import { Subject, filter, takeUntil } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { StepsModule } from 'primeng/steps';
+import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { OrganizationService } from '../data-access/organization.service';
 import {
@@ -62,7 +64,7 @@ import {
     `,
   ],
 })
-export class ProjectSelectorComponent implements OnInit {
+export class ProjectSelectorComponent implements OnInit, OnDestroy {
   organizations: OrganizationInfo[] = [];
   allProjects: ProjectInfo[] = [];
   filteredProjects: ProjectInfo[] = [];
@@ -107,16 +109,21 @@ export class ProjectSelectorComponent implements OnInit {
   loading = false;
   showNoOrganizationsMessage = false;
 
+  private readonly destroy$ = new Subject<void>();
+  private initialLoadDone = false;
+
   constructor(
     private fb: FormBuilder,
     private toastService: ToastService,
     private router: Router,
+    private localStorageService: LocalStorageService,
     private organizationService: OrganizationService,
     private projectService: ProjectService
   ) {}
 
   ngOnInit(): void {
     this.loadOrganizations();
+    this.subscribeToProjectSelectorNavigation();
 
     this.selectorForm.get('organization')?.valueChanges.subscribe(org => {
       if (org && (org as any).isCreateOption) {
@@ -131,7 +138,8 @@ export class ProjectSelectorComponent implements OnInit {
           p => p.organizationId === org.id
         );
         this.updateProjectDropdownOptions();
-        this.selectorForm.get('project')?.setValue(null);
+        const firstProject = this.filteredProjects[0] ?? null;
+        this.selectorForm.get('project')?.setValue(firstProject);
         this.selectorForm.get('project')?.enable();
       } else {
         this.filteredProjects = [];
@@ -153,12 +161,35 @@ export class ProjectSelectorComponent implements OnInit {
     this.selectorForm.get('project')?.disable();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private subscribeToProjectSelectorNavigation(): void {
+    this.router.events
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd
+        ),
+        filter(
+          event =>
+            event.urlAfterRedirects === '/project-selector' ||
+            event.url === '/project-selector'
+        ),
+        filter(() => this.initialLoadDone)
+      )
+      .subscribe(() => this.loadOrganizations());
+  }
+
   loadOrganizations(): void {
     this.loading = true;
     this.organizationService.getOrganizations().subscribe({
       next: organizations => {
         this.organizations = organizations;
         this.loading = false;
+        this.initialLoadDone = true;
 
         // Show suggestion message if no organizations exist
         this.showNoOrganizationsMessage = this.organizations.length === 0;
@@ -172,6 +203,7 @@ export class ProjectSelectorComponent implements OnInit {
       },
       error: error => {
         this.loading = false;
+        this.initialLoadDone = true;
         this.toastService.error($localize`Error loading organizations`);
       },
     });
@@ -194,7 +226,7 @@ export class ProjectSelectorComponent implements OnInit {
       ...this.organizations,
       {
         id: 'create-new',
-        name: 'Create new organization...',
+        name: $localize`Create new organization...`,
         isCreateOption: true,
       },
     ];
@@ -210,7 +242,7 @@ export class ProjectSelectorComponent implements OnInit {
         ...orgProjects,
         {
           id: 'create-new',
-          name: 'Create new project...',
+          name: $localize`Create new project...`,
           isCreateOption: true,
         },
       ];
@@ -224,17 +256,7 @@ export class ProjectSelectorComponent implements OnInit {
 
     const formData = this.selectorForm.getRawValue();
 
-    // Save selected context to localStorage
-    localStorage.setItem(
-      'selectedOrganization',
-      JSON.stringify(formData.organization)
-    );
-    localStorage.setItem('selectedProject', JSON.stringify(formData.project));
-
-    this.toastService.success(
-      $localize`Entering project: ${formData.project.name}`
-    );
-    this.router.navigate(['dashboard']);
+    this.enterProjectWithSelection(formData.organization, formData.project);
   }
 
   // Organization dialog methods
@@ -395,13 +417,13 @@ export class ProjectSelectorComponent implements OnInit {
         this.toastService.success($localize`Project created successfully`);
         this.closeSetupWizard();
 
-        // Auto-select the created organization and project
-        this.selectorForm.patchValue({
-          organization: this.organizations.find(
-            org => org.id === project.organizationId
-          ),
-          project: project,
-        });
+        // Auto-select the created organization and project, then enter the project
+        const organization = this.organizations.find(
+          org => org.id === project.organizationId
+        );
+        if (organization) {
+          this.enterProjectWithSelection(organization, project);
+        }
       },
       error: error => {
         this.toastService.error(
@@ -409,5 +431,16 @@ export class ProjectSelectorComponent implements OnInit {
         );
       },
     });
+  }
+
+  private enterProjectWithSelection(
+    organization: OrganizationInfo,
+    project: ProjectInfo
+  ): void {
+    this.localStorageService.setSelectedOrganization(organization);
+    this.localStorageService.setSelectedProject(project);
+
+    this.toastService.success($localize`Entering project: ${project.name}`);
+    this.router.navigate(['dashboard']);
   }
 }
