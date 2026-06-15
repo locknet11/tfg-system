@@ -12,7 +12,7 @@ const routes: Routes = [
   },
   {
     path: 'project-selector',
-    title: 'Project Selector',
+    title: $localize`Project Selector`,
     loadComponent: () =>
       import(
         './pages/project-selector/feature/project-selector.component'
@@ -32,7 +32,7 @@ const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        title: 'Dashboard',
+        title: $localize`Dashboard`,
         loadComponent: () =>
           import('./pages/dashboard/dashboard.component').then(
             x => x.DashboardComponent
@@ -50,7 +50,7 @@ const routes: Routes = [
       },
       {
         path: 'agents',
-        title: 'Agents',
+        title: $localize`Agents`,
         loadComponent: () =>
           import('./pages/agents/feature/agents.component').then(
             x => x.AgentsComponent
@@ -77,7 +77,7 @@ const routes: Routes = [
       },
       {
         path: 'replication-requests',
-        title: 'Replication Requests',
+        title: $localize`Replication Requests`,
         loadComponent: () =>
           import(
             './pages/replication-requests/feature/replication-requests.component'
@@ -85,7 +85,7 @@ const routes: Routes = [
       },
       {
         path: 'page-not-found',
-        title: 'Page Not Found',
+        title: $localize`Page Not Found`,
         loadComponent: () =>
           import('./pages/page-not-found/page-not-found.component').then(
             x => x.PageNotFoundComponent

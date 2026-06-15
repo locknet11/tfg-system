@@ -3,13 +3,13 @@ import { Routes } from '@angular/router';
 export const UsersRoutes: Routes = [
   {
     path: '',
-    title: 'Users',
+    title: $localize`Users`,
     loadComponent: () =>
       import('./feature/users.component').then(x => x.UsersComponent),
   },
   {
     path: 'create',
-    title: 'New User',
+    title: $localize`New User`,
     loadComponent: () =>
       import('./feature/create-user/create-user.component').then(
         x => x.CreateUserComponent
@@ -17,7 +17,7 @@ export const UsersRoutes: Routes = [
   },
   {
     path: 'edit/:id',
-    title: 'Edit User',
+    title: $localize`Edit User`,
     loadComponent: () =>
       import('./feature/edit-user/edit-user.component').then(
         x => x.EditUserComponent
