@@ -61,8 +61,13 @@ public class TargetServiceImpl implements TargetService {
     }
 
     @Override
-    public TargetsList listTargets(PageRequest pageRequest) {
-        Page<Target> page = repository.findAllScoped(pageRequest);
+    public TargetsList listTargets(PageRequest pageRequest, String query) {
+        Page<Target> page;
+        if (query != null && !query.isBlank()) {
+            page = repository.findByQueryScoped(query, pageRequest);
+        } else {
+            page = repository.findAllScoped(pageRequest);
+        }
         return new TargetsList(page.getContent(), pageRequest, page.getTotalElements());
     }
 

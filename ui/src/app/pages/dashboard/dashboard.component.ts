@@ -43,7 +43,7 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getKPIs().subscribe(kpis => {
       this.kpis = kpis;
       // Obtener cantidad de targets y actualizar
-      this.targetsService.getTargets(0, 1000).subscribe(targetsList => {
+      this.targetsService.list('', 0, 1000).subscribe(targetsList => {
         if (this.kpis) {
           this.kpis.targetsCount = targetsList.totalElements;
         }

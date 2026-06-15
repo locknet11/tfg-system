@@ -17,17 +17,17 @@ export class VulnerabilitiesService {
   constructor(private http: HttpClient) {}
 
   list(
+    query = '',
     page = 0,
     size = 10,
-    search?: string,
     severity?: string
   ): Observable<VulnerabilityListResponse> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
 
-    if (search) {
-      params = params.set('search', search);
+    if (query) {
+      params = params.set('query', query);
     }
     if (severity) {
       params = params.set('severity', severity);

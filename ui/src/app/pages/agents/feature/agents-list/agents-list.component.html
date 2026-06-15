@@ -1,4 +1,17 @@
 <div class="agents-list-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold m-0" i18n>Agents</h1>
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Search agents..."
+        i18n-placeholder
+        (input)="onSearchInput($any($event.target)?.value)" />
+    </span>
+  </div>
+
   <p-toast></p-toast>
   <p-confirmDialog></p-confirmDialog>
 
@@ -13,11 +26,11 @@
     [totalRecords]="total()"
     [paginator]="true"
     [alwaysShowPaginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="loading()"
     i18n-currentPageReportTemplate
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [showCurrentPageReport]="true"
-    [loading]="loading()"
-    [rowsPerPageOptions]="[5, 10, 20]"
     dataKey="id">
     <ng-template pTemplate="header">
       <tr>
@@ -40,20 +53,18 @@
             pTooltip="Replicated from parent agent"
             i18n-pTooltip></i>
         </td>
-        <td>{{ agent.targetSystem || '-' }}</td>
+        <td>{{ agent.targetSystem || '—' }}</td>
         <td>
           <p-tag
             [value]="statusLabel(agent.status)"
             [severity]="statusSeverity(agent.status)"></p-tag>
         </td>
-        <td>{{ agent.version }}</td>
+        <td>{{ agent.version || '—' }}</td>
         <td>{{ agent.lastConnection | date: 'short' }}</td>
         <td>
           <div class="flex gap-2 justify-content-end">
             <p-button
               icon="pi pi-file"
-              label="Assign Plan"
-              i18n-label
               (onClick)="openAssignPlanModal(agent.id)"
               [rounded]="true"
               [text]="true"
@@ -67,12 +78,17 @@
               [rounded]="true"
               [text]="true"
               severity="danger"
-              label="Delete"
-              i18n-label
               pTooltip="Delete"
               i18n-pTooltip
               tooltipPosition="top"></p-button>
           </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-4">
+          {{ query() ? emptySearchMessage : emptyMessage }}
         </td>
       </tr>
     </ng-template>

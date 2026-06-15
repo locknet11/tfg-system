@@ -9,8 +9,11 @@ const baseUrl = environment.baseUrl;
 export class AgentsService {
   constructor(private http: HttpClient) {}
 
-  list(page: number, size: number) {
+  list(query: string, page: number, size: number) {
     let params = new HttpParams().set('page', page).set('size', size);
+    if (query) {
+      params = params.set('query', query);
+    }
     return this.http.get<AgentsList>(`${baseUrl}/api/agent`, { params });
   }
 

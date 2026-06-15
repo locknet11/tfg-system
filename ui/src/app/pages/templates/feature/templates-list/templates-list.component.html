@@ -1,24 +1,23 @@
 <div class="templates-list-container">
   <div class="flex justify-content-between align-items-center mb-4">
-    <h1 i18n>Templates</h1>
-    <p-button
-      label="Create Template"
-      i18n-label
-      icon="pi pi-plus"
-      styleClass="p-button-success"
-      (onClick)="createTemplate()"></p-button>
-  </div>
-
-  <div class="mb-4">
-    <span class="p-input-icon-left">
-      <i class="pi pi-search"></i>
-      <input
-        pInputText
-        placeholder="Search templates..."
-        i18n-placeholder
-        [ngModel]="querySig()"
-        (ngModelChange)="onSearchChange($event)" />
-    </span>
+    <h1 class="text-3xl font-bold m-0" i18n>Templates</h1>
+    <div class="flex gap-3 align-items-center">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search templates..."
+          i18n-placeholder
+          (input)="onSearchInput($any($event.target)?.value)" />
+      </span>
+      <p-button
+        label="Create Template"
+        i18n-label
+        icon="pi pi-plus"
+        styleClass="p-button-success"
+        (onClick)="createTemplate()"></p-button>
+    </div>
   </div>
 
   <p-toast></p-toast>
@@ -26,10 +25,20 @@
 
   <p-table
     [value]="filteredTemplates()"
-    [loading]="loadingSig()"
-    [paginator]="false"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="templates-table"
+    [lazy]="true"
+    [lazyLoadOnInit]="true"
+    (onLazyLoad)="onLazyLoad($event)"
     [rows]="sizeSig()"
-    styleClass="templates-table">
+    [totalRecords]="totalSig()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="loadingSig()"
+    i18n-currentPageReportTemplate
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true">
     <ng-template pTemplate="header">
       <tr>
         <th i18n>Name</th>
@@ -41,7 +50,7 @@
     <ng-template pTemplate="body" let-template>
       <tr>
         <td>{{ template.name }}</td>
-        <td>{{ template.description }}</td>
+        <td>{{ template.description || '—' }}</td>
         <td>{{ template.plan.steps.length }}</td>
         <td>
           <div class="flex gap-2 justify-content-end">
@@ -67,13 +76,18 @@
         </td>
       </tr>
     </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center p-4">
+          {{
+            querySig()
+              ? emptySearchMessage
+              : emptyMessage
+          }}
+        </td>
+      </tr>
+    </ng-template>
   </p-table>
-
-  <p-paginator
-    [rows]="sizeSig()"
-    [totalRecords]="totalSig()"
-    [rowsPerPageOptions]="[5, 10, 20]"
-    (onPageChange)="onPageChange($event)"></p-paginator>
 
   <app-create-template-modal
     (templateCreated)="loadTemplates()"></app-create-template-modal>

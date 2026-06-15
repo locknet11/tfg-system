@@ -1,10 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule } from 'primeng/paginator';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
@@ -18,10 +27,10 @@ import { EditTemplateModalComponent } from '../modals/edit-template-modal/edit-t
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TableModule,
     ButtonModule,
     InputTextModule,
-    PaginatorModule,
     ConfirmDialogModule,
     ToastModule,
     CreateTemplateModalComponent,
@@ -32,9 +41,12 @@ import { EditTemplateModalComponent } from '../modals/edit-template-modal/edit-t
   providers: [ConfirmationService, MessageService],
 })
 export class TemplatesListComponent {
+  private destroyRef = inject(DestroyRef);
   private templatesService = inject(TemplatesService);
   private confirm = inject(ConfirmationService);
   private messages = inject(MessageService);
+
+  private searchSubject = new Subject<string>();
 
   createTemplateModal = viewChild.required(CreateTemplateModalComponent);
   editTemplateModal = viewChild.required(EditTemplateModalComponent);
@@ -46,21 +58,40 @@ export class TemplatesListComponent {
   pageSig = signal(0);
   sizeSig = signal(10);
 
+  readonly emptyMessage = $localize`No templates found`;
+  readonly emptySearchMessage = $localize`No templates match your search`;
+
   filteredTemplates = computed(() => this.templatesSig());
+
+  constructor() {
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(query => {
+        this.querySig.set(query);
+        this.pageSig.set(0);
+        this.loadTemplates();
+      });
+  }
 
   ngOnInit() {
     this.loadTemplates();
   }
 
-  onSearchChange(query: string) {
-    this.querySig.set(query);
-    this.pageSig.set(0);
-    this.loadTemplates();
+  onSearchInput(value: string) {
+    this.searchSubject.next(value.trim());
   }
 
-  onPageChange(event: any) {
-    this.pageSig.set(event.page);
-    this.sizeSig.set(event.rows);
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const newPage = Math.floor(
+      (event.first || 0) / (event.rows || this.sizeSig())
+    );
+    const newSize = event.rows || this.sizeSig();
+    this.pageSig.set(newPage);
+    this.sizeSig.set(newSize);
     this.loadTemplates();
   }
 

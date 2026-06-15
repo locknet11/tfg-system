@@ -239,6 +239,22 @@
     "1850022546582499751": " No vulnerabilities found for this service and version. ",
     "4444447610157070490": "Vulnerability data refreshed",
     "4887123750367013569": "Failed to refresh vulnerability data",
-    "8192933369246470949": "Failed to load vulnerability details"
+    "8192933369246470949": "Failed to load vulnerability details",
+    "688140940217665162": "Failed to load targets",
+    "7164614644972655423": "Failed to delete target",
+    "2959301150606983394": "No targets found",
+    "3998906405922085019": "No targets match your search",
+    "6440969549874838673": "Search targets...",
+    "5061808304624861961": "No agents found",
+    "1663353928792347065": "No agents match your search",
+    "7857377971610606948": "Search agents...",
+    "4190253942352976766": "No templates found",
+    "8762851859155767588": "No templates match your search",
+    "2186284523757892732": "No vulnerability records found.",
+    "185251657658301651": "No vulnerabilities match your search",
+    "5965280074452931363": "Search by service name",
+    "9106967682631719413": "Filter by severity",
+    "2776617638046368313": "View details",
+    "3209095021582177395": "No alerts configured"
   }
 }

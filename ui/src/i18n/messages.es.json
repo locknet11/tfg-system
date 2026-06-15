@@ -266,6 +266,22 @@
     "1850022546582499751": " No se encontraron vulnerabilidades para este servicio y versión. ",
     "4444447610157070490": "Datos de vulnerabilidad actualizados",
     "4887123750367013569": "Error al actualizar datos de vulnerabilidad",
-    "8192933369246470949": "Error al cargar detalles de vulnerabilidad"
+    "8192933369246470949": "Error al cargar detalles de vulnerabilidad",
+    "688140940217665162": "Error al cargar objetivos",
+    "7164614644972655423": "Error al eliminar objetivo",
+    "2959301150606983394": "No se encontraron objetivos",
+    "3998906405922085019": "Ningún objetivo coincide con la búsqueda",
+    "6440969549874838673": "Buscar objetivos...",
+    "5061808304624861961": "No se encontraron agentes",
+    "1663353928792347065": "Ningún agente coincide con la búsqueda",
+    "7857377971610606948": "Buscar agentes...",
+    "4190253942352976766": "No se encontraron plantillas",
+    "8762851859155767588": "Ninguna plantilla coincide con la búsqueda",
+    "2186284523757892732": "No se encontraron registros de vulnerabilidades.",
+    "185251657658301651": "Ninguna vulnerabilidad coincide con la búsqueda",
+    "5965280074452931363": "Buscar por nombre de servicio",
+    "9106967682631719413": "Filtrar por severidad",
+    "2776617638046368313": "Ver detalles",
+    "3209095021582177395": "No hay alertas configuradas"
   }
 }

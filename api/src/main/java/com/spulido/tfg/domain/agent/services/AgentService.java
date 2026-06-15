@@ -10,7 +10,7 @@ import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
 
 public interface AgentService {
-    AgentsList listAgents(PageRequest pageRequest);
+    AgentsList listAgents(PageRequest pageRequest, String query);
 
     Agent getById(String id);
 

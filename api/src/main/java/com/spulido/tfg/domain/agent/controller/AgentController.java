@@ -54,9 +54,10 @@ public class AgentController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ResponseList<AgentInfo>> getAgents(
+            @RequestParam(name = "query", required = false) String query,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
-        AgentsList agents = agentService.listAgents(PageRequest.of(page, size));
+        AgentsList agents = agentService.listAgents(PageRequest.of(page, size), query);
         return ResponseEntity.ok().body(mapper.agentsListToResponseList(agents));
     }
 

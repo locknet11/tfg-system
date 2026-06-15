@@ -14,6 +14,16 @@ public interface TargetRepository extends MongoRepository<Target, String> {
     // Scoped queries - use ProjectContext to filter by org/project
     @Query("{ 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, 'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }")
     Page<Target> findAllScoped(Pageable pageable);
+
+    @Query("{ '$and': [" +
+        "{ '$or': [" +
+            "{ 'systemName': { '$regex': ?0, '$options': 'i' } }, " +
+            "{ 'description': { '$regex': ?0, '$options': 'i' } }" +
+        "] }, " +
+        "{ 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, " +
+        "'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }" +
+        "] }")
+    Page<Target> findByQueryScoped(String query, Pageable pageable);
     
     @Query("{ '_id': ?0, 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, 'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }")
     Optional<Target> findByIdScoped(String id);

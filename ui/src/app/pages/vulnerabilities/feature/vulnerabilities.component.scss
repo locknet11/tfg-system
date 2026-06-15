@@ -1,40 +1,52 @@
 .vulnerabilities-page {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+  padding: 2rem;
+}
 
-    h2 {
-      margin: 0;
+::ng-deep {
+  .vulnerabilities-table {
+    background: var(--surface-card);
+    border-radius: 12px;
+    overflow: hidden;
+
+    .p-datatable-thead > tr > th {
+      background: var(--surface-card);
+      color: var(--text-color-secondary);
       font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1.25rem 1rem;
+      border: none;
+    }
+
+    .p-datatable-tbody > tr {
+      background: var(--surface-card);
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: var(--surface-hover);
+      }
+
+      > td {
+        padding: 1.25rem 1rem;
+        border: none;
+        border-top: 1px solid var(--surface-border);
+      }
     }
   }
+}
 
-  .filters {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
 
-  .clickable-row {
-    cursor: pointer;
-    transition: background-color 0.15s ease;
+.cve-count {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
 
-    &:hover {
-      background-color: var(--surface-hover);
-    }
-  }
-
-  .cve-count {
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-
-  .no-data {
-    color: var(--text-color-secondary);
-    font-style: italic;
-  }
+.no-data {
+  color: var(--text-color-secondary);
+  font-style: italic;
 }

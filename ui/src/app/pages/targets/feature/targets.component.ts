@@ -1,10 +1,20 @@
-import { Component, OnInit, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmationService } from 'primeng/api';
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { TargetsService } from '../data-access/targets.service';
@@ -23,6 +33,7 @@ import { AgentSetupModalComponent } from './modals/agent-setup-modal/agent-setup
     TagModule,
     TooltipModule,
     ConfirmDialogModule,
+    InputTextModule,
     CreateTargetModalComponent,
     EditTargetModalComponent,
     AgentSetupModalComponent,
@@ -32,38 +43,65 @@ import { AgentSetupModalComponent } from './modals/agent-setup-modal/agent-setup
   styleUrls: ['./targets.component.scss'],
 })
 export class TargetsComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+  private confirmationService = inject(ConfirmationService);
+  private toastService = inject(ToastService);
+  private targetsService = inject(TargetsService);
+
+  private searchSubject = new Subject<string>();
+
   targets = signal<TargetInfo[]>([]);
   totalRecords = signal(0);
   rows = signal(10);
+  loading = signal(false);
+  query = signal('');
+
+  readonly emptyMessage = $localize`No targets found`;
+  readonly emptySearchMessage = $localize`No targets match your search`;
 
   createTargetModal = viewChild.required(CreateTargetModalComponent);
   editTargetModal = viewChild.required(EditTargetModalComponent);
   agentSetupModal = viewChild.required(AgentSetupModalComponent);
 
-  constructor(
-    private confirmationService: ConfirmationService,
-    private toastService: ToastService,
-    private targetsService: TargetsService
-  ) {}
-
-  ngOnInit(): void {
-    // this.getTargets();
+  constructor() {
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(query => {
+        this.query.set(query);
+        this.loadTargets();
+      });
   }
 
-  getTargets(pageEvent?: TableLazyLoadEvent) {
+  ngOnInit(): void {}
+
+  loadTargets(pageEvent?: TableLazyLoadEvent) {
     let page = 0;
     let size = 10;
-    if (pageEvent && pageEvent.first && pageEvent.rows) {
+    if (pageEvent && pageEvent.first != null && pageEvent.rows) {
       page = pageEvent.first / pageEvent.rows;
       size = pageEvent.rows;
     }
-    this.targetsService.getTargets(page, size).subscribe({
+    this.loading.set(true);
+    this.targetsService.list(this.query(), page, size).subscribe({
       next: res => {
         this.targets.set(res.content);
         this.totalRecords.set(res.totalElements);
         this.rows.set(res.size);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.toastService.error($localize`Failed to load targets`);
       },
     });
+  }
+
+  onSearchInput(value: string) {
+    this.searchSubject.next(value.trim());
   }
 
   addTarget() {
@@ -75,7 +113,6 @@ export class TargetsComponent implements OnInit {
   }
 
   showAgentSetup(target: TargetInfo) {
-    // Get organization and project from localStorage
     const selectedOrgStr = localStorage.getItem('selectedOrganization');
     const selectedProjectStr = localStorage.getItem('selectedProject');
 
@@ -96,7 +133,6 @@ export class TargetsComponent implements OnInit {
     const selectedOrg = JSON.parse(selectedOrgStr);
     const selectedProject = JSON.parse(selectedProjectStr);
 
-    // Use short identifiers instead of MongoDB IDs
     this.agentSetupModal().show(
       selectedOrg.organizationIdentifier,
       selectedProject.projectIdentifier,
@@ -124,22 +160,22 @@ export class TargetsComponent implements OnInit {
 
   private deleteTarget(target: TargetInfo) {
     this.targetsService.deleteTarget(target.id).subscribe({
-      next: res => {
+      next: () => {
         this.toastService.success($localize`Target deleted successfully`);
-        this.getTargets();
+        this.loadTargets();
       },
-      error: err => {
-        console.error(err);
+      error: () => {
+        this.toastService.error($localize`Failed to delete target`);
       },
     });
   }
 
-  onTargetCreated(target?: any) {
-    this.getTargets();
+  onTargetCreated() {
+    this.loadTargets();
   }
 
   onTargetUpdated() {
-    this.getTargets();
+    this.loadTargets();
   }
 
   getStatusLabel(status: string): string {

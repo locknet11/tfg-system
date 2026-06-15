@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -29,16 +31,22 @@ import { VulnerabilitiesService } from '../data-access/vulnerabilities.service';
   styleUrls: ['./vulnerabilities.component.scss'],
 })
 export class VulnerabilitiesComponent {
+  private destroyRef = inject(DestroyRef);
   private vulnService = inject(VulnerabilitiesService);
   private router = inject(Router);
+
+  private searchSubject = new Subject<string>();
 
   records = signal<VulnerabilityListItem[]>([]);
   totalSig = signal(0);
   loadingSig = signal(false);
   pageSig = signal(0);
   sizeSig = signal(10);
+  querySig = signal('');
 
-  searchQuery = '';
+  readonly emptyMessage = $localize`No vulnerability records found.`;
+  readonly emptySearchMessage = $localize`No vulnerabilities match your search`;
+
   selectedSeverity = '';
 
   severityOptions = [
@@ -49,6 +57,20 @@ export class VulnerabilitiesComponent {
     { label: $localize`Critical`, value: 'CRITICAL' },
   ];
 
+  constructor() {
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(query => {
+        this.querySig.set(query);
+        this.pageSig.set(0);
+        this.loadRecords();
+      });
+  }
+
   onLazyLoad(event: TableLazyLoadEvent) {
     const first = event.first ?? 0;
     const rows = event.rows ?? this.sizeSig();
@@ -58,9 +80,8 @@ export class VulnerabilitiesComponent {
     this.loadRecords();
   }
 
-  onSearch() {
-    this.pageSig.set(0);
-    this.loadRecords();
+  onSearchInput(value: string) {
+    this.searchSubject.next(value.trim());
   }
 
   onSeverityChange() {
@@ -93,9 +114,9 @@ export class VulnerabilitiesComponent {
     this.loadingSig.set(true);
     this.vulnService
       .list(
+        this.querySig(),
         this.pageSig(),
         this.sizeSig(),
-        this.searchQuery || undefined,
         this.selectedSeverity || undefined
       )
       .subscribe({

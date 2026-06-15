@@ -1,6 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { TableModule } from 'primeng/table';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
@@ -31,9 +33,20 @@ import { AssignPlanModalComponent } from '../assign-plan-modal/assign-plan-modal
   providers: [AgentsService, ConfirmationService, MessageService],
 })
 export class AgentsListComponent {
+  private destroyRef = inject(DestroyRef);
+  private agentsService = inject(AgentsService);
+  private confirm = inject(ConfirmationService);
+  private messages = inject(MessageService);
+
+  private searchSubject = new Subject<string>();
+
   agents = signal<Agent[]>([]);
   total = signal<number>(0);
   loading = signal<boolean>(false);
+  query = signal('');
+
+  readonly emptyMessage = $localize`No agents found`;
+  readonly emptySearchMessage = $localize`No agents match your search`;
 
   page = signal<number>(0);
   size = signal<number>(10);
@@ -43,15 +56,27 @@ export class AgentsListComponent {
 
   AgentStatus = AgentStatus;
 
-  constructor(
-    private agentsService: AgentsService,
-    private confirm: ConfirmationService,
-    private messages: MessageService
-  ) {}
+  constructor() {
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(query => {
+        this.query.set(query);
+        this.page.set(0);
+        this.fetch(this.page(), this.size());
+      });
+  }
+
+  onSearchInput(value: string) {
+    this.searchSubject.next(value.trim());
+  }
 
   fetch(page: number, size: number) {
     this.loading.set(true);
-    this.agentsService.list(page, size).subscribe({
+    this.agentsService.list(this.query(), page, size).subscribe({
       next: resp => {
         this.agents.set(resp.content);
         this.total.set(resp.totalElements);
@@ -68,7 +93,7 @@ export class AgentsListComponent {
     });
   }
 
-  onLazyLoad(event: any) {
+  onLazyLoad(event: TableLazyLoadEvent) {
     const newPage = Math.floor(
       (event.first || 0) / (event.rows || this.size())
     );

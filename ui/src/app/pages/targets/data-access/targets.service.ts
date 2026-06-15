@@ -14,8 +14,11 @@ const baseUrl = environment.baseUrl;
 export class TargetsService {
   constructor(private http: HttpClient) {}
 
-  getTargets(page: number, size: number) {
+  list(query: string, page: number, size: number) {
     let params = new HttpParams().set('page', page).set('size', size);
+    if (query) {
+      params = params.set('query', query);
+    }
     return this.http.get<TargetsList>(`${baseUrl}/api/targets`, { params });
   }
 

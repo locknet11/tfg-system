@@ -13,7 +13,7 @@ public interface TargetService {
 
     Target getById(String id) throws TargetException;
 
-    TargetsList listTargets(PageRequest pageRequest);
+    TargetsList listTargets(PageRequest pageRequest, String query);
 
     void deleteTarget(String targetId);
 

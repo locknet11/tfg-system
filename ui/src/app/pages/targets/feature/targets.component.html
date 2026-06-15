@@ -1,12 +1,23 @@
 <div class="targets-container">
   <div class="flex justify-content-between align-items-center mb-4">
     <h1 class="text-3xl font-bold m-0" i18n>Targets</h1>
-    <p-button
-      (onClick)="addTarget()"
-      icon="pi pi-plus"
-      label="Agregar Target"
-      styleClass="p-button-success"
-      i18n-label></p-button>
+    <div class="flex gap-3 align-items-center">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search targets..."
+          i18n-placeholder
+          (input)="onSearchInput($any($event.target)?.value)" />
+      </span>
+      <p-button
+        (onClick)="addTarget()"
+        icon="pi pi-plus"
+        label="Agregar Target"
+        styleClass="p-button-success"
+        i18n-label></p-button>
+    </div>
   </div>
 
   <p-table
@@ -14,11 +25,13 @@
     [tableStyle]="{ 'min-width': '50rem' }"
     styleClass="targets-table"
     [lazy]="true"
-    (onLazyLoad)="getTargets($event)"
+    (onLazyLoad)="loadTargets($event)"
     [rows]="rows()"
     [totalRecords]="totalRecords()"
     [paginator]="true"
     [alwaysShowPaginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="loading()"
     i18n-currentPageReportTemplate
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [showCurrentPageReport]="true">
@@ -35,14 +48,14 @@
     <ng-template pTemplate="body" let-target>
       <tr>
         <td>{{ target.systemName }}</td>
-        <td>{{ target.description || '-' }}</td>
-        <td>{{ target.os || '-' }}</td>
+        <td>{{ target.description || '—' }}</td>
+        <td>{{ target.os || '—' }}</td>
         <td>
           <p-tag
             [value]="getStatusLabel(target.status)"
             [severity]="getStatusSeverity(target.status)"></p-tag>
         </td>
-        <td>{{ target.ipOrDomain || '-' }}</td>
+        <td>{{ target.ipOrDomain || '—' }}</td>
         <td>
           <div class="flex gap-2 justify-content-end">
             <p-button
@@ -73,6 +86,13 @@
               i18n-pTooltip
               tooltipPosition="top"></p-button>
           </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center p-4">
+          {{ query() ? emptySearchMessage : emptyMessage }}
         </td>
       </tr>
     </ng-template>

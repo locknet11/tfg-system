@@ -1,8 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -35,6 +43,7 @@ import { EditAlertModalComponent } from '../modals/edit-alert-modal/edit-alert-m
   providers: [ConfirmationService, MessageService],
 })
 export class AlertsListComponent {
+  private destroyRef = inject(DestroyRef);
   private alertsService = inject(AlertsService);
   private confirm = inject(ConfirmationService);
   private messages = inject(MessageService);
@@ -48,18 +57,20 @@ export class AlertsListComponent {
   pageSig = signal(0);
   sizeSig = signal(10);
 
+  readonly emptyMessage = $localize`No alerts configured`;
+
   filteredAlerts = computed(() => this.alertsSig());
 
   whenConditionLabel = whenConditionLabel;
 
-  ngOnInit() {
-    // Lazy loading will trigger initial load
-  }
+  ngOnInit() {}
 
-  onLazyLoad(event: any) {
-    const page = event.first / event.rows;
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const first = event.first ?? 0;
+    const rows = event.rows ?? this.sizeSig();
+    const page = first / rows;
     this.pageSig.set(page);
-    this.sizeSig.set(event.rows);
+    this.sizeSig.set(rows);
     this.loadAlerts();
   }
 

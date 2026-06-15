@@ -14,6 +14,13 @@ public interface AgentRepository extends MongoRepository<Agent, String> {
     // Scoped queries - use ProjectContext to filter by org/project
     @Query("{ 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, 'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }")
     Page<Agent> findAllScoped(Pageable pageable);
+
+    @Query("{ '$and': [" +
+        "{ 'name': { '$regex': ?0, '$options': 'i' } }, " +
+        "{ 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, " +
+        "'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }" +
+        "] }")
+    Page<Agent> findByQueryScoped(String query, Pageable pageable);
     
     @Query("{ '_id': ?0, 'organizationId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getOrganizationId()}, 'projectId': ?#{T(com.spulido.tfg.common.context.ProjectContext).getProjectId()} }")
     Optional<Agent> findByIdScoped(String id);

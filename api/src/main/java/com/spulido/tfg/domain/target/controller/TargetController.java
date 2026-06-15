@@ -2,7 +2,6 @@ package com.spulido.tfg.domain.target.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,11 +39,11 @@ public class TargetController {
 
     @GetMapping()
     public ResponseEntity<ResponseList<TargetInfo>> getTargets(
-            @RequestParam(name = "params", required = false) Map<String, Object> params,
+            @RequestParam(name = "query", required = false) String query,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
 
-        var targets = targetService.listTargets(PageRequest.of(page, size));
+        var targets = targetService.listTargets(PageRequest.of(page, size), query);
         return ResponseEntity.ok().body(targetMapper.targetsListToResponseList(targets));
     }
 

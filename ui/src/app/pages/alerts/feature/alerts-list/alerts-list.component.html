@@ -22,10 +22,11 @@
     [totalRecords]="totalSig()"
     [paginator]="true"
     [alwaysShowPaginator]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="loadingSig()"
     i18n-currentPageReportTemplate
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [showCurrentPageReport]="true"
-    [loading]="loadingSig()">
+    [showCurrentPageReport]="true">
     <ng-template pTemplate="header">
       <tr>
         <th i18n>EMAIL</th>
@@ -37,7 +38,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-alert>
       <tr>
-        <td>{{ alert.sendTo }}</td>
+        <td>{{ alert.sendTo || '—' }}</td>
         <td>
           <p-tag
             *ngFor="let condition of alert.conditions"
@@ -58,7 +59,7 @@
             {{ alert.lastTriggeredAt | date: 'short' }}
           </ng-container>
           <ng-template #neverTpl>
-            <span>-</span>
+            <span>—</span>
           </ng-template>
         </td>
         <td>
@@ -82,6 +83,13 @@
               i18n-pTooltip
               tooltipPosition="top"></p-button>
           </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-4">
+          {{ emptyMessage }}
         </td>
       </tr>
     </ng-template>

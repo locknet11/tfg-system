@@ -59,8 +59,13 @@ public class AgentServiceImpl implements AgentService {
     private String apiBaseUrl;
 
     @Override
-    public AgentsList listAgents(PageRequest pageRequest) {
-        Page<Agent> page = repository.findAllScoped(pageRequest);
+    public AgentsList listAgents(PageRequest pageRequest, String query) {
+        Page<Agent> page;
+        if (query != null && !query.isBlank()) {
+            page = repository.findByQueryScoped(query, pageRequest);
+        } else {
+            page = repository.findAllScoped(pageRequest);
+        }
         return new AgentsList(page.getContent(), pageRequest, page.getTotalElements());
     }
 
