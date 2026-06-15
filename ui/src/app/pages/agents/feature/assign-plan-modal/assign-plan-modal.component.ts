@@ -19,7 +19,6 @@ import { MessageService } from 'primeng/api';
 import {
   AssignPlanRequest,
   Plan,
-  Step,
   StepAction,
   StepExecutionStatus,
 } from '../../data-access/agents.model';

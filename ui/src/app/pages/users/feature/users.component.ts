@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableLazyLoadEvent, TableModule, TablePageEvent } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { User } from '../data-access/users.model';
 import { UsersService } from '../data-access/users.service';
 import { map } from 'rxjs';

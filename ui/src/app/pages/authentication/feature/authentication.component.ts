@@ -11,7 +11,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { FormErrorDirective } from 'src/app/shared/directives/form-error.directive';
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { Router } from '@angular/router';
 import { MessageModule } from 'primeng/message';
