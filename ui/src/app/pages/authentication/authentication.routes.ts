@@ -12,6 +12,7 @@ export const AuthenticationRoutes: Routes = [
     children: [
       {
         path: '',
+        title: 'Login',
         canMatch: [needsSetup, needsAuthentication],
         loadComponent: () =>
           import('./feature/authentication.component').then(
@@ -20,6 +21,7 @@ export const AuthenticationRoutes: Routes = [
       },
       {
         path: 'initial-setup',
+        title: 'Initial Setup',
         canMatch: [needsSetup],
         loadComponent: () =>
           import('./feature/initial-setup/initial-setup.component').then(

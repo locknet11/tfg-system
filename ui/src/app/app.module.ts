@@ -13,6 +13,8 @@ import { LayoutService } from './shared/services/layout.service';
 import { MenuService } from './shared/services/menu.service';
 import { MessagesModule } from 'primeng/messages';
 import { AccountService } from './shared/services/account.service';
+import { TitleStrategy } from '@angular/router';
+import { CustomTitleStrategy } from './shared/services/custom-title-strategy';
 
 @NgModule({
   declarations: [AppComponent],
@@ -36,6 +38,7 @@ import { AccountService } from './shared/services/account.service';
       useClass: RequestInterceptor,
       multi: true,
     },
+    { provide: TitleStrategy, useClass: CustomTitleStrategy },
   ],
   bootstrap: [AppComponent],
 })
