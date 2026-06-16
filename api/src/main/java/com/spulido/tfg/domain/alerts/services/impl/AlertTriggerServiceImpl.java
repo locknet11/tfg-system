@@ -7,11 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import com.spulido.tfg.common.context.ProjectContext;
 import com.spulido.tfg.domain.alerts.db.AlertConfigurationRepository;
 import com.spulido.tfg.domain.alerts.model.AlertConfiguration;
@@ -30,8 +33,11 @@ import lombok.extern.slf4j.Slf4j;
 public class AlertTriggerServiceImpl implements AlertTriggerService {
 
     private final AlertConfigurationRepository repository;
-    private final JavaMailSender mailSender;
+    private final Resend resendClient;
     private final Configuration freemarkerConfiguration;
+
+    @Value("${resend.from-address}")
+    private String fromAddress;
 
     @Override
     @Async
@@ -108,14 +114,19 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
 
     private void sendAlert(AlertConfiguration config, AlertEvent event) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(config.getSendTo());
-            message.setSubject("Security Alert: " + event.getType());
-            message.setText(buildEmailBody(event));
+            String body = buildEmailBody(event);
 
-            mailSender.send(message);
-            log.info("Alert sent to {} for event type {}", config.getSendTo(), event.getType());
-        } catch (Exception e) {
+            CreateEmailOptions options = CreateEmailOptions.builder()
+                    .from(fromAddress)
+                    .to(config.getSendTo())
+                    .subject("Security Alert: " + event.getType())
+                    .html(body)
+                    .text(body)
+                    .build();
+
+            CreateEmailResponse response = resendClient.emails().send(options);
+            log.info("Alert sent to {} for event type {} (id: {})", config.getSendTo(), event.getType(), response.getId());
+        } catch (ResendException e) {
             log.error("Failed to send alert to {}: {}", config.getSendTo(), e.getMessage(), e);
         }
     }

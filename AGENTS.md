@@ -275,5 +275,5 @@ Los reportes generados quedarán almacenados en formato digital/documental en la
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/007-unified-table-views/plan.md
+at specs/008-resend-email-integration/plan.md
 <!-- SPECKIT END -->
