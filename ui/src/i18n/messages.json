@@ -255,6 +255,11 @@
     "5965280074452931363": "Search by service name",
     "9106967682631719413": "Filter by severity",
     "2776617638046368313": "View details",
-    "3209095021582177395": "No alerts configured"
+    "3209095021582177395": "No alerts configured",
+    "1406418506141820147": "Initial Setup",
+    "2454050363478003966": "Login",
+    "966676689249033743": "New User",
+    "1211169124143348857": "Edit User",
+    "5305965882676823059": "Vulnerability Detail"
   }
 }
