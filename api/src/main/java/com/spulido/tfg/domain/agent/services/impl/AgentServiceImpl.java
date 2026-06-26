@@ -35,6 +35,7 @@ import com.spulido.tfg.domain.project.services.ProjectService;
 import com.spulido.tfg.domain.replication.model.ReplicationPolicy;
 import com.spulido.tfg.domain.target.exception.TargetException;
 import com.spulido.tfg.domain.target.model.Target;
+import com.spulido.tfg.domain.target.db.TargetRepository;
 import com.spulido.tfg.domain.target.model.TargetStatus;
 import com.spulido.tfg.domain.target.services.TargetService;
 import com.spulido.tfg.domain.template.exception.TemplateException;
@@ -56,6 +57,7 @@ public class AgentServiceImpl implements AgentService {
     private final OrganizationService organizationService;
     private final ProjectService projectService;
     private final TargetService targetService;
+    private final TargetRepository targetRepository;
     private final TemplateService templateService;
     private final ScriptService scriptService;
 
@@ -81,7 +83,17 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public void deleteAgent(String id) {
         // Delete using scoped query to ensure user can only delete their own agents
-        repository.findByIdScoped(id).ifPresent(repository::delete);
+        repository.findByIdScoped(id).ifPresent(agent -> {
+            // Clear the assignedAgent from the target so it can be re-registered
+            targetRepository.findByAssignedAgent(agent.getId()).ifPresent(target -> {
+                target.setAssignedAgent(null);
+                target.setStatus(TargetStatus.OFFLINE);
+                targetRepository.save(target);
+                log.info("Cleared agent assignment from target {}", target.getId());
+            });
+
+            repository.delete(agent);
+        });
     }
 
     @Override
@@ -105,6 +117,11 @@ public class AgentServiceImpl implements AgentService {
             // Validate target belongs to project
             if (!target.getProjectId().equals(project.getId())) {
                 throw new AgentException("agent.error.targetDoesNotBelongToProject");
+            }
+
+            // Validate preauthCode matches the target's stored preauthCode
+            if (request.getPreauthCode() == null || !request.getPreauthCode().equals(target.getPreauthCode())) {
+                throw new AgentException("agent.error.invalidPreauthCode");
             }
 
             // Check if target already has an assigned agent
