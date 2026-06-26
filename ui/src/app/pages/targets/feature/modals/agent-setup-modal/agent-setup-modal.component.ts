@@ -26,7 +26,7 @@ export class AgentSetupModalComponent {
     const baseUrl = environment.baseUrl;
     const url = `${baseUrl}/api/agent/${organizationId}/${projectId}/${uniqueId}?preauthCode=${encodeURIComponent(preauthCode)}`;
     this.agentUrl.set(url);
-    this.curlCommand.set(`curl -sSL "${url}" | bash`);
+    this.curlCommand.set(`curl -sSL -X POST "${url}" | bash`);
     this.visible.set(true);
   }
 
