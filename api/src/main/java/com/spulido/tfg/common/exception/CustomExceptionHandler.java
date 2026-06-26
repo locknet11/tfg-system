@@ -20,6 +20,7 @@ import com.spulido.tfg.domain.alerts.exception.AlertException;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
 import com.spulido.tfg.domain.exploitation.exception.ExploitationKnowledgeException;
+import com.spulido.tfg.domain.remediation.exception.RemediationException;
 import com.spulido.tfg.domain.replication.exception.ReplicationException;
 import com.spulido.tfg.domain.vulnerability.exception.VulnerabilityException;
 
@@ -220,6 +221,39 @@ public class CustomExceptionHandler {
 				.detail(ex.getLocalizedMessage()).build();
 		response = new GenericErrorResponse(errorDetails, null).mapOf();
 		log.error("Vulnerability exception: {}", ex.getMessage());
+		return ResponseEntity.status(status).body(response);
+	}
+
+	@ExceptionHandler(RemediationException.class)
+	public ResponseEntity<?> handleRemediationExceptions(RemediationException ex) {
+		ErrorCode code = ex.getErrorCode();
+		HttpStatus status;
+		
+		switch (code) {
+			case REMEDIATION_NOT_FOUND:
+				status = HttpStatus.NOT_FOUND;
+				break;
+			case REMEDIATION_STRATEGY_NOT_FOUND:
+				status = HttpStatus.NOT_FOUND;
+				break;
+			case REMEDIATION_INVALID_STATUS:
+				status = HttpStatus.BAD_REQUEST;
+				break;
+			case BAD_REQUEST:
+			case INVALID_FIELD_VALUE:
+				status = HttpStatus.BAD_REQUEST;
+				break;
+			default:
+				status = HttpStatus.INTERNAL_SERVER_ERROR;
+				break;
+		}
+
+		Map<String, Object> response = null;
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(code)
+				.detail(ex.getLocalizedMessage()).build();
+		response = new GenericErrorResponse(errorDetails, null).mapOf();
+		log.error("Remediation exception: {} - {}", code, ex.getMessage());
 		return ResponseEntity.status(status).body(response);
 	}
 

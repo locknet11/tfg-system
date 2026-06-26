@@ -1,0 +1,29 @@
+{
+  "name": "Full Remediation Workflow",
+  "description": "Complete scan-detect-remediate workflow for autonomous vulnerability management",
+  "plan": {
+    "notes": "Standard remediation workflow: scan system, discover services, lookup vulnerabilities, remediate findings, send report",
+    "steps": [
+      {
+        "action": "SYSTEM_SCAN",
+        "status": "PENDING"
+      },
+      {
+        "action": "SERVICE_SCAN",
+        "status": "PENDING"
+      },
+      {
+        "action": "EXPLOITATION_KNOWLEDGE",
+        "status": "PENDING"
+      },
+      {
+        "action": "REMEDIATE",
+        "status": "PENDING"
+      },
+      {
+        "action": "SEND_REPORT",
+        "status": "PENDING"
+      }
+    ]
+  }
+}

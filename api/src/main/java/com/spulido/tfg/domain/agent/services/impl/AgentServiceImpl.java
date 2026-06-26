@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +32,7 @@ import com.spulido.tfg.domain.plan.model.dto.PlanRequest;
 import com.spulido.tfg.domain.project.exception.ProjectException;
 import com.spulido.tfg.domain.project.model.Project;
 import com.spulido.tfg.domain.project.services.ProjectService;
+import com.spulido.tfg.domain.replication.model.ReplicationPolicy;
 import com.spulido.tfg.domain.target.exception.TargetException;
 import com.spulido.tfg.domain.target.model.Target;
 import com.spulido.tfg.domain.target.model.TargetStatus;
@@ -45,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AgentServiceImpl implements AgentService {
 
+    private static final Logger log = LoggerFactory.getLogger(AgentServiceImpl.class);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int API_KEY_LENGTH = 32;
 
@@ -132,6 +136,9 @@ public class AgentServiceImpl implements AgentService {
             ProjectContext.set(organization.getId(), project.getId());
 
             targetService.updateTarget(target);
+
+            // Auto-assign plan from default template if configured in replication policy
+            autoAssignPlanFromPolicy(savedAgent, project);
 
             // Generate install script
             String installScript = scriptService.generateInstallScript(
@@ -227,5 +234,52 @@ public class AgentServiceImpl implements AgentService {
         byte[] randomBytes = new byte[API_KEY_LENGTH];
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    /**
+     * Automatically assigns a plan to the agent if the project has a replication policy
+     * with a default template configured. This enables newly replicated agents to
+     * immediately start executing remediation workflows.
+     *
+     * @param agent the newly registered agent
+     * @param project the project the agent belongs to
+     */
+    private void autoAssignPlanFromPolicy(Agent agent, Project project) {
+        if (project.getReplicationPolicy() == null) {
+            log.debug("Project {} has no replication policy, skipping auto-plan assignment",
+                    project.getId());
+            return;
+        }
+
+        ReplicationPolicy policy = project.getReplicationPolicy();
+        String templateId = policy.getDefaultTemplateId();
+
+        if (templateId == null || templateId.isBlank()) {
+            log.debug("Project {} has no default template configured, skipping auto-plan assignment",
+                    project.getId());
+            return;
+        }
+
+        try {
+            Template template = templateService.getTemplate(templateId);
+            Plan plan = deepCopyPlan(template.getPlan());
+
+            if (plan == null) {
+                log.warn("Template {} has no plan defined, skipping auto-plan assignment", templateId);
+                return;
+            }
+
+            agent.setPlan(plan);
+            agent.setUpdatedAt(LocalDateTime.now());
+            repository.save(agent);
+
+            log.info("Auto-assigned plan from template {} to agent {}",
+                    templateId, agent.getId());
+
+        } catch (TemplateException e) {
+            log.warn("Failed to auto-assign plan from template {}: {}. " +
+                    "Agent {} will need manual plan assignment.",
+                    templateId, e.getMessage(), agent.getId());
+        }
     }
 }

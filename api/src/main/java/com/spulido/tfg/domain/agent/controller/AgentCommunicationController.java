@@ -19,6 +19,13 @@ import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
 import com.spulido.tfg.domain.plan.model.Plan;
 import com.spulido.tfg.domain.plan.model.dto.PlanInfo;
 import com.spulido.tfg.domain.plan.services.PlanMapper;
+import com.spulido.tfg.domain.remediation.model.RemediationStrategy;
+import com.spulido.tfg.domain.remediation.model.dto.RemediationReportRequest;
+import com.spulido.tfg.domain.remediation.model.dto.RemediationReportResponse;
+import com.spulido.tfg.domain.remediation.model.dto.RemediationStrategyRequest;
+import com.spulido.tfg.domain.remediation.model.dto.RemediationStrategyResponse;
+import com.spulido.tfg.domain.remediation.services.RemediationService;
+import com.spulido.tfg.domain.remediation.services.RemediationStrategyService;
 import com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord;
 import com.spulido.tfg.domain.vulnerability.model.dto.VulnerabilityLookupRequest;
 import com.spulido.tfg.domain.vulnerability.model.dto.VulnerabilityLookupResponse;
@@ -40,6 +47,8 @@ public class AgentCommunicationController {
     private final AgentCommunicationService communicationService;
     private final PlanMapper planMapper;
     private final VulnerabilityMapper vulnerabilityMapper;
+    private final RemediationStrategyService remediationStrategyService;
+    private final RemediationService remediationService;
 
     /**
      * Heartbeat endpoint - updates the agent's lastConnection timestamp.
@@ -102,5 +111,56 @@ public class AgentCommunicationController {
                 request.getServiceName(), request.getServiceVersion());
 
         return ResponseEntity.ok(vulnerabilityMapper.recordToResponse(record));
+    }
+
+    /**
+     * Request a remediation strategy for a given CVE and operating system.
+     */
+    @PostMapping("/remediation/strategy")
+    public ResponseEntity<RemediationStrategyResponse> requestRemediationStrategy(
+            @RequestBody @Valid RemediationStrategyRequest request) {
+
+        java.util.Optional<RemediationStrategy> strategy = remediationStrategyService.resolveStrategy(
+                request.getCveId(), request.getOperatingSystem());
+
+        if (strategy.isPresent()) {
+            RemediationStrategy s = strategy.get();
+            RemediationStrategyResponse response = RemediationStrategyResponse.builder()
+                    .found(true)
+                    .remediationType(s.getRemediationType().name())
+                    .action(s.getAction().name())
+                    .targetVersion(s.getTargetVersion())
+                    .serviceName(s.getServiceName())
+                    .requiresReboot(s.isRequiresReboot())
+                    .preCheckCommands(s.getPreCheckCommands())
+                    .fixCommands(s.getFixCommands())
+                    .postCheckCommands(s.getPostCheckCommands())
+                    .notes(s.getNotes())
+                    .build();
+            return ResponseEntity.ok(response);
+        }
+
+        return ResponseEntity.ok(RemediationStrategyResponse.notFound(
+                "No remediation strategy available for CVE: " + request.getCveId()
+                        + " on OS: " + request.getOperatingSystem()));
+    }
+
+    /**
+     * Report a remediation result from the agent.
+     */
+    @PostMapping("/remediation/report")
+    public ResponseEntity<RemediationReportResponse> reportRemediationResult(
+            @AuthenticationPrincipal String agentId,
+            @RequestBody @Valid RemediationReportRequest request) {
+
+        com.spulido.tfg.domain.remediation.model.RemediationRecord record =
+                remediationService.createRemediation(request, agentId);
+
+        RemediationReportResponse response = RemediationReportResponse.builder()
+                .remediationId(record.getId())
+                .status(record.getStatus().name())
+                .build();
+
+        return ResponseEntity.status(201).body(response);
     }
 }

@@ -24,6 +24,8 @@ public interface ScopedEntity {
             ((com.spulido.tfg.domain.alerts.model.AlertConfiguration) this).setOrganizationId(organizationId);
         } else if (this instanceof com.spulido.tfg.domain.replication.model.ReplicationRequest) {
             ((com.spulido.tfg.domain.replication.model.ReplicationRequest) this).setOrganizationId(organizationId);
+        } else if (this instanceof com.spulido.tfg.domain.remediation.model.RemediationRecord) {
+            ((com.spulido.tfg.domain.remediation.model.RemediationRecord) this).setOrganizationId(organizationId);
         }
     }
 
@@ -38,6 +40,8 @@ public interface ScopedEntity {
             ((com.spulido.tfg.domain.alerts.model.AlertConfiguration) this).setProjectId(projectId);
         } else if (this instanceof com.spulido.tfg.domain.replication.model.ReplicationRequest) {
             ((com.spulido.tfg.domain.replication.model.ReplicationRequest) this).setProjectId(projectId);
+        } else if (this instanceof com.spulido.tfg.domain.remediation.model.RemediationRecord) {
+            ((com.spulido.tfg.domain.remediation.model.RemediationRecord) this).setProjectId(projectId);
         }
     }
 }

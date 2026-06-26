@@ -43,7 +43,10 @@ public enum ErrorCode {
 	REPLICATION_TOKEN_EXPIRED("exception.replicationTokenExpired"),
 	REPLICATION_TOKEN_CONSUMED("exception.replicationTokenConsumed"),
 	REPLICATION_POLICY_NOT_FOUND("exception.replicationPolicyNotFound"),
-	BINARY_INTEGRITY_CHECK_FAILED("exception.binaryIntegrityCheckFailed");
+	BINARY_INTEGRITY_CHECK_FAILED("exception.binaryIntegrityCheckFailed"),
+	REMEDIATION_NOT_FOUND("exception.remediationNotFound"),
+	REMEDIATION_STRATEGY_NOT_FOUND("exception.remediationStrategyNotFound"),
+	REMEDIATION_INVALID_STATUS("exception.remediationInvalidStatus");
 
 	private final String defaultMessage;
 }

@@ -16,4 +16,10 @@ public class ReplicationPolicy {
     private String minSeverity;
 
     private Boolean notifyAdmin = true;
+
+    /**
+     * Optional template ID to automatically assign to newly replicated agents.
+     * If null or empty, no plan is auto-assigned and must be done manually.
+     */
+    private String defaultTemplateId;
 }

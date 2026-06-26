@@ -71,6 +71,13 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'remediations',
+        loadChildren: () =>
+          import('./pages/remediations/remediations.routes').then(
+            x => x.remediationsRoutes
+          ),
+      },
+      {
         path: 'alerts',
         loadChildren: () =>
           import('./pages/alerts/alerts.routes').then(x => x.alertsRoutes),

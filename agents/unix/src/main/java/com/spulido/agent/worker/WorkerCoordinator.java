@@ -24,6 +24,7 @@ import com.spulido.agent.worker.http.dto.PlanStepResponse;
 import com.spulido.agent.worker.step.EchoStepHandler;
 import com.spulido.agent.worker.step.ExploitationKnowledgeStepHandler;
 import com.spulido.agent.worker.step.ExecuteExploitStepHandler;
+import com.spulido.agent.worker.step.RemediationStepHandler;
 import com.spulido.agent.worker.step.RequestReplicationStepHandler;
 import com.spulido.agent.worker.step.StepHandler;
 import com.spulido.agent.worker.step.TransferAgentStepHandler;
@@ -116,6 +117,8 @@ public class WorkerCoordinator {
         switch (action) {
             case EXPLOITATION_KNOWLEDGE:
                 return "exploitation-knowledge";
+            case REMEDIATE:
+                return "remediate";
             case ECHO:
                 return formatCommand("echo Running step: {}", planStep.getAction());
             default:
@@ -134,6 +137,8 @@ public class WorkerCoordinator {
         handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
         handlers.put(StepAction.EXECUTE_EXPLOIT,
                 new ExecuteExploitStepHandler(commandExecutor, sshSessionProvisioner));
+        handlers.put(StepAction.REMEDIATE,
+                new RemediationStepHandler(httpClient, commandExecutor));
         handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, remoteCommandExecutor,
                 new BinaryIntegrityVerifier(agentConfig), scriptTemplateService, agentConfig));
         handlers.put(StepAction.REPLICATE, new EchoStepHandler());

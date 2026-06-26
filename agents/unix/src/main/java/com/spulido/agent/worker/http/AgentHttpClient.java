@@ -10,11 +10,17 @@ import com.spulido.agent.worker.http.dto.ExploitationKnowledgeRequest;
 import com.spulido.agent.worker.http.dto.ExploitationKnowledgeResponse;
 import com.spulido.agent.worker.http.dto.HeartbeatResponse;
 import com.spulido.agent.worker.http.dto.PlanResponse;
+import com.spulido.agent.worker.http.dto.RemediationReportRequest;
+import com.spulido.agent.worker.http.dto.RemediationReportResponse;
+import com.spulido.agent.worker.http.dto.RemediationStrategyRequest;
+import com.spulido.agent.worker.http.dto.RemediationStrategyResponse;
 import com.spulido.agent.worker.http.dto.ReplicationRequestBody;
 import com.spulido.agent.worker.http.dto.ReplicationRequestResponse;
 import com.spulido.agent.worker.http.dto.ReplicationStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusUpdate;
+import com.spulido.agent.worker.http.dto.VulnerabilityLookupRequest;
+import com.spulido.agent.worker.http.dto.VulnerabilityLookupResponse;
 
 @Service
 public class AgentHttpClient {
@@ -41,6 +47,12 @@ public class AgentHttpClient {
         return restTemplate.postForObject(url, request, ExploitationKnowledgeResponse.class);
     }
 
+    public VulnerabilityLookupResponse lookupVulnerabilities(VulnerabilityLookupRequest request) {
+        String url = config.getCentralUrl() + "/api/agent/comm/vulnerabilities/lookup";
+        log.info("Looking up vulnerabilities from central: {}", url);
+        return restTemplate.postForObject(url, request, VulnerabilityLookupResponse.class);
+    }
+
     public HeartbeatResponse sendHeartbeat() {
         String url = config.getCentralUrl() + "/api/agent/comm/heartbeat";
         log.info("Sending heartbeat to central: {}", url);
@@ -54,6 +66,18 @@ public class AgentHttpClient {
         StepStatusUpdate body = new StepStatusUpdate(status, logs);
         restTemplate.put(url, body);
         return new StepStatusResponse();
+    }
+
+    public RemediationStrategyResponse requestRemediationStrategy(RemediationStrategyRequest request) {
+        String url = config.getCentralUrl() + "/api/agent/comm/remediation/strategy";
+        log.info("Requesting remediation strategy from central: {}", url);
+        return restTemplate.postForObject(url, request, RemediationStrategyResponse.class);
+    }
+
+    public RemediationReportResponse reportRemediationResult(RemediationReportRequest request) {
+        String url = config.getCentralUrl() + "/api/agent/comm/remediation/report";
+        log.info("Reporting remediation result to central: {}", url);
+        return restTemplate.postForObject(url, request, RemediationReportResponse.class);
     }
 
     public ReplicationRequestResponse submitReplicationRequest(ReplicationRequestBody request) {

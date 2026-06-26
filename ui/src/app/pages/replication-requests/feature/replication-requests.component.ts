@@ -5,12 +5,11 @@ import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
-import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 
+import { ToastService } from 'src/app/shared/services/toast.service';
 import {
   ReplicationRequest,
   ReplicationRequestStatus,
@@ -27,23 +26,25 @@ import { ReplicationRequestsService } from '../data-access/replication-requests.
     ButtonModule,
     TagModule,
     DropdownModule,
-    ToastModule,
     TooltipModule,
     ConfirmDialogModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  styleUrls: ['./replication-requests.component.scss'],
+  providers: [ConfirmationService],
   templateUrl: './replication-requests.component.html',
 })
 export class ReplicationRequestsComponent {
   private readonly service = inject(ReplicationRequestsService);
-  private readonly messageService = inject(MessageService);
+  private readonly toastService = inject(ToastService);
   private readonly confirmationService = inject(ConfirmationService);
 
   requests = signal<ReplicationRequest[]>([]);
   totalRecords = signal(0);
   loading = signal(false);
   page = 0;
-  rows = 20;
+  rows = 10;
+
+  readonly emptyMessage = $localize`No replication requests found`;
 
   statusFilter = signal<string | null>(null);
   severityFilter = signal<string | null>(null);
@@ -77,11 +78,9 @@ export class ReplicationRequestsComponent {
           this.loading.set(false);
         },
         error: () => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to load replication requests',
-          });
+          this.toastService.error(
+            $localize`Failed to load replication requests`
+          );
           this.loading.set(false);
         },
       });
@@ -94,26 +93,18 @@ export class ReplicationRequestsComponent {
 
   approveRequest(request: ReplicationRequest): void {
     this.confirmationService.confirm({
-      header: 'Approve Replication',
-      message: `Approve replication to target ${request.targetIp} using ${request.exploitId}?`,
-      acceptLabel: 'Approve',
-      rejectLabel: 'Cancel',
+      header: $localize`Approve Replication`,
+      message: $localize`Approve replication to target ${request.targetIp} using ${request.exploitId}?`,
+      acceptLabel: $localize`Approve`,
+      rejectLabel: $localize`Cancel`,
       accept: () => {
         this.service.approve(request.id).subscribe({
           next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Approved',
-              detail: 'Replication request approved',
-            });
+            this.toastService.success($localize`Replication request approved`);
             this.loadRequests();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to approve request',
-            });
+            this.toastService.error($localize`Failed to approve request`);
           },
         });
       },
@@ -122,27 +113,19 @@ export class ReplicationRequestsComponent {
 
   denyRequest(request: ReplicationRequest): void {
     this.confirmationService.confirm({
-      header: 'Deny Replication',
-      message: `Deny replication to target ${request.targetIp}?`,
-      acceptLabel: 'Deny',
-      rejectLabel: 'Cancel',
+      header: $localize`Deny Replication`,
+      message: $localize`Deny replication to target ${request.targetIp}?`,
+      acceptLabel: $localize`Deny`,
+      rejectLabel: $localize`Cancel`,
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.service.deny(request.id).subscribe({
           next: () => {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Denied',
-              detail: 'Replication request denied',
-            });
+            this.toastService.info($localize`Replication request denied`);
             this.loadRequests();
           },
           error: () => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to deny request',
-            });
+            this.toastService.error($localize`Failed to deny request`);
           },
         });
       },

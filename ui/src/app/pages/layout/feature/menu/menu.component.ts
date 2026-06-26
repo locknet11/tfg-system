@@ -48,6 +48,11 @@ export class MenuComponent implements OnInit {
             routerLink: ['vulnerabilities'],
           },
           {
+            label: $localize`Remediations`,
+            icon: 'pi pi-wrench',
+            routerLink: ['remediations'],
+          },
+          {
             label: $localize`Alerts`,
             icon: 'pi pi-bell',
             routerLink: ['alerts'],

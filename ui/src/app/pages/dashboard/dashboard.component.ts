@@ -6,6 +6,7 @@ import { ChartModule } from 'primeng/chart';
 import { BadgeModule } from 'primeng/badge';
 import { DashboardService } from './data-access/dashboard.service';
 import { TargetsService } from '../targets/data-access/targets.service';
+import { RemediationWidgetComponent } from '../remediations/feature/remediation-widget/remediation-widget.component';
 import {
   DashboardKPIs,
   CriticalVulnerability,
@@ -15,7 +16,14 @@ import {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, CardModule, TableModule, ChartModule, BadgeModule],
+  imports: [
+    CommonModule,
+    CardModule,
+    TableModule,
+    ChartModule,
+    BadgeModule,
+    RemediationWidgetComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   providers: [DashboardService, TargetsService],

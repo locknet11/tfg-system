@@ -12,5 +12,6 @@ public enum StepAction {
     TRANSFER_AGENT,
     REPLICATE,
     SELF_DESTRUCT,
+    REMEDIATE,
     ECHO
 }
