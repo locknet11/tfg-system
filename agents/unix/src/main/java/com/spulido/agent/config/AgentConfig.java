@@ -16,6 +16,7 @@ public class AgentConfig {
     private String exploitTransferMethod = "auto";
     private int exploitTransferMethodRetries = 3;
     private int exploitTransferFileMaxSizeMb = 100;
+    private int heartbeatIntervalMs = 30000;
 
     public String getCentralUrl() {
         return centralUrl;
@@ -79,5 +80,13 @@ public class AgentConfig {
 
     public void setExploitTransferFileMaxSizeMb(int exploitTransferFileMaxSizeMb) {
         this.exploitTransferFileMaxSizeMb = exploitTransferFileMaxSizeMb;
+    }
+
+    public int getHeartbeatIntervalMs() {
+        return heartbeatIntervalMs;
+    }
+
+    public void setHeartbeatIntervalMs(int heartbeatIntervalMs) {
+        this.heartbeatIntervalMs = heartbeatIntervalMs;
     }
 }

@@ -17,6 +17,9 @@ import com.spulido.tfg.domain.plan.model.Step;
 import com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeRequest;
 import com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeResponse;
 import com.spulido.tfg.domain.exploitation.services.ExploitationKnowledgeService;
+import com.spulido.tfg.domain.target.db.TargetRepository;
+import com.spulido.tfg.domain.target.model.Target;
+import com.spulido.tfg.domain.target.model.TargetStatus;
 import com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord;
 import com.spulido.tfg.domain.vulnerability.services.VulnerabilityLookupService;
 
@@ -29,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AgentCommunicationServiceImpl implements AgentCommunicationService {
 
     private final AgentRepository agentRepository;
+    private final TargetRepository targetRepository;
     private final VulnerabilityLookupService vulnerabilityLookupService;
     private final ExploitationKnowledgeService exploitationKnowledgeService;
 
@@ -39,9 +43,16 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
 
         agent.setLastConnection(LocalDateTime.now());
 
-        // If agent was unresponsive, set it back to active
+        // If agent was unresponsive, set it back to active and restore target to ONLINE
         if (agent.getStatus() == AgentStatus.UNRESPONSIVE) {
             agent.setStatus(AgentStatus.ACTIVE);
+            targetRepository.findByAssignedAgent(agent.getId()).ifPresent(target -> {
+                if (target.getStatus() == TargetStatus.OFFLINE) {
+                    target.setStatus(TargetStatus.ONLINE);
+                    targetRepository.save(target);
+                    log.info("Target {} restored to ONLINE (agent {} recovered)", target.getId(), agent.getName());
+                }
+            });
             log.info("Agent {} is now active again", agent.getName());
         }
 
