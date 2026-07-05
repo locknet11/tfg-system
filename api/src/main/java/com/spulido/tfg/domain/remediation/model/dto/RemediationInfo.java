@@ -34,6 +34,7 @@ public class RemediationInfo {
     private Instant completedAt;
     private String errorMessage;
     private String rollbackHint;
+    private String skipReason;
     private Instant createdAt;
     private Instant updatedAt;
 }

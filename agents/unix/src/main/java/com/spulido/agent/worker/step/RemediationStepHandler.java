@@ -7,6 +7,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.spulido.agent.container.ContainerDetectionResult;
+import com.spulido.agent.container.ContainerDetector;
+import com.spulido.agent.container.DetectionConfidence;
 import com.spulido.agent.domain.task.ServiceInfo;
 import com.spulido.agent.domain.task.StepAction;
 import com.spulido.agent.domain.task.StepResult;
@@ -22,6 +25,8 @@ import com.spulido.agent.worker.http.dto.VulnerabilityLookupResponse;
 /**
  * Step handler for REMEDIATE action.
  * Executes remediation commands on the target system based on strategies from the central platform.
+ * Before remediation, checks whether the agent is running inside a container
+ * and skips with a documented reason if so.
  */
 public class RemediationStepHandler implements StepHandler {
 
@@ -31,15 +36,33 @@ public class RemediationStepHandler implements StepHandler {
 
     private final AgentHttpClient httpClient;
     private final CommandExecutor commandExecutor;
+    private final ContainerDetector containerDetector;
 
     public RemediationStepHandler(AgentHttpClient httpClient, CommandExecutor commandExecutor) {
         this.httpClient = httpClient;
         this.commandExecutor = commandExecutor;
+        this.containerDetector = new ContainerDetector();
+    }
+
+    public RemediationStepHandler(AgentHttpClient httpClient, CommandExecutor commandExecutor,
+                                   ContainerDetector containerDetector) {
+        this.httpClient = httpClient;
+        this.commandExecutor = commandExecutor;
+        this.containerDetector = containerDetector;
     }
 
     @Override
     public StepResult handle(StepAction action, Map<StepAction, StepResult> context) {
         log.info("Starting remediation step handler");
+
+        // Pre-condition: detect container runtime and skip remediation if found
+        ContainerDetectionResult detection = containerDetector.detect();
+        if (detection.isContainer()) {
+            log.info("Container runtime detected ({}): skipping all remediation actions",
+                    detection.getRuntimeName() != null ? detection.getRuntimeName() : "unknown");
+            return handleContainerSkip(action, detection, context);
+        }
+        log.info("No container detected — proceeding with remediation");
 
         StepResult serviceScanResult = context.get(StepAction.SERVICE_SCAN);
         if (serviceScanResult == null || serviceScanResult.getServices().isEmpty()) {
@@ -167,6 +190,77 @@ public class RemediationStepHandler implements StepHandler {
             return StepResult.failure(action, allLogs);
         }
         return StepResult.success(action, services, List.of(), allLogs);
+    }
+
+    private StepResult handleContainerSkip(StepAction action, ContainerDetectionResult detection,
+                                            Map<StepAction, StepResult> context) {
+        List<String> logs = new ArrayList<>();
+        logs.add("CONTAINER_DETECTED: runtime="
+                + (detection.getRuntimeName() != null ? detection.getRuntimeName() : "unknown"));
+        logs.add("CONTAINER_DETECTED: confidence=" + detection.getConfidence());
+        logs.add("CONTAINER_DETECTED: indicators=" + detection.getMatchedIndicators());
+        logs.add("CONTAINER_DETECTED: method=" + detection.getDetectionMethod());
+
+        String skipReason = buildSkipReason(detection);
+        String targetId = "unknown";
+
+        // Extract targetId from context if available
+        StepResult serviceScanResult = context.get(StepAction.SERVICE_SCAN);
+        if (serviceScanResult != null) {
+            targetId = extractFromLogs(serviceScanResult.getLogs(), "targetId:");
+        }
+
+        reportContainerSkipRemediation(skipReason, detection, targetId);
+
+        logs.add("ACTION: Remediation skipped — " + skipReason);
+
+        log.info("Container skip complete: {}", skipReason);
+        return StepResult.skipped(action, logs);
+    }
+
+    private String buildSkipReason(ContainerDetectionResult detection) {
+        if (detection.getConfidence() == DetectionConfidence.INCONCLUSIVE) {
+            return "Container detection inconclusive — remediation skipped as precaution";
+        }
+
+        String runtime = detection.getRuntimeName();
+        if ("docker".equalsIgnoreCase(runtime)) {
+            return "Docker container detected — remediation skipped to avoid ineffective "
+                    + "or destructive changes in an ephemeral environment";
+        }
+
+        return "Container environment detected"
+                + (runtime != null ? " (runtime: " + runtime + ")" : "")
+                + " — remediation skipped to avoid ineffective changes in an ephemeral environment";
+    }
+
+    private void reportContainerSkipRemediation(String skipReason, ContainerDetectionResult detection,
+                                                  String targetId) {
+        try {
+            List<String> detectionLogs = new ArrayList<>();
+            detectionLogs.add("DETECTION: method=" + detection.getDetectionMethod());
+            detectionLogs.add("DETECTION: runtime="
+                    + (detection.getRuntimeName() != null ? detection.getRuntimeName() : "unknown"));
+            detectionLogs.add("DETECTION: confidence=" + detection.getConfidence());
+            detectionLogs.add("DETECTION: indicators=" + detection.getMatchedIndicators());
+
+            RemediationReportRequest request = RemediationReportRequest.builder()
+                    .cveId("CONTAINER-DETECTED")
+                    .targetId(targetId)
+                    .remediationType("CONTAINER_DETECTED")
+                    .status("SKIPPED")
+                    .actionDescription("Remediation skipped: container runtime detected")
+                    .preCheckLogs(detectionLogs)
+                    .executionLogs(List.of())
+                    .postCheckLogs(List.of())
+                    .skipReason(skipReason)
+                    .build();
+
+            httpClient.reportRemediationResult(request);
+            log.info("Reported container-skip remediation for target: {}", targetId);
+        } catch (Exception e) {
+            log.error("Failed to report container-skip remediation: {}", e.getMessage(), e);
+        }
     }
 
     private boolean isKernelPackage(String packageName) {

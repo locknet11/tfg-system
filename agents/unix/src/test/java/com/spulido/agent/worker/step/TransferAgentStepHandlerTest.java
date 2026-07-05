@@ -52,12 +52,12 @@ class TransferAgentStepHandlerTest {
         context.put(StepAction.EXECUTE_EXPLOIT, new StepResult(StepAction.EXECUTE_EXPLOIT,
                 List.of(), List.of(),
                 List.of("targetIp:" + targetIp, "targetUser:" + targetUser, "reverseShellActive:true"),
-                true));
+                true, false));
         context.put(StepAction.REQUEST_REPLICATION, new StepResult(StepAction.REQUEST_REPLICATION,
                 List.of(), List.of(),
                 List.of("downloadUrl:" + downloadUrl, "preauthCode:" + preauthCode,
                         "centralUrl:" + centralUrl),
-                true));
+                true, false));
         return context;
     }
 

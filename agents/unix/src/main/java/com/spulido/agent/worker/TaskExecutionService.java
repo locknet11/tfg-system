@@ -76,6 +76,11 @@ public class TaskExecutionService {
                     StepResult stepResult = handler.handle(stepAction, context);
                     context.put(stepAction, stepResult);
 
+                    if (stepResult.isSkipped()) {
+                        taskStateLogger.logTaskCompleted(task);
+                        continue;
+                    }
+
                     if (!stepResult.isSuccess()) {
                         skipRemainingTasks(job, task);
                         job.fail("Task " + task.getTaskId() + " failed at step handler: "
