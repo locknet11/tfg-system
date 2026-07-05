@@ -90,6 +90,9 @@ public class RemediationRecord extends BaseEntity implements ScopedEntity {
     private String rollbackHint;
 
     @Field
+    private String skipReason;
+
+    @Field
     private String organizationId;
 
     @Field

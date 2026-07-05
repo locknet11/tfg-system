@@ -28,4 +28,5 @@ public class RemediationReportRequest {
     private List<String> postCheckLogs;
     private String errorMessage;
     private String rollbackHint;
+    private String skipReason;
 }

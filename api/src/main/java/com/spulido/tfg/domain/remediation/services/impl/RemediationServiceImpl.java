@@ -70,6 +70,7 @@ public class RemediationServiceImpl implements RemediationService {
                 .postCheckLogs(request.getPostCheckLogs())
                 .errorMessage(request.getErrorMessage())
                 .rollbackHint(request.getRollbackHint())
+                .skipReason(request.getSkipReason())
                 .startedAt(Instant.now())
                 .completedAt(Instant.now())
                 .build();
@@ -238,6 +239,7 @@ public class RemediationServiceImpl implements RemediationService {
                 .completedAt(record.getCompletedAt())
                 .errorMessage(record.getErrorMessage())
                 .rollbackHint(record.getRollbackHint())
+                .skipReason(record.getSkipReason())
                 .createdAt(record.getCreatedAt() != null ? record.getCreatedAt().toInstant(java.time.ZoneOffset.UTC) : null)
                 .updatedAt(record.getUpdatedAt() != null ? record.getUpdatedAt().toInstant(java.time.ZoneOffset.UTC) : null)
                 .build();

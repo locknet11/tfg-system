@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class RemediationReportRequest {
 
     @NotBlank(message = "cveId must not be blank")
-    @Pattern(regexp = "CVE-\\d{4}-\\d+", message = "Invalid CVE ID format")
+    @Pattern(regexp = "CVE-\\d{4}-\\d+|CONTAINER-DETECTED", message = "Invalid CVE ID format")
     private String cveId;
 
     @NotBlank(message = "targetId must not be blank")
@@ -36,4 +36,5 @@ public class RemediationReportRequest {
     private List<String> postCheckLogs;
     private String errorMessage;
     private String rollbackHint;
+    private String skipReason;
 }
