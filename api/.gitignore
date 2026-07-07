@@ -1,5 +1,8 @@
 HELP.md
 target/
+
+# Agent binaries are build artifacts — do not commit
+src/main/resources/agents/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

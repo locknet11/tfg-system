@@ -1,0 +1,17 @@
+.download-dialog-content {
+  min-width: 420px;
+  min-height: 120px;
+}
+
+.platform-details {
+  background-color: var(--surface-ground, #f8f9fa);
+  border: 1px solid var(--surface-border, #dee2e6);
+}
+
+.hash-text {
+  font-family: monospace;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

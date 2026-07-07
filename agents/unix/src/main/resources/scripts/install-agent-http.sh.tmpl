@@ -1,19 +1,147 @@
 #!/bin/bash
 set -e
 [ -d /tmp ] || mkdir -p /tmp
-DOWNLOAD_URL="{{DOWNLOAD_URL}}"
 
+DOWNLOAD_URL="{{DOWNLOAD_URL}}"
+MANIFEST_URL="{{MANIFEST_URL}}"
+CENTRAL_URL="{{CENTRAL_URL}}"
+PREAUTH_CODE="{{PREAUTH_CODE}}"
+CENTRAL_PUBLIC_KEY="{{CENTRAL_PUBLIC_KEY}}"
+
+echo "=== Agent Installation ==="
+echo "Download URL: $DOWNLOAD_URL"
+
+# Step 1: Download the agent binary
+echo "Downloading agent binary..."
 if command -v curl &> /dev/null; then
-    curl -sS -o /tmp/agent "$DOWNLOAD_URL"
+    curl -sS -o /tmp/agent_raw "$DOWNLOAD_URL"
 elif command -v wget &> /dev/null; then
-    wget -q -O /tmp/agent "$DOWNLOAD_URL"
+    wget -q -O /tmp/agent_raw "$DOWNLOAD_URL"
 else
     echo "FATAL: Neither curl nor wget available"
     exit 1
 fi
 
+if [ ! -s /tmp/agent_raw ]; then
+    echo "FATAL: Downloaded agent binary is empty"
+    exit 1
+fi
+
+echo "Agent binary downloaded: $(wc -c < /tmp/agent_raw) bytes"
+
+# Step 2: Extract the manifest (JSON after the last newline in the file)
+# The binary format is: [binary bytes]\n{"blake3Hash":"...","signature":"...","algorithm":"..."}
+MANIFEST=$(tail -1 /tmp/agent_raw)
+BINARY_SIZE=$(($(wc -c < /tmp/agent_raw) - ${#MANIFEST} - 1))
+
+# Extract just the binary part (everything before the last newline + manifest)
+head -c $BINARY_SIZE /tmp/agent_raw > /tmp/agent
+
+echo "Binary size: $BINARY_SIZE bytes"
+echo "Manifest: $MANIFEST"
+
+# Step 3: Verify Blake3 hash
+echo "=== Verifying Blake3 hash ==="
+EXPECTED_HASH=""
+SIGNATURE=""
+ALGORITHM=""
+
+# Parse manifest JSON (requires grep/sed — basic but portable)
+if command -v jq &> /dev/null; then
+    EXPECTED_HASH=$(echo "$MANIFEST" | jq -r '.blake3Hash // empty')
+    SIGNATURE=$(echo "$MANIFEST" | jq -r '.signature // empty')
+    ALGORITHM=$(echo "$MANIFEST" | jq -r '.algorithm // "SHA256withRSA"')
+elif command -v python3 &> /dev/null; then
+    EXPECTED_HASH=$(python3 -c "import sys,json; print(json.loads(sys.argv[1]).get('blake3Hash',''))" "$MANIFEST")
+    SIGNATURE=$(python3 -c "import sys,json; print(json.loads(sys.argv[1]).get('signature',''))" "$MANIFEST")
+    ALGORITHM=$(python3 -c "import sys,json; print(json.loads(sys.argv[1]).get('algorithm','SHA256withRSA'))" "$MANIFEST")
+else
+    # Fallback: extract using grep/sed (basic JSON parsing)
+    EXPECTED_HASH=$(echo "$MANIFEST" | grep -o '"blake3Hash":"[^"]*"' | sed 's/"blake3Hash":"//;s/"//')
+    SIGNATURE=$(echo "$MANIFEST" | grep -o '"signature":"[^"]*"' | sed 's/"signature":"//;s/"//')
+    ALGORITHM="SHA256withRSA"
+fi
+
+if [ -z "$EXPECTED_HASH" ]; then
+    echo "FATAL: Could not parse manifest — missing blake3Hash"
+    exit 1
+fi
+
+# Compute Blake3 hash (requires openssl 3.0+)
+COMPUTED_HASH=""
+if command -v openssl &> /dev/null && openssl dgst -blake3 /tmp/agent 2>/dev/null | grep -q .; then
+    COMPUTED_HASH=$(openssl dgst -blake3 -hex /tmp/agent | awk '{print $NF}')
+elif command -v b3sum &> /dev/null; then
+    COMPUTED_HASH=$(b3sum /tmp/agent | awk '{print $1}')
+else
+    echo "WARNING: Cannot compute Blake3 hash — openssl 3.0+ or b3sum not available"
+    echo "Skipping hash verification (not recommended for production)"
+fi
+
+if [ -n "$COMPUTED_HASH" ]; then
+    if [ "$COMPUTED_HASH" = "$EXPECTED_HASH" ]; then
+        echo "Blake3 hash: OK ($COMPUTED_HASH)"
+    else
+        echo "FATAL: Blake3 hash MISMATCH"
+        echo "  Expected: $EXPECTED_HASH"
+        echo "  Computed: $COMPUTED_HASH"
+        exit 1
+    fi
+fi
+
+# Step 4: Verify RSA signature
+echo "=== Verifying RSA signature ==="
+if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY" != " " ]; then
+    if command -v openssl &> /dev/null; then
+        # Write public key to temp file
+        echo "$CENTRAL_PUBLIC_KEY" > /tmp/central_pubkey.pem
+
+        # Write hash to temp file
+        echo -n "$EXPECTED_HASH" > /tmp/hash_to_verify.bin
+
+        # Decode signature from base64
+        echo "$SIGNATURE" | base64 -d > /tmp/signature.bin 2>/dev/null || {
+            echo "FATAL: Failed to decode signature"
+            exit 1
+        }
+
+        # Verify signature
+        if openssl pkeyutl -verify -pubin -inkey /tmp/central_pubkey.pem \
+                -in /tmp/hash_to_verify.bin -sigfile /tmp/signature.bin 2>/dev/null; then
+            echo "RSA signature: VERIFIED"
+        else
+            echo "FATAL: RSA signature verification FAILED"
+            exit 1
+        fi
+
+        # Cleanup temp key files
+        rm -f /tmp/central_pubkey.pem /tmp/hash_to_verify.bin /tmp/signature.bin
+    else
+        echo "WARNING: openssl not available — skipping RSA signature verification"
+    fi
+else
+    echo "Signature verification skipped (no public key configured)"
+fi
+
+# Step 5: Install and launch
+echo "=== Installing agent ==="
 chmod +x /tmp/agent
-echo 'agent.central-url={{CENTRAL_URL}}' > /tmp/agent.properties
-echo 'agent.preauth-code={{PREAUTH_CODE}}' >> /tmp/agent.properties
+
+echo "agent.central-url=$CENTRAL_URL" > /tmp/agent.properties
+echo "agent.preauth-code=$PREAUTH_CODE" >> /tmp/agent.properties
+
 nohup /tmp/agent > /tmp/agent.log 2>&1 &
+AGENT_PID=$!
+
+# Brief check that agent started
+sleep 2
+if kill -0 $AGENT_PID 2>/dev/null; then
+    echo "Agent started (PID: $AGENT_PID)"
+else
+    echo "WARNING: Agent may not have started — check /tmp/agent.log"
+fi
+
+# Cleanup raw download
+rm -f /tmp/agent_raw
+
 echo "INSTALL_OK"

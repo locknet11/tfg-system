@@ -1,15 +1,24 @@
 <div class="agents-list-container">
   <div class="flex justify-content-between align-items-center mb-4">
     <h1 class="text-3xl font-bold m-0" i18n>Agents</h1>
-    <span class="p-input-icon-left">
-      <i class="pi pi-search"></i>
-      <input
-        pInputText
-        type="text"
-        placeholder="Search agents..."
-        i18n-placeholder
-        (input)="onSearchInput($any($event.target)?.value)" />
-    </span>
+    <div class="flex gap-2 align-items-center">
+      <p-button
+        icon="pi pi-download"
+        label="Download Agent"
+        i18n-label
+        severity="info"
+        (onClick)="showDownloadModal = true">
+      </p-button>
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search agents..."
+          i18n-placeholder
+          (input)="onSearchInput($any($event.target)?.value)" />
+      </span>
+    </div>
   </div>
 
   <p-toast></p-toast>
@@ -99,4 +108,10 @@
     [showModal]="showAssignPlanModal"
     (modalClosed)="showAssignPlanModal = false"
     (planAssigned)="onPlanAssigned()"></app-assign-plan-modal>
+
+  <app-agent-download
+    [visible]="showDownloadModal"
+    (visibleChange)="showDownloadModal = $event"
+    (closed)="showDownloadModal = false">
+  </app-agent-download>
 </div>

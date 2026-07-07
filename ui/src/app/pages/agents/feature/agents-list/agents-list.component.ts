@@ -13,6 +13,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { AgentsService } from '../../data-access/agents.service';
 import { Agent, AgentStatus } from '../../data-access/agents.model';
 import { AssignPlanModalComponent } from '../assign-plan-modal/assign-plan-modal.component';
+import { AgentDownloadComponent } from '../agent-download/agent-download.component';
 
 @Component({
   selector: 'app-agents-list',
@@ -27,6 +28,7 @@ import { AssignPlanModalComponent } from '../assign-plan-modal/assign-plan-modal
     ConfirmDialogModule,
     ToastModule,
     AssignPlanModalComponent,
+    AgentDownloadComponent,
   ],
   templateUrl: './agents-list.component.html',
   styleUrls: ['./agents-list.component.scss'],
@@ -53,6 +55,8 @@ export class AgentsListComponent {
 
   showAssignPlanModal = false;
   selectedAgentId = '';
+
+  showDownloadModal = false;
 
   AgentStatus = AgentStatus;
 

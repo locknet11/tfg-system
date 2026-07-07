@@ -79,3 +79,12 @@ export interface AssignPlanRequest {
   templateId?: string;
   plan?: Plan;
 }
+
+export interface AgentPlatformInfo {
+  platform: string;
+  label: string;
+  agentVersion: string;
+  fileSizeBytes: number;
+  blake3Hash: string;
+  lastBuilt: string;
+}

@@ -128,6 +128,8 @@ public class TransferAgentStepHandler implements StepHandler {
             replacements.put("DOWNLOAD_URL", downloadUrl);
             replacements.put("CENTRAL_URL", centralUrl);
             replacements.put("PREAUTH_CODE", preauthCode != null ? preauthCode : "");
+            replacements.put("MANIFEST_URL", "");
+            replacements.put("CENTRAL_PUBLIC_KEY", config.getCentralPublicKey() != null ? config.getCentralPublicKey() : "");
 
             String installScript = scriptTemplateService.renderTemplate(
                     "install-agent-http.sh.tmpl", replacements);

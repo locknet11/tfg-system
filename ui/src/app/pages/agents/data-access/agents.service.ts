@@ -1,7 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { AgentsList, AssignPlanRequest, Agent } from './agents.model';
+import {
+  AgentsList,
+  AssignPlanRequest,
+  Agent,
+  AgentPlatformInfo,
+} from './agents.model';
 
 const baseUrl = environment.baseUrl;
 
@@ -26,5 +31,15 @@ export class AgentsService {
       `${baseUrl}/api/agent/${agentId}/plan`,
       request
     );
+  }
+
+  getDownloadPlatforms() {
+    return this.http.get<AgentPlatformInfo[]>(
+      `${baseUrl}/api/agent/download/platforms`
+    );
+  }
+
+  downloadAgent(platform: string): void {
+    window.open(`${baseUrl}/api/agent/download/${platform}`, '_blank');
   }
 }
