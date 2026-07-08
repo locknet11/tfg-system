@@ -1,8 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   AgentsList,
+  AgentPlanInfo,
   AssignPlanRequest,
   Agent,
   AgentPlatformInfo,
@@ -31,6 +33,12 @@ export class AgentsService {
       `${baseUrl}/api/agent/${agentId}/plan`,
       request
     );
+  }
+
+  getPlan(agentId: string) {
+    return this.http
+      .get<AgentPlanInfo | null>(`${baseUrl}/api/agent/${agentId}/plan`)
+      .pipe(map(plan => plan ?? null));
   }
 
   getDownloadPlatforms() {

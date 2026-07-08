@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -17,6 +25,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import {
+  AgentPlanInfo,
   AssignPlanRequest,
   Plan,
   StepAction,
@@ -43,7 +52,7 @@ import { TemplatesService } from '../../../templates/data-access/templates.servi
   templateUrl: './assign-plan-modal.component.html',
   styleUrls: ['./assign-plan-modal.component.scss'],
 })
-export class AssignPlanModalComponent implements OnInit {
+export class AssignPlanModalComponent implements OnInit, OnChanges {
   @Input() agentId!: string;
   @Input() showModal = false;
   @Output() modalClosed = new EventEmitter<void>();
@@ -54,6 +63,10 @@ export class AssignPlanModalComponent implements OnInit {
   templates: { label: string; value: string }[] = [];
   planForm: FormGroup;
   submitting = false;
+
+  currentPlan: AgentPlanInfo | null = null;
+  loadingPlan = false;
+  planLoadError = false;
 
   stepActionOptions = Object.values(StepAction).map(action => ({
     label: this.formatActionLabel(action),
@@ -75,6 +88,44 @@ export class AssignPlanModalComponent implements OnInit {
 
   ngOnInit() {
     this.loadTemplates();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    const justOpened =
+      changes['showModal'] && changes['showModal'].currentValue === true;
+    const agentSwitchedWhileOpen =
+      changes['agentId'] &&
+      !changes['agentId'].firstChange &&
+      this.showModal;
+
+    if (justOpened || agentSwitchedWhileOpen) {
+      this.resetModalState();
+      if (this.agentId) {
+        this.loadCurrentPlan(this.agentId);
+      }
+    }
+  }
+
+  loadCurrentPlan(agentId: string) {
+    this.loadingPlan = true;
+    this.planLoadError = false;
+    this.agentsService.getPlan(agentId).subscribe({
+      next: plan => {
+        // Ignore a stale response for an agent the dialog is no longer showing.
+        if (agentId !== this.agentId || !this.showModal) {
+          return;
+        }
+        this.currentPlan = plan;
+        this.loadingPlan = false;
+      },
+      error: () => {
+        if (agentId !== this.agentId || !this.showModal) {
+          return;
+        }
+        this.planLoadError = true;
+        this.loadingPlan = false;
+      },
+    });
   }
 
   loadTemplates() {
@@ -177,10 +228,18 @@ export class AssignPlanModalComponent implements OnInit {
 
   closeModal() {
     this.showModal = false;
+    this.resetModalState();
+    this.modalClosed.emit();
+  }
+
+  private resetModalState() {
     this.useTemplate = false;
     this.selectedTemplateId = null;
+    this.submitting = false;
     this.resetPlanForm();
-    this.modalClosed.emit();
+    this.currentPlan = null;
+    this.loadingPlan = false;
+    this.planLoadError = false;
   }
 
   private resetPlanForm() {
@@ -188,7 +247,7 @@ export class AssignPlanModalComponent implements OnInit {
     this.planForm.reset({ notes: '', allowTemplating: false });
   }
 
-  private formatActionLabel(action: StepAction): string {
+  formatActionLabel(action: StepAction): string {
     return action
       .replace(/_/g, ' ')
       .toLowerCase()

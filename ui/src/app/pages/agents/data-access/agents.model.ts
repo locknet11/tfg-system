@@ -80,6 +80,14 @@ export interface AssignPlanRequest {
   plan?: Plan;
 }
 
+export interface AgentPlanInfo {
+  notes?: string;
+  allowTemplating: boolean;
+  targetId?: string;
+  targetIp?: string;
+  steps: Step[];
+}
+
 export interface AgentPlatformInfo {
   platform: string;
   label: string;

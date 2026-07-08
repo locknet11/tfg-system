@@ -9,6 +9,44 @@
   [breakpoints]="{ '640px': '95vw' }"
   (onHide)="closeModal()">
   <div class="p-fluid">
+    <div class="mb-4">
+      <div *ngIf="loadingPlan" class="flex align-items-center gap-2 text-500">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span i18n>Loading current plan…</span>
+      </div>
+
+      <div
+        *ngIf="!loadingPlan && planLoadError"
+        class="flex align-items-center gap-2 text-red-500">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span i18n>Could not load the current plan.</span>
+      </div>
+
+      <ng-container *ngIf="!loadingPlan && !planLoadError">
+        <div
+          *ngIf="currentPlan; else noCurrentPlan"
+          class="surface-100 border-round p-3">
+          <div class="font-medium mb-2" i18n>Currently Assigned Plan</div>
+          <div *ngIf="currentPlan.notes" class="text-600 mb-2">
+            {{ currentPlan.notes }}
+          </div>
+          <ol *ngIf="currentPlan.steps.length > 0" class="m-0 pl-4 text-600">
+            <li *ngFor="let step of currentPlan.steps">
+              {{ formatActionLabel(step.action) }}
+            </li>
+          </ol>
+          <div *ngIf="currentPlan.steps.length === 0" class="text-500" i18n>
+            This plan has no steps.
+          </div>
+        </div>
+        <ng-template #noCurrentPlan>
+          <div class="surface-100 border-round p-3 text-500" i18n>
+            No plan is currently assigned to this agent.
+          </div>
+        </ng-template>
+      </ng-container>
+    </div>
+
     <div
       class="flex align-items-center gap-3 mt-2 pb-3 mb-4 border-bottom-1 surface-border">
       <p-inputSwitch

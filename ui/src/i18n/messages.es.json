@@ -1,6 +1,11 @@
 {
   "locale": "es",
   "translations": {
+    "4535176253841963895": "Cargando plan actual…",
+    "4450105714976371735": "No se pudo cargar el plan actual.",
+    "4123125204703345427": "Plan Actualmente Asignado",
+    "458155810138255577": "Este plan no tiene pasos.",
+    "2506072263055935124": "No hay ningún plan asignado a este agente.",
     "8675314360649841908": "Aún no hay pasos. Agregue al menos un paso para crear un plan.",
     "962765493084218985": "Plataforma",
     "9011677420322442903": "Tamaño del archivo",
