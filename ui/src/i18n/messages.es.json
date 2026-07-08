@@ -1,6 +1,18 @@
 {
   "locale": "es",
   "translations": {
+    "8675314360649841908": "Aún no hay pasos. Agregue al menos un paso para crear un plan.",
+    "962765493084218985": "Plataforma",
+    "9011677420322442903": "Tamaño del archivo",
+    "3404737660633372333": "Hash Blake3",
+    "1212905061360073382": "Compilado",
+    "3393443077906461987": "Descargar Agente",
+    "8132560834277317598": "Cargando plataformas disponibles...",
+    "7812846522320969428": "No hay binarios de agente disponibles para descargar.",
+    "8217335136773060814": "Seleccionar una plataforma",
+    "3099741642167775297": "Descargar",
+    "5506797022658868209": "Hash Blake3",
+    "2006597639862473006": "Error al cargar plataformas",
     "6663783128602596673": " Iniciar sesión ",
     "1431416938026210429": "Contraseña",
     "7858768589576583715": "Credenciales inválidas",

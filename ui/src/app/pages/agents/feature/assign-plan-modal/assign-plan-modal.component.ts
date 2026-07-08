@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -13,8 +13,8 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { CheckboxModule } from 'primeng/checkbox';
-import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import {
   AssignPlanRequest,
@@ -37,13 +37,13 @@ import { TemplatesService } from '../../../templates/data-access/templates.servi
     DropdownModule,
     InputTextareaModule,
     CheckboxModule,
-    TableModule,
     ButtonModule,
+    TooltipModule,
   ],
   templateUrl: './assign-plan-modal.component.html',
   styleUrls: ['./assign-plan-modal.component.scss'],
 })
-export class AssignPlanModalComponent {
+export class AssignPlanModalComponent implements OnInit {
   @Input() agentId!: string;
   @Input() showModal = false;
   @Output() modalClosed = new EventEmitter<void>();
@@ -95,10 +95,13 @@ export class AssignPlanModalComponent {
     });
   }
 
+  get canSubmit(): boolean {
+    return this.useTemplate ? !!this.selectedTemplateId : this.planForm.valid;
+  }
+
   toggleMode() {
     this.selectedTemplateId = null;
-    this.planForm.reset();
-    this.clearSteps();
+    this.resetPlanForm();
   }
 
   get stepsFormArray(): FormArray {
@@ -123,7 +126,7 @@ export class AssignPlanModalComponent {
   }
 
   submitForm() {
-    if (this.submitting) return;
+    if (this.submitting || !this.canSubmit) return;
 
     const request: AssignPlanRequest = {
       useTemplate: this.useTemplate,
@@ -174,7 +177,15 @@ export class AssignPlanModalComponent {
 
   closeModal() {
     this.showModal = false;
+    this.useTemplate = false;
+    this.selectedTemplateId = null;
+    this.resetPlanForm();
     this.modalClosed.emit();
+  }
+
+  private resetPlanForm() {
+    this.clearSteps();
+    this.planForm.reset({ notes: '', allowTemplating: false });
   }
 
   private formatActionLabel(action: StepAction): string {
