@@ -28,7 +28,11 @@ public class ScriptServiceImpl implements ScriptService {
             String organizationIdentifier,
             String projectIdentifier,
             String targetUniqueId,
-            String preauthCode) {
+            String preauthCode,
+            String downloadUrl,
+            String agentId,
+            String apiKey,
+            String centralPublicKey) {
 
         String templateName = getTemplateNameForOs(os);
 
@@ -38,6 +42,10 @@ public class ScriptServiceImpl implements ScriptService {
         model.put("projectIdentifier", projectIdentifier);
         model.put("targetUniqueId", targetUniqueId);
         model.put("preauthCode", preauthCode);
+        model.put("downloadUrl", downloadUrl);
+        model.put("agentId", agentId);
+        model.put("apiKey", apiKey);
+        model.put("centralPublicKey", centralPublicKey);
 
         try {
             Template template = freemarkerConfiguration.getTemplate(templateName);

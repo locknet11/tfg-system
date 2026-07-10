@@ -65,5 +65,12 @@ public class Agent extends BaseEntity implements ScopedEntity {
     private LocalDateTime replicatedAt;
 
     @Field
+    @Indexed
+    private String installToken;
+
+    @Field
+    private java.time.Instant installTokenExpiresAt;
+
+    @Field
     private com.spulido.tfg.domain.replication.model.ReplicationExploitInfo replicationExploit;
 }

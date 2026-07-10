@@ -64,6 +64,9 @@ public class AgentServiceImpl implements AgentService {
     @Value("${api.base-url:http://localhost:8080}")
     private String apiBaseUrl;
 
+    @Value("${central.public-key:}")
+    private String centralPublicKey;
+
     @Override
     public AgentsList listAgents(PageRequest pageRequest, String query) {
         Page<Agent> page;
@@ -132,6 +135,10 @@ public class AgentServiceImpl implements AgentService {
             // Generate unique API key for agent authentication
             String apiKey = generateApiKey();
 
+            // Generate one-time install token for binary download
+            String installToken = generateInstallToken();
+            String downloadUrl = apiBaseUrl + "/api/agent/binary/download/" + installToken;
+
             // Create new Agent with targetUniqueId in name
             Agent agent = new Agent();
             agent.setName("Agent-" + request.getTargetUniqueId());
@@ -141,6 +148,8 @@ public class AgentServiceImpl implements AgentService {
             agent.setOrganizationId(organization.getId());
             agent.setProjectId(project.getId());
             agent.setApiKey(apiKey);
+            agent.setInstallToken(installToken);
+            agent.setInstallTokenExpiresAt(java.time.Instant.now().plusSeconds(300));
 
             Agent savedAgent = repository.save(agent);
 
@@ -157,14 +166,18 @@ public class AgentServiceImpl implements AgentService {
             // Auto-assign plan from default template if configured in replication policy
             autoAssignPlanFromPolicy(savedAgent, project);
 
-            // Generate install script
+            // Generate install script with all required variables
             String installScript = scriptService.generateInstallScript(
                     target.getOs(),
                     apiBaseUrl,
                     organization.getOrganizationIdentifier(),
                     project.getProjectIdentifier(),
                     request.getTargetUniqueId(),
-                    target.getPreauthCode());
+                    target.getPreauthCode(),
+                    downloadUrl,
+                    savedAgent.getId(),
+                    apiKey,
+                    centralPublicKey);
 
             // Build response
             AgentRegistrationResponse response = new AgentRegistrationResponse();
@@ -249,6 +262,16 @@ public class AgentServiceImpl implements AgentService {
 
     private String generateApiKey() {
         byte[] randomBytes = new byte[API_KEY_LENGTH];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    /**
+     * Generates a one-time install token for binary download during agent registration.
+     * Token is valid for 5 minutes and consumed on first use.
+     */
+    private String generateInstallToken() {
+        byte[] randomBytes = new byte[32];
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }

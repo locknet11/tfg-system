@@ -1,7 +1,11 @@
 package com.spulido.agent.config;
 
+import java.util.Collections;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
@@ -31,8 +35,25 @@ public class WorkerPoolConfig {
     }
 
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestTemplate restTemplate(AgentConfig agentConfig) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Add interceptor to inject agent authentication headers
+        ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {
+            String apiKey = agentConfig.getApiKey();
+            String agentId = agentConfig.getAgentId();
+
+            if (apiKey != null && !apiKey.isEmpty() && agentId != null && !agentId.isEmpty()) {
+                HttpHeaders headers = request.getHeaders();
+                headers.set("X-Agent-Api-Key", apiKey);
+                headers.set("X-Agent-Id", agentId);
+            }
+
+            return execution.execute(request, body);
+        };
+
+        restTemplate.setInterceptors(Collections.singletonList(authInterceptor));
+        return restTemplate;
     }
 
     @Bean

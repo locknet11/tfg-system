@@ -129,6 +129,8 @@ public class TransferAgentStepHandler implements StepHandler {
             replacements.put("CENTRAL_URL", centralUrl);
             replacements.put("PREAUTH_CODE", preauthCode != null ? preauthCode : "");
             replacements.put("MANIFEST_URL", "");
+            replacements.put("API_KEY", "");
+            replacements.put("AGENT_ID", "");
             replacements.put("CENTRAL_PUBLIC_KEY", config.getCentralPublicKey() != null ? config.getCentralPublicKey() : "");
 
             String installScript = scriptTemplateService.renderTemplate(
@@ -206,6 +208,9 @@ public class TransferAgentStepHandler implements StepHandler {
             Map<String, String> replacements = new HashMap<>();
             replacements.put("CENTRAL_URL", centralUrl);
             replacements.put("PREAUTH_CODE", preauthCode != null ? preauthCode : "");
+            replacements.put("API_KEY", "");
+            replacements.put("AGENT_ID", "");
+            replacements.put("CENTRAL_PUBLIC_KEY", config.getCentralPublicKey() != null ? config.getCentralPublicKey() : "");
 
             String launchScript = scriptTemplateService.renderTemplate(
                     "install-agent-transfer.sh.tmpl", replacements);

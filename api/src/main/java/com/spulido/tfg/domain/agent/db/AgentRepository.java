@@ -31,6 +31,9 @@ public interface AgentRepository extends MongoRepository<Agent, String> {
     // Find agent by API key (for agent authentication)
     Optional<Agent> findByApiKey(String apiKey);
 
+    // Find agent by install token (for one-time binary download during installation)
+    Optional<Agent> findByInstallToken(String installToken);
+
     // Unscoped query — crosses all org/project boundaries (used by heartbeat monitor scheduler)
     // Finds agents in candidate statuses with stale heartbeats
     List<Agent> findByStatusInAndLastConnectionBefore(List<AgentStatus> statuses, LocalDateTime cutoff);

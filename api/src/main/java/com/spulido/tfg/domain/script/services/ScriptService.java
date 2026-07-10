@@ -12,6 +12,11 @@ public interface ScriptService {
      * @param organizationIdentifier The organization identifier
      * @param projectIdentifier      The project identifier
      * @param targetUniqueId         The unique ID of the target
+     * @param preauthCode            The preauth code for the target
+     * @param downloadUrl            The URL to download the agent binary
+     * @param agentId                The registered agent's ID
+     * @param apiKey                 The agent's API key for authentication
+     * @param centralPublicKey       The central platform's RSA public key for signature verification
      * @return The generated script content
      */
     String generateInstallScript(
@@ -20,7 +25,11 @@ public interface ScriptService {
             String organizationIdentifier,
             String projectIdentifier,
             String targetUniqueId,
-            String preauthCode);
+            String preauthCode,
+            String downloadUrl,
+            String agentId,
+            String apiKey,
+            String centralPublicKey);
 
     String generateInstallErrorScript(
             OperatingSystem os,

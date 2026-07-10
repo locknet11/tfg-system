@@ -6,6 +6,8 @@ DOWNLOAD_URL="{{DOWNLOAD_URL}}"
 MANIFEST_URL="{{MANIFEST_URL}}"
 CENTRAL_URL="{{CENTRAL_URL}}"
 PREAUTH_CODE="{{PREAUTH_CODE}}"
+API_KEY="{{API_KEY}}"
+AGENT_ID="{{AGENT_ID}}"
 CENTRAL_PUBLIC_KEY="{{CENTRAL_PUBLIC_KEY}}"
 
 echo "=== Agent Installation ==="
@@ -128,7 +130,9 @@ echo "=== Installing agent ==="
 chmod +x /tmp/agent
 
 echo "agent.central-url=$CENTRAL_URL" > /tmp/agent.properties
-echo "agent.preauth-code=$PREAUTH_CODE" >> /tmp/agent.properties
+echo "agent.api-key=$API_KEY" >> /tmp/agent.properties
+echo "agent.agent-id=$AGENT_ID" >> /tmp/agent.properties
+echo "agent.central-public-key=$CENTRAL_PUBLIC_KEY" >> /tmp/agent.properties
 
 nohup /tmp/agent > /tmp/agent.log 2>&1 &
 AGENT_PID=$!
