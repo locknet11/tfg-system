@@ -1,6 +1,7 @@
 {
   "locale": "es",
   "translations": {
+    "14759891741748203": "Error al cargar vulnerabilidades críticas.",
     "4535176253841963895": "Cargando plan actual…",
     "4450105714976371735": "No se pudo cargar el plan actual.",
     "4123125204703345427": "Plan Actualmente Asignado",
@@ -384,6 +385,23 @@
     "1080714645492578063": "Bajo demanda",
     "3068405872186114635": "Error al cargar los informes.",
     "6688484198622098321": "Todos los objetivos",
-    "6874300478514671669": "Detalle del Informe"
+    "6874300478514671669": "Detalle del Informe",
+    "1497699585373298026": "MTTR",
+    "354879721237771001": "Error al cargar estadísticas de remediación.",
+    "3737596088022150087": "Total de Remediaciones",
+    "3761300505262035965": "Tasa de Éxito",
+    "5361469356399993321": "Distribución de Estados",
+    "5545896764056516994": "Estadísticas de Remediación",
+    "6811901802533648897": "N/D",
+    "8576108292967369214": "Gráfico circular de distribución de estados de remediación",
+    "1255611151574637773": "Gráfico de línea de vulnerabilidades a lo largo del tiempo",
+    "1276592990402630066": "Últimas 4 semanas",
+    "1929039531311944328": "Tiempo de actividad",
+    "200557415338623383": "Error al cargar métricas de agentes.",
+    "5171192616638755303": "Reintentar",
+    "3510484133311354918": "Error al cargar datos del gráfico.",
+    "4303767871105469847": "Gráfico de barras de vulnerabilidades detectadas por mes",
+    "6931920299277650185": "Error al cargar KPIs.",
+    "9206815749206304257": "No se detectaron vulnerabilidades críticas."
   }
 }

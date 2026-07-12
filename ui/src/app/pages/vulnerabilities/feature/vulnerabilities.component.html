@@ -30,19 +30,19 @@
     } @else if (statistics()) {
     <p-tag
       severity="danger"
-      [value]="'Critical: ' + (statistics()!.bySeverity['CRITICAL'] ?? 0)">
+      [value]="'Critical: ' + statistics()!.bySeverity['CRITICAL']">
     </p-tag>
     <p-tag
       severity="warning"
-      [value]="'High: ' + (statistics()!.bySeverity['HIGH'] ?? 0)">
+      [value]="'High: ' + statistics()!.bySeverity['HIGH']">
     </p-tag>
     <p-tag
       severity="info"
-      [value]="'Medium: ' + (statistics()!.bySeverity['MEDIUM'] ?? 0)">
+      [value]="'Medium: ' + statistics()!.bySeverity['MEDIUM']">
     </p-tag>
     <p-tag
       severity="success"
-      [value]="'Low: ' + (statistics()!.bySeverity['LOW'] ?? 0)">
+      [value]="'Low: ' + statistics()!.bySeverity['LOW']">
     </p-tag>
     }
   </div>

@@ -1,6 +1,7 @@
 {
   "locale": "en-US",
   "translations": {
+    "14759891741748203": "Failed to load critical vulnerabilities.",
     "8473043854837304380": "Project Selector",
     "6570363013146073520": "Dashboard",
     "6729916752786542046": "Agents",
@@ -349,6 +350,23 @@
     "4444447610157070490": "Vulnerability data refreshed",
     "4887123750367013569": "Failed to refresh vulnerability data",
     "8192933369246470949": "Failed to load vulnerability details",
-    "5305965882676823059": "Vulnerability Detail"
+    "5305965882676823059": "Vulnerability Detail",
+    "1497699585373298026": "MTTR",
+    "354879721237771001": "Failed to load remediation statistics.",
+    "3737596088022150087": "Total Remediations",
+    "3761300505262035965": "Success Rate",
+    "5361469356399993321": "Status Distribution",
+    "5545896764056516994": "Remediation Statistics",
+    "6811901802533648897": "N/A",
+    "8576108292967369214": "Remediation status distribution pie chart",
+    "1255611151574637773": "Vulnerabilities over time line chart",
+    "1276592990402630066": "Last 4 weeks",
+    "1929039531311944328": "Uptime",
+    "200557415338623383": "Failed to load agent metrics.",
+    "5171192616638755303": "Retry",
+    "3510484133311354918": "Failed to load chart data.",
+    "4303767871105469847": "Vulnerabilities detected per month bar chart",
+    "6931920299277650185": "Failed to load KPIs.",
+    "9206815749206304257": "No critical vulnerabilities detected."
   }
 }
