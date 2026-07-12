@@ -8,6 +8,8 @@ import {
   RemediationRecord,
   RemediationStatistics,
   RemediationStatus,
+  RemediationStrategy,
+  StrategyListResponse,
 } from './remediations.model';
 
 @Injectable({
@@ -15,6 +17,7 @@ import {
 })
 export class RemediationsService {
   private readonly apiUrl = `${environment.baseUrl}/api/remediations`;
+  private readonly strategiesUrl = `${environment.baseUrl}/api/remediation-strategies`;
 
   constructor(private http: HttpClient) {}
 
@@ -46,5 +49,43 @@ export class RemediationsService {
 
   getStatistics(): Observable<RemediationStatistics> {
     return this.http.get<RemediationStatistics>(`${this.apiUrl}/statistics`);
+  }
+
+  listStrategies(
+    page = 0,
+    size = 20,
+    cveId?: string,
+    operatingSystem?: string,
+    packageName?: string,
+    remediationType?: string,
+    action?: string
+  ): Observable<StrategyListResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (cveId) {
+      params = params.set('cveId', cveId);
+    }
+    if (operatingSystem) {
+      params = params.set('operatingSystem', operatingSystem);
+    }
+    if (packageName) {
+      params = params.set('packageName', packageName);
+    }
+    if (remediationType) {
+      params = params.set('remediationType', remediationType);
+    }
+    if (action) {
+      params = params.set('action', action);
+    }
+
+    return this.http.get<StrategyListResponse>(this.strategiesUrl, { params });
+  }
+
+  getStrategy(id: string): Observable<RemediationStrategy> {
+    return this.http.get<RemediationStrategy>(
+      `${this.strategiesUrl}/${encodeURIComponent(id)}`
+    );
   }
 }

@@ -48,7 +48,7 @@ export class RemediationWidgetComponent implements OnInit {
     this.loading.set(true);
     this.error.set(false);
     this.remediationsService.getStatistics().subscribe({
-      next: (stats) => {
+      next: stats => {
         this.statistics.set(stats);
         this.buildChart(stats);
         this.loading.set(false);

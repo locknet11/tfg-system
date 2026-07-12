@@ -1,0 +1,122 @@
+# API Contract: Remediation Strategies
+
+**Feature**: 019-expand-remediation-strategies  
+**Base URL**: `/api/remediation-strategies`
+
+## GET /api/remediation-strategies
+
+List remediation strategies with pagination and optional filters.
+
+### Authentication
+
+Requires valid JWT session (ADMIN or OPERATOR role).
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 0 | Zero-based page index |
+| `size` | integer | 20 | Page size (max 100) |
+| `cveId` | string | — | Filter by CVE ID (partial match, case-insensitive) |
+| `operatingSystem` | string | — | Filter by OS (exact match) |
+| `packageName` | string | — | Filter by package name (partial match, case-insensitive) |
+| `remediationType` | string | — | Filter by type: SERVICE_UPDATE, REBOOT_REQUIRED, KERNEL_UPDATE |
+| `action` | string | — | Filter by action: APT_UPGRADE, APT_INSTALL, CONFIG_UPDATE, MANUAL |
+
+### Response
+
+**200 OK**:
+
+```json
+{
+  "content": [
+    {
+      "id": "60d5f484f1a2c8b1f8e4e1a1",
+      "cveId": "CVE-2023-38408",
+      "operatingSystem": "ubuntu-22.04",
+      "packageName": "openssh-server",
+      "remediationType": "SERVICE_UPDATE",
+      "action": "APT_UPGRADE",
+      "targetVersion": "1:9.3p1-1ubuntu3.2",
+      "preCheckCommands": ["dpkg -l openssh-server"],
+      "fixCommands": ["apt-get update", "apt-get install -y openssh-server"],
+      "postCheckCommands": ["dpkg -l openssh-server", "systemctl is-active ssh"],
+      "serviceName": "ssh",
+      "requiresReboot": false,
+      "notes": "Remote code execution vulnerability in OpenSSH. Upgrade to patched version."
+    }
+  ],
+  "totalElements": 30,
+  "totalPages": 2,
+  "number": 0,
+  "size": 20
+}
+```
+
+### Error Responses
+
+- **401 Unauthorized**: Missing or invalid JWT
+- **403 Forbidden**: Valid JWT but insufficient role (e.g., VIEWER)
+- **400 Bad Request**: Invalid enum value for `remediationType` or `action`
+
+---
+
+## GET /api/remediation-strategies/{id}
+
+Get a single strategy by its MongoDB document ID.
+
+### Authentication
+
+Requires valid JWT session (ADMIN or OPERATOR role).
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | MongoDB document ID |
+
+### Response
+
+**200 OK**: Single `RemediationStrategy` object (same structure as list item).
+
+**404 Not Found**: No strategy with the given ID.
+
+---
+
+## GET /api/remediation-strategies/count
+
+Get total count of strategies (for dashboard metrics).
+
+### Authentication
+
+Requires valid JWT session (ADMIN or OPERATOR role).
+
+### Response
+
+**200 OK**:
+
+```json
+{
+  "total": 30,
+  "byType": {
+    "SERVICE_UPDATE": 18,
+    "REBOOT_REQUIRED": 7,
+    "KERNEL_UPDATE": 5
+  },
+  "byOs": {
+    "ubuntu-22.04": 12,
+    "ubuntu-20.04": 8,
+    "debian-11": 5,
+    "debian-12": 5
+  },
+  "byCategory": {
+    "webserver": 6,
+    "database": 7,
+    "ssh": 3,
+    "mail": 4,
+    "dns": 3,
+    "container": 4,
+    "language": 3
+  }
+}
+```

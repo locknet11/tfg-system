@@ -1,0 +1,125 @@
+.strategies-container {
+  padding: 1.5rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+.filters {
+  margin-bottom: 1rem;
+
+  .filter-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-input {
+    width: 180px;
+  }
+
+  .filter-dropdown {
+    min-width: 160px;
+  }
+}
+
+.cve-badge {
+  font-family: monospace;
+  background: var(--surface-100);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.version {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+.reboot-yes {
+  color: var(--orange-500);
+  font-weight: 600;
+}
+
+.reboot-no {
+  color: var(--green-500);
+}
+
+.expansion-content {
+  padding: 1rem;
+
+  .expansion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .expansion-section {
+    h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: var(--text-color-secondary);
+    }
+  }
+
+  .commands {
+    background: var(--surface-900);
+    color: var(--surface-0);
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .expansion-notes {
+    margin-bottom: 0.75rem;
+
+    h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: var(--text-color-secondary);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+  }
+
+  .expansion-meta {
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+
+    strong {
+      color: var(--text-color);
+    }
+  }
+}

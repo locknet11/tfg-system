@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.spulido.tfg.domain.remediation.db.RemediationStrategyRepository;
@@ -58,5 +60,20 @@ public class RemediationStrategyServiceImpl implements RemediationStrategyServic
     @Override
     public long countStrategies() {
         return repository.count();
+    }
+
+    @Override
+    public Optional<RemediationStrategy> findById(String id) {
+        if (id == null || id.isBlank()) {
+            return Optional.empty();
+        }
+        return repository.findById(id);
+    }
+
+    @Override
+    public Page<RemediationStrategy> findAll(String cveId, String operatingSystem,
+            String packageName, String remediationType, String action, Pageable pageable) {
+
+        return repository.search(cveId, operatingSystem, packageName, remediationType, action, pageable);
     }
 }

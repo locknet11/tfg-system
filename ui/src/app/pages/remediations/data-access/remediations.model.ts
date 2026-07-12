@@ -46,6 +46,34 @@ export interface RecentActivity {
   readonly completedAt: string | null;
 }
 
+export type RemediationAction =
+  | 'APT_UPGRADE'
+  | 'APT_INSTALL'
+  | 'CONFIG_UPDATE'
+  | 'SYSTEMCTL_RESTART'
+  | 'MANUAL';
+
+export interface RemediationStrategy {
+  readonly id: string;
+  readonly cveId: string;
+  readonly operatingSystem: string;
+  readonly packageName: string;
+  readonly remediationType: RemediationType;
+  readonly action: RemediationAction;
+  readonly targetVersion: string;
+  readonly preCheckCommands: readonly string[];
+  readonly fixCommands: readonly string[];
+  readonly postCheckCommands: readonly string[];
+  readonly serviceName: string | null;
+  readonly requiresReboot: boolean;
+  readonly notes: string;
+}
+
+export interface StrategyListResponse {
+  readonly content: readonly RemediationStrategy[];
+  readonly totalElements: number;
+}
+
 export interface RemediationStatistics {
   readonly totalCount: number;
   readonly byStatus: Record<string, number>;

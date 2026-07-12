@@ -48,3 +48,51 @@ services:
     networks:
       targets:
         ipv4_address: 172.20.0.14
+
+  postgres:
+    build: ./targets/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.20
+
+  mysql:
+    build: ./targets/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.21
+
+  bind9:
+    build: ./targets/bind9
+    ports:
+      - "5353:53/udp"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.22
+
+  postfix:
+    build: ./targets/postfix
+    ports:
+      - "2525:25"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.23
+
+  php-fpm:
+    build: ./targets/php-fpm
+    ports:
+      - "9000:9000"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.24
+
+  nodejs:
+    build: ./targets/nodejs
+    ports:
+      - "3000:3000"
+    networks:
+      targets:
+        ipv4_address: 172.20.0.25

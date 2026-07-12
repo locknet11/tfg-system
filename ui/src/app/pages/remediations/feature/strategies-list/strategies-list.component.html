@@ -1,0 +1,175 @@
+<div class="strategies-container">
+  <div class="header">
+    <h2 i18n>Remediation Strategies Catalog</h2>
+    <p class="subtitle" i18n>
+      Browse and search the remediation strategy knowledge base. Each entry maps
+      a CVE to automated fix commands for a specific operating system.
+    </p>
+  </div>
+
+  <div class="filters">
+    <div class="filter-row">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="filterCveId"
+          (ngModelChange)="onFilterChange()"
+          placeholder="CVE ID"
+          i18n-placeholder
+          class="filter-input" />
+      </span>
+
+      <p-dropdown
+        [options]="osOptions"
+        [(ngModel)]="filterOperatingSystem"
+        (ngModelChange)="onFilterChange()"
+        placeholder="OS"
+        i18n-placeholder
+        styleClass="filter-dropdown" />
+
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="filterPackageName"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Package"
+          i18n-placeholder
+          class="filter-input" />
+      </span>
+
+      <p-dropdown
+        [options]="typeOptions"
+        [(ngModel)]="filterRemediationType"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Type"
+        i18n-placeholder
+        styleClass="filter-dropdown" />
+
+      <p-dropdown
+        [options]="actionOptions"
+        [(ngModel)]="filterAction"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Action"
+        i18n-placeholder
+        styleClass="filter-dropdown" />
+
+      <p-button
+        icon="pi pi-times"
+        severity="secondary"
+        variant="outlined"
+        (click)="clearFilters()"
+        label="Clear"
+        i18n-label />
+    </div>
+  </div>
+
+  <p-table
+    [value]="strategies()"
+    [lazy]="true"
+    [rows]="sizeSig()"
+    [totalRecords]="totalSig()"
+    [loading]="loadingSig()"
+    [paginator]="true"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    (onLazyLoad)="onLazyLoad($event)"
+    styleClass="p-datatable-striped"
+    rowExpandMode="single"
+    dataKey="id">
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="empty-message">{{ emptyMessage }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 2rem"></th>
+        <th pSortableColumn="cveId" i18n>CVE ID</th>
+        <th pSortableColumn="operatingSystem" i18n>OS</th>
+        <th pSortableColumn="packageName" i18n>Package</th>
+        <th pSortableColumn="remediationType" i18n>Type</th>
+        <th pSortableColumn="action" i18n>Action</th>
+        <th pSortableColumn="targetVersion" i18n>Target Version</th>
+        <th i18n>Reboot</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-strategy let-expanded="expanded">
+      <tr>
+        <td>
+          <button
+            type="button"
+            pButton
+            pRipple
+            [pRowToggler]="strategy"
+            class="p-button-text p-button-rounded p-button-plain"
+            [icon]="
+              expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'
+            "></button>
+        </td>
+        <td>
+          <span class="cve-badge">{{ strategy.cveId }}</span>
+        </td>
+        <td>{{ strategy.operatingSystem }}</td>
+        <td>{{ strategy.packageName }}</td>
+        <td>
+          <p-tag
+            [value]="getTypeLabel(strategy.remediationType)"
+            [severity]="getTypeSeverity(strategy.remediationType)" />
+        </td>
+        <td>{{ getActionLabel(strategy.action) }}</td>
+        <td>
+          <span class="version">{{ strategy.targetVersion || '-' }}</span>
+        </td>
+        <td>
+          <span
+            [class.reboot-yes]="strategy.requiresReboot"
+            [class.reboot-no]="!strategy.requiresReboot">
+            {{ strategy.requiresReboot ? 'Yes' : 'No' }}
+          </span>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="rowexpansion" let-strategy>
+      <tr>
+        <td colspan="8">
+          <div class="expansion-content">
+            <div class="expansion-grid">
+              <div class="expansion-section">
+                <h4 i18n>Pre-Check Commands</h4>
+                <pre class="commands">{{
+                  strategy.preCheckCommands.join('\n')
+                }}</pre>
+              </div>
+              <div class="expansion-section">
+                <h4 i18n>Fix Commands</h4>
+                <pre class="commands">{{
+                  strategy.fixCommands.join('\n')
+                }}</pre>
+              </div>
+              <div class="expansion-section">
+                <h4 i18n>Post-Check Commands</h4>
+                <pre class="commands">{{
+                  strategy.postCheckCommands.join('\n')
+                }}</pre>
+              </div>
+            </div>
+            <div class="expansion-notes">
+              <h4 i18n>Notes</h4>
+              <p>{{ strategy.notes }}</p>
+            </div>
+            <div class="expansion-meta" *ngIf="strategy.serviceName">
+              <span i18n>Service:</span>
+              <strong>{{ strategy.serviceName }}</strong>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

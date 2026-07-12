@@ -10,11 +10,19 @@ export const remediationsRoutes: Routes = [
       ),
   },
   {
+    path: 'strategies',
+    title: $localize`Remediation Strategies`,
+    loadComponent: () =>
+      import('./feature/strategies-list/strategies-list.component').then(
+        m => m.StrategiesListComponent
+      ),
+  },
+  {
     path: ':id',
     title: $localize`Remediation Detail`,
     loadComponent: () =>
-      import(
-        './feature/remediation-detail/remediation-detail.component'
-      ).then(m => m.RemediationDetailComponent),
+      import('./feature/remediation-detail/remediation-detail.component').then(
+        m => m.RemediationDetailComponent
+      ),
   },
 ];
