@@ -1,9 +1,12 @@
 # End-to-End Testing Plan — TFG Autonomous Cybersecurity System
 
+**Version 2** — updated for feature `019-expand-remediation-strategies`.
+
 **Scope:** Manual/scripted end-to-end validation of the full autonomous loop —
 bootstrap → target registration → agent deployment → scan → exploitation →
 auto-replication → remediation → reporting → dashboard metrics — using the local
-vulnerable lab (`lab/docker-compose.yml`).
+vulnerable lab (`lab/docker-compose.yml`), **plus** validation of the expanded
+remediation strategy catalog and its new dashboard browsing view.
 
 **Assumed running:**
 - API on `http://localhost:8080` (Spring Boot)
@@ -11,6 +14,30 @@ vulnerable lab (`lab/docker-compose.yml`).
 - MongoDB on `mongodb://localhost:27017`, database `tfg-system`
 
 **Not yet running (you bring it up during Phase 2):** the vulnerable lab in `lab/`.
+
+---
+
+## What changed since v1
+
+Feature `019-expand-remediation-strategies` invalidated three assumptions baked
+into v1. Read these before reusing any v1 muscle memory:
+
+1. **`strategies.json` is no longer "left unchanged."** It grew from 6 to **48
+   entries** (36 distinct CVEs, 24 packages) across **4 operating systems**
+   (`ubuntu-22.04`, `ubuntu-20.04`, `debian-11`, `debian-12`) and **5 action
+   types** (`APT_UPGRADE`, `APT_INSTALL`, `CONFIG_UPDATE`, `SYSTEMCTL_RESTART`,
+   `MANUAL`). See the new Section 9.
+2. **Seeding is now incremental, not empty-only.** `RemediationStrategyLoader`
+   iterates entries individually, validates each, and skips only the ones already
+   stored (by `cveId + operatingSystem`) or invalid. You no longer have to drop the
+   `remediation_strategies` collection to pick up new entries — a restart adds them.
+3. **The lab grew from 5 to 11 containers.** Six new service targets (postgres,
+   mysql, bind9, postfix, php-fpm, nodejs) back the new strategies. They are scan /
+   catalog targets — they do **not** have exploitation scripts, verify scripts, or
+   playbooks, and are not part of the exploit → replicate fan-out.
+
+What did **not** change: the lab remediation outcome is still **SKIPPED** (all lab
+targets are containers). See Section 0, fact #2.
 
 ---
 
@@ -27,22 +54,26 @@ Read these first — they explain what a "pass" looks like, especially for remed
    - **Remediation flow** (what the agent fixes on a host it now controls):
      service-scan driven. The agent enumerates running OS services, looks up *their*
      CVEs via NVD, and asks the API for a strategy keyed by `(cveId, operatingSystem)`.
-     This is what `api/src/main/resources/remediation/strategies.json` feeds
-     (openssh / nginx / apache2 / glibc / kernel). **The exploit CVE and the
-     remediation CVE are not the same thing.**
+     This is what `api/src/main/resources/remediation/strategies.json` feeds — now
+     openssh / nginx / apache2 / postgresql / mysql / mariadb / bind9 / postfix /
+     dovecot / exim4 / docker / containerd / runc / php / python / nodejs / glibc /
+     kernel. **The exploit CVE and the remediation CVE are not the same thing.**
 
 2. **All lab targets are Docker containers → remediation is deliberately SKIPPED.**
    `RemediationStepHandler` runs `ContainerDetector` first; every lab image trips it
    (`/.dockerenv` + `/docker/` cgroup). The agent then reports a
    `CONTAINER-DETECTED / SKIPPED` remediation record and **never consults
    `strategies.json`**. This is the intended behavior (feature `012-docker-remediation-skip`).
-   **For the lab, the correct remediation outcome is `SKIPPED`, not `SUCCESS`.**
+   **For the lab, the correct remediation outcome is `SKIPPED`, not `SUCCESS`.** This
+   is true for the six new containers too — they are containers, so they also skip.
 
-3. **`strategies.json` is intentionally left unchanged.** Because of (2) it is
-   unreachable from the lab, and its entries model OS package updates, not the
-   lab's app-level exploits. See Appendix A for why, and for the two mismatches
-   (container-skip + OS-string) that would have to be resolved before it could ever
-   fire. No edits are made to it as part of this plan.
+3. **The expanded `strategies.json` is still unreachable from the lab.** Because of
+   (2) it is unreachable end-to-end from every lab target, and its entries model OS
+   package updates keyed to distro strings (`ubuntu-22.04`, `debian-12`, …), not the
+   agent's runtime `operatingSystem` string. The correct way to prove the new
+   strategies loaded is to query the catalog API/UI directly (Section 9), **not** to
+   expect them to fire during a lab remediation. See Appendix A for the two
+   mismatches (container-skip + OS-string) that would have to be resolved first.
 
 4. **`operatingSystem` sent by the agent is `linux-<kernel>`**, e.g.
    `linux-5.15.0-91-generic` (`RemediationStepHandler.detectOperatingSystem()` uses
@@ -70,6 +101,19 @@ Read these first — they explain what a "pass" looks like, especially for remed
 `APPLICATION_DOMAIN`, `RESEND_API_KEY` (email — optional for E2E),
 `NVD_API_KEY`, `REPLICATION_PRIVATE_KEY` (has a baked default).
 
+### Confirm the strategy catalog seeded on startup
+On API boot, `RemediationStrategyLoader` logs a single summary line. A healthy
+first run against an empty collection looks like:
+
+```
+Seed complete: 48 added, 0 skipped (already exist), 0 invalid, 0 duplicated in file
+```
+
+On a restart against an already-seeded DB you should see `0 added, 48 skipped`.
+Any non-zero `invalid` or `duplicated in file` count points at a bad entry in
+`strategies.json` (the loader logs the offending index and reason just above the
+summary) — investigate before trusting catalog assertions.
+
 ---
 
 ## 2. Bring up and verify the vulnerable lab
@@ -77,11 +121,14 @@ Read these first — they explain what a "pass" looks like, especially for remed
 ```bash
 cd lab
 docker compose up -d --build
-docker compose ps            # all 5 services healthy
-./scripts/verify-all.sh      # confirms each target is actually exploitable
+docker compose ps            # all 11 services healthy
+./scripts/verify-all.sh      # confirms the 5 EXPLOITABLE targets are actually exploitable
 ```
 
-Targets (static IPs on the `targets` bridge, host-mapped ports):
+### 2.1 Exploitable targets (drive the exploit → replicate loop)
+
+Static IPs on the `targets` bridge, host-mapped ports. These have verify scripts and
+playbooks and participate in the autonomous exploitation flow:
 
 | Service   | Host URL                | Container IP  | Exploit CVE      |
 |-----------|-------------------------|---------------|------------------|
@@ -91,7 +138,24 @@ Targets (static IPs on the `targets` bridge, host-mapped ports):
 | ThinkPHP  | http://localhost:8083   | 172.20.0.13   | CVE-2018-20062   |
 | Docker API| http://localhost:2375   | 172.20.0.14   | unauth API       |
 
-**Manual sanity spot-checks** (from `lab/playbooks/*.md`):
+### 2.2 Service targets (catalog-backing, added in feature 019)
+
+These back the expanded strategy catalog. They are **scan targets only** — no
+exploitation scripts, no verify scripts, no playbooks, not part of replication.
+Their value is proving the services start and are reachable (SC-011), and giving the
+service-scan a broader surface. Because they are containers, any remediation against
+them still **SKIPS** (fact #2).
+
+| Service   | Host port        | Container IP  | Base image        | Related strategy package |
+|-----------|------------------|---------------|-------------------|--------------------------|
+| PostgreSQL| 5432/tcp         | 172.20.0.20   | postgres:14.4     | postgresql-14            |
+| MySQL     | 3306/tcp         | 172.20.0.21   | mysql:8.0.28      | mysql-server-8.0         |
+| BIND9     | 5353/udp → 53    | 172.20.0.22   | ubuntu:22.04      | bind9                    |
+| Postfix   | 2525/tcp → 25    | 172.20.0.23   | ubuntu:22.04      | postfix                  |
+| PHP-FPM   | 9000/tcp         | 172.20.0.24   | php:8.1.16-fpm    | php8.1-fpm               |
+| Node.js   | 3000/tcp         | 172.20.0.25   | node:18.16.0      | nodejs                   |
+
+**Manual sanity spot-checks** for the exploitable targets (from `lab/playbooks/*.md`):
 
 ```bash
 # Flask SSTI → expect "Hello 49"
@@ -103,7 +167,19 @@ curl -k -s 'http://localhost:8081/user/register?element_parents=account/mail/%23
 curl -s 'http://localhost:2375/version'
 ```
 
-**Pass:** every target responds with the expected exploit signature.
+**Reachability spot-checks** for the new service targets (no exploit expected —
+just prove the service answers):
+
+```bash
+docker compose ps postgres mysql bind9 postfix php-fpm nodejs   # all Up
+nc -zv localhost 5432 && nc -zv localhost 3306 && nc -zv localhost 3000
+nc -zvu localhost 5353            # BIND9 (UDP)
+curl -s telnet://localhost:2525 </dev/null | head -1   # Postfix banner (220 …)
+```
+
+**Pass:** the 5 exploitable targets respond with their expected exploit signature
+(`verify-all.sh` green), and the 6 new service targets are `Up` and reachable on
+their documented ports within 60s of `docker compose up`.
 
 ---
 
@@ -139,7 +215,8 @@ PROJ=$(curl -s -X POST localhost:8080/api/projects -H "Authorization: Bearer $TO
 
 > The project header context (`X-Organization-Id` / `X-Project-Id` or the selected
 > project in the UI) scopes all subsequent target/agent/remediation queries. Keep
-> `$ORG`/`$PROJ` consistent throughout.
+> `$ORG`/`$PROJ` consistent throughout. Note the strategy catalog (Section 9) is a
+> **global** resource and is *not* scoped by org/project.
 
 ---
 
@@ -249,9 +326,11 @@ docker exec lab-drupal-1 sh -c 'ls -la /tmp/pwned_* 2>/dev/null'
 **Pass:** child agent + auto-registered target appear; RCE artifact present on the
 container.
 
-> Repeat Phases 4–7 (or let replication fan out) to cover all five targets. Note the
-> Docker API target grants host-context RCE via a privileged container — validation
-> uses `chroot /mnt` per `lab/playbooks/docker-api.md`.
+> Repeat Phases 4–7 (or let replication fan out) to cover the five **exploitable**
+> targets. The six service targets from §2.2 have no exploit path and are not
+> expected to appear as exploited/auto-registered hosts. Note the Docker API target
+> grants host-context RCE via a privileged container — validation uses
+> `chroot /mnt` per `lab/playbooks/docker-api.md`.
 
 ---
 
@@ -282,9 +361,9 @@ curl -s "localhost:8080/api/remediations" -H "Authorization: Bearer $TOKEN" | jq
 `apt-get` execution for lab targets. Seeing those would mean container detection
 regressed.
 
-### 8.1 (Optional) Confirm the strategy endpoint itself still works
+### 8.1 (Optional) Confirm the agent strategy-resolution endpoint still works
 Independently of the skip path, verify the knowledge base resolves a seeded entry
-when queried directly (proves the data loaded and the endpoint is wired):
+when queried directly (proves the data loaded and the agent endpoint is wired):
 ```bash
 # Uses a seeded (cveId, os) pair from strategies.json — note os must match exactly.
 curl -s -X POST localhost:8080/api/agent/comm/remediation/strategy \
@@ -296,7 +375,75 @@ represent the lab remediation path (which skips). Requires an agent-scoped JWT.
 
 ---
 
-## 9. Verify reporting & dashboard metrics
+## 9. Verify the expanded strategy catalog (feature 019)
+
+This is the new surface for feature `019`. It has two parts: the **catalog API**
+(admin-facing, JWT-authenticated) and the **dashboard browsing view**. Neither
+depends on the lab or on any agent — you can test them immediately after Phase 3.
+
+### 9.1 Catalog API
+
+```bash
+# Count + aggregate breakdown
+curl -s localhost:8080/api/remediation-strategies/count -H "Authorization: Bearer $TOKEN" | jq
+# -> { "total": 48, "byType": {...}, "byOs": { "ubuntu-22.04": 36, "ubuntu-20.04": 3, "debian-11": 4, "debian-12": 5 } }
+
+# First page (default size 20, sorted by cveId asc)
+curl -s "localhost:8080/api/remediation-strategies?page=0&size=20" -H "Authorization: Bearer $TOKEN" \
+  | jq '{total: .totalElements, first: .content[0].cveId, count: (.content | length)}'
+
+# Single entry by id
+ID=$(curl -s "localhost:8080/api/remediation-strategies?size=1" -H "Authorization: Bearer $TOKEN" | jq -r '.content[0].id')
+curl -s "localhost:8080/api/remediation-strategies/$ID" -H "Authorization: Bearer $TOKEN" | jq '{cveId,operatingSystem,packageName,action,fixCommands}'
+```
+
+**Combined filters (the fixed behavior — filters AND together):**
+```bash
+# OS AND package together — must return only nginx-on-ubuntu-22.04 rows, not all of ubuntu-22.04
+curl -s "localhost:8080/api/remediation-strategies?operatingSystem=ubuntu-22.04&packageName=nginx" \
+  -H "Authorization: Bearer $TOKEN" | jq '.content[] | {cveId,operatingSystem,packageName}'
+
+# Partial CVE match (case-insensitive substring)
+curl -s "localhost:8080/api/remediation-strategies?cveId=2024" -H "Authorization: Bearer $TOKEN" | jq '.totalElements'
+
+# Filter by action type
+curl -s "localhost:8080/api/remediation-strategies?action=CONFIG_UPDATE" -H "Authorization: Bearer $TOKEN" | jq '.content[] | .cveId'
+```
+
+**Pass:**
+- `count.total = 48`; `byOs` shows all 4 operating systems.
+- Every row returned by the `operatingSystem=…&packageName=…` query matches **both**
+  filters (this is the bug fixed in this branch — the old code honored only the first
+  filter). No row with a different package or OS may appear.
+- Partial `cveId=2024` returns only CVEs containing "2024".
+- An unknown enum value (e.g. `action=NONSENSE`) returns an empty page, not a 500.
+- No `cveId + operatingSystem` pair appears twice across the whole catalog.
+
+### 9.2 Dashboard browsing view
+
+Route: `http://localhost:4200/remediations/strategies`.
+
+Steps:
+1. Open the route, confirm the table renders 48 rows across pages (page size 10).
+2. Type a partial CVE in the CVE filter → the table narrows.
+3. Pick an OS from the OS dropdown → only that OS's rows remain.
+4. Combine OS + package filters → intersection only (matches §9.1).
+5. Expand a row → the pre-check / fix / post-check command lists and notes render
+   in monospace.
+
+**Pass:** filtering and the expansion panel work; the counts reconcile with §9.1.
+
+> **Known gaps in this build (do not log as regressions):**
+> - The strategies view is **not linked from the nav menu** — reach it by typing the
+>   URL directly.
+> - Column sorting is **decorative**: clicking a header triggers a round-trip but the
+>   server always sorts by `cveId` asc, so the order does not change.
+> - The view's labels have **no Spanish translation yet** — under the `es` build they
+>   render in English.
+
+---
+
+## 10. Verify reporting & dashboard metrics
 
 Feature `017-reports-module` + `018-real-metrics-stats` (metrics are now real, not mock).
 
@@ -325,9 +472,15 @@ curl -s localhost:8080/api/vulnerabilities/statistics -H "Authorization: Bearer 
 - UI Dashboard, Agents, Vulnerabilities, and the remediation widget all render the
   same numbers as the API.
 
+> **Known pre-existing test failure (unrelated to feature 019):**
+> `DashboardServiceImplTest.getKpis_returnsCorrectCounts` fails when the full API
+> test suite runs (a Mockito `PotentialStubbingProblem`; it passes in isolation).
+> This predates this branch. A full-suite `./mvnw clean package` will report one
+> failing test for this reason; it is not caused by the catalog changes.
+
 ---
 
-## 10. Teardown / reset between runs
+## 11. Teardown / reset between runs
 
 ```bash
 cd lab && ./scripts/reset-all.sh          # or: docker compose down -v && docker compose up -d --build
@@ -335,51 +488,64 @@ cd lab && ./scripts/reset-all.sh          # or: docker compose down -v && docker
 ```
 
 To re-run cleanly against a fresh platform state, drop the relevant Mongo
-collections (agents, targets, remediation_records, plans, reports). **Do not** drop
-`remediation_strategies` unless you are re-seeding it (see Appendix A).
+collections (agents, targets, remediation_records, plans, reports).
+
+> **Re-seeding note (changed in 019):** seeding is now **incremental**. You no
+> longer need to drop `remediation_strategies` to pick up edits to `strategies.json`
+> — restarting the API adds any new `(cveId, operatingSystem)` entries and skips the
+> ones already present. Drop the collection only if you want to remove entries that
+> were deleted from the file, or to re-observe a clean `48 added` seed log.
 
 ---
 
-## 11. E2E pass/fail checklist
+## 12. E2E pass/fail checklist
 
 | # | Check | Expected |
 |---|---|---|
-| 1 | Lab up, all 5 targets exploitable | `verify-all.sh` green |
-| 2 | Admin setup + login | JWT issued |
-| 3 | Org + project created | IDs returned, visible in UI |
-| 4 | Seed target registered | in `GET /api/targets` |
-| 5 | Agent registers + heartbeats | `ONLINE` in UI |
-| 6 | Plan steps advance in order | all `COMPLETED`, logs present |
-| 7 | Exploit achieves RCE | `/tmp/pwned_*` on container |
-| 8 | Auto-replication | child agent + auto-registered target |
-| 9 | **Remediation SKIPPED (container)** | `CONTAINER-DETECTED / SKIPPED` record + WARNING alert |
-| 10 | Strategy endpoint resolves seeded CVE | `found=true` (optional, §8.1) |
-| 11 | Report generated & immutable | listed, renders in UI |
-| 12 | Dashboard shows real metrics | matches API, no mocks |
-| 13 | Reset restores clean lab | targets exploitable again |
+| 1 | Lab up, 11 containers healthy | `docker compose ps` all Up |
+| 2 | 5 exploitable targets exploitable | `verify-all.sh` green |
+| 3 | 6 service targets reachable | ports answer within 60s |
+| 4 | Strategy seed log clean | `48 added … 0 invalid, 0 duplicated` |
+| 5 | Admin setup + login | JWT issued |
+| 6 | Org + project created | IDs returned, visible in UI |
+| 7 | Seed target registered | in `GET /api/targets` |
+| 8 | Agent registers + heartbeats | `ONLINE` in UI |
+| 9 | Plan steps advance in order | all `COMPLETED`, logs present |
+| 10 | Exploit achieves RCE | `/tmp/pwned_*` on container |
+| 11 | Auto-replication | child agent + auto-registered target |
+| 12 | **Remediation SKIPPED (container)** | `CONTAINER-DETECTED / SKIPPED` record + WARNING alert |
+| 13 | Agent strategy endpoint resolves seeded CVE | `found=true` (optional, §8.1) |
+| 14 | **Catalog count** | `/count.total = 48`, 4 operating systems |
+| 15 | **Combined catalog filters AND together** | OS+package query returns intersection only |
+| 16 | **No duplicate CVE+OS in catalog** | every pair unique |
+| 17 | Dashboard strategy view browsable | 48 rows, filters + expansion work |
+| 18 | Report generated & immutable | listed, renders in UI |
+| 19 | Dashboard shows real metrics | matches API, no mocks |
+| 20 | Reset restores clean lab | targets exploitable again |
 
 ---
 
-## Appendix A — Why `strategies.json` is left unchanged (and how it *could* fire)
+## Appendix A — Why the expanded `strategies.json` still cannot fire in the lab
 
-`strategies.json` seeds the `remediation_strategies` collection with OS-package
-remediations (openssh, nginx, apache2, glibc, kernel) keyed to `ubuntu-22.04`.
-It is **not** modified by this plan, because in the lab it is unreachable for two
-independent reasons:
+Feature `019` expanded `strategies.json` to 48 entries across 4 operating systems.
+Even so, in the lab the catalog remains unreachable **end-to-end** for two
+independent reasons — so the correct way to prove it loaded is the catalog API/UI
+(Section 9), not a lab remediation:
 
-1. **Container-skip (primary).** Every lab target is a Docker container, so
-   `RemediationStepHandler` short-circuits to a `CONTAINER-DETECTED / SKIPPED`
-   record before any strategy lookup. This is intended behavior (feature `012`).
+1. **Container-skip (primary).** Every lab target — including the six new service
+   containers — is a Docker container, so `RemediationStepHandler` short-circuits to
+   a `CONTAINER-DETECTED / SKIPPED` record before any strategy lookup. This is
+   intended behavior (feature `012`).
 
 2. **OS-string mismatch (secondary).** Even on a non-container host, the agent
    sends `operatingSystem = "linux-" + System.getProperty("os.version")`
-   (e.g. `linux-5.15.0-91-generic`), while every seeded strategy uses
-   `"ubuntu-22.04"`. `findByCveIdAndOperatingSystem` would return empty →
-   `FAILED (no strategy)`.
+   (e.g. `linux-5.15.0-91-generic`), while every seeded strategy uses a distro
+   string (`ubuntu-22.04`, `ubuntu-20.04`, `debian-11`, `debian-12`).
+   `findByCveIdAndOperatingSystem` would return empty → `FAILED (no strategy)`.
 
 Additionally, the lab's *exploit* CVEs (Drupalgeddon, Tomcat PUT, ThinkPHP) are
-application-level RCEs, not `apt`-remediable service updates, so mapping them into
-`strategies.json` would be semantically wrong for this flow.
+application-level RCEs, not `apt`-remediable service updates, so they are
+intentionally absent from `strategies.json`.
 
 **To exercise `strategies.json` for real (out of current scope)** you would need to:
 - Add a genuine (non-container) Linux VM/host target running one of the modeled
@@ -387,6 +553,6 @@ application-level RCEs, not `apt`-remediable service updates, so mapping them in
 - Align the strategy `operatingSystem` values with what the agent actually reports
   (`linux-<kernel>`), or normalize `detectOperatingSystem()` to emit a distro string
   like `ubuntu-22.04`;
-- Re-seed the collection: `strategies.json` is only loaded when
-  `remediation_strategies` is empty (`RemediationStrategyLoader`), so drop the
-  collection and restart the API to pick up any edits.
+- No collection drop is required to pick up new file entries — seeding is now
+  incremental (Section 11). Drop `remediation_strategies` only to remove entries that
+  were deleted from the file or to re-observe a clean seed log.
