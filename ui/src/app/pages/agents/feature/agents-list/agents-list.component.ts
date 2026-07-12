@@ -32,7 +32,7 @@ import { AgentDownloadComponent } from '../agent-download/agent-download.compone
   ],
   templateUrl: './agents-list.component.html',
   styleUrls: ['./agents-list.component.scss'],
-  providers: [AgentsService, ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService],
 })
 export class AgentsListComponent {
   private destroyRef = inject(DestroyRef);

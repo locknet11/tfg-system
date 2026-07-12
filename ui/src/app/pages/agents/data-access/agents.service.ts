@@ -13,7 +13,7 @@ import {
 
 const baseUrl = environment.baseUrl;
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AgentsService {
   constructor(private http: HttpClient) {}
 
