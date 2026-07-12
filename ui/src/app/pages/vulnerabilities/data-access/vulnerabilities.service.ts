@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import {
   VulnerabilityListResponse,
   VulnerabilityLookupResponse,
+  VulnerabilityStatistics,
 } from './vulnerabilities.model';
 
 @Injectable({
@@ -46,6 +47,23 @@ export class VulnerabilitiesService {
     return this.http.post<VulnerabilityLookupResponse>(
       `${this.apiUrl}/${encodeURIComponent(serviceKey)}/refresh`,
       {}
+    );
+  }
+
+  getStatistics(
+    query?: string,
+    severity?: string
+  ): Observable<VulnerabilityStatistics> {
+    let params = new HttpParams();
+    if (query) {
+      params = params.set('query', query);
+    }
+    if (severity) {
+      params = params.set('severity', severity);
+    }
+    return this.http.get<VulnerabilityStatistics>(
+      `${this.apiUrl}/statistics`,
+      { params }
     );
   }
 }

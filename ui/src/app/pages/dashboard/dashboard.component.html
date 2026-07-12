@@ -14,7 +14,13 @@
           </div>
           <div>
             <div class="text-900 font-bold text-2xl mb-3">
-              {{ kpis?.targetsCount || 0 }}
+              @if (kpisLoading()) {
+              <p-skeleton width="3rem" height="2rem"></p-skeleton>
+              } @else if (kpisError()) {
+              <span class="text-red-500 text-base" i18n>Error</span>
+              } @else {
+              {{ kpis()?.targetsCount ?? 0 }}
+              }
             </div>
             <div class="text-600" i18n>Target Systems</div>
           </div>
@@ -35,7 +41,13 @@
           </div>
           <div>
             <div class="text-900 font-bold text-2xl mb-3">
-              {{ kpis?.activeAgentsCount || 0 }}
+              @if (kpisLoading()) {
+              <p-skeleton width="3rem" height="2rem"></p-skeleton>
+              } @else if (kpisError()) {
+              <span class="text-red-500 text-base" i18n>Error</span>
+              } @else {
+              {{ kpis()?.activeAgentsCount ?? 0 }}
+              }
             </div>
             <div class="text-600" i18n>Active Agents</div>
           </div>
@@ -56,7 +68,13 @@
           </div>
           <div>
             <div class="text-900 font-bold text-2xl mb-3">
-              {{ kpis?.fixedVulnerabilitiesCount || 0 }}
+              @if (kpisLoading()) {
+              <p-skeleton width="3rem" height="2rem"></p-skeleton>
+              } @else if (kpisError()) {
+              <span class="text-red-500 text-base" i18n>Error</span>
+              } @else {
+              {{ kpis()?.fixedVulnerabilitiesCount ?? 0 }}
+              }
             </div>
             <div class="text-600" i18n>Fixed Vulnerabilities</div>
           </div>
@@ -68,49 +86,114 @@
     </p-card>
   </div>
 
+  @if (kpisError()) {
+  <p-message severity="error" styleClass="mb-4 w-full">
+    <span i18n>Failed to load KPIs.</span>
+    <button
+      pButton
+      class="p-button-text p-button-sm"
+      (click)="loadKpis()"
+      i18n>
+      Retry
+    </button>
+  </p-message>
+  }
+
   <!-- Critical Vulnerabilities -->
   <p-card
     header="Latest Critical Vulnerabilities"
     i18n-header
     styleClass="mb-4">
-    <p-table [value]="vulnerabilities" [paginator]="true" [rows]="5">
+    @if (vulnsLoading()) {
+    <p-table [value]="[]" [paginator]="false">
       <ng-template pTemplate="header">
         <tr>
           <th i18n>CVE</th>
           <th i18n>Description</th>
-          <th i18n>Severity</th>
-          <th i18n>Target System</th>
+          <th i18n>Service</th>
+          <th i18n>CVSS</th>
+          <th i18n>Reported Date</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body">
+        <tr *ngFor="let _ of [].constructor(5)">
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+          <td><p-skeleton width="15rem"></p-skeleton></td>
+          <td><p-skeleton width="10rem"></p-skeleton></td>
+          <td><p-skeleton width="3rem"></p-skeleton></td>
+          <td><p-skeleton width="8rem"></p-skeleton></td>
+        </tr>
+      </ng-template>
+    </p-table>
+    } @else if (vulnsError()) {
+    <div class="p-4 text-center">
+      <p-message severity="error" styleClass="w-full">
+        <span i18n>Failed to load critical vulnerabilities.</span>
+      </p-message>
+      <button
+        pButton
+        class="p-button-text p-button-sm mt-2"
+        (click)="loadCriticalVulnerabilities()"
+        i18n>
+        Retry
+      </button>
+    </div>
+    } @else if (vulnerabilities().length === 0) {
+    <p class="text-center text-500 p-4" i18n>
+      No critical vulnerabilities detected.
+    </p>
+    } @else {
+    <p-table [value]="vulnerabilities()" [paginator]="true" [rows]="5">
+      <ng-template pTemplate="header">
+        <tr>
+          <th i18n>CVE</th>
+          <th i18n>Description</th>
+          <th i18n>Service</th>
+          <th i18n>CVSS</th>
           <th i18n>Reported Date</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-vuln>
         <tr>
-          <td>{{ vuln.cve }}</td>
+          <td>{{ vuln.cveId }}</td>
           <td>{{ vuln.description }}</td>
-          <td>
-            <p-badge
-              [value]="vuln.severity"
-              severity="danger"
-              *ngIf="vuln.severity === 'Critical'"></p-badge>
-            <span *ngIf="vuln.severity !== 'Critical'">{{
-              vuln.severity
-            }}</span>
-          </td>
-          <td>{{ vuln.targetSystem }}</td>
+          <td>{{ vuln.serviceName }}</td>
+          <td>{{ vuln.cvssScore ?? '-' }}</td>
           <td>{{ vuln.reportedDate | date: 'short' }}</td>
         </tr>
       </ng-template>
     </p-table>
+    }
   </p-card>
 
   <!-- Chart -->
   <div>
     <p-card header="Vulnerabilities Detected per Month" i18n-header>
+      @if (chartLoading()) {
+      <p-skeleton height="300px" width="100%"></p-skeleton>
+      } @else if (chartError()) {
+      <div class="p-4 text-center">
+        <p-message severity="error" styleClass="w-full">
+          <span i18n>Failed to load chart data.</span>
+        </p-message>
+        <button
+          pButton
+          class="p-button-text p-button-sm mt-2"
+          (click)="loadVulnerabilityChart()"
+          i18n>
+          Retry
+        </button>
+      </div>
+      } @else if (chartData()) {
       <p-chart
         height="300px"
         type="bar"
-        [data]="chartData"
-        [options]="chartOptions"></p-chart>
+        [data]="chartData()!"
+        [options]="chartOptions"
+        aria-label="Vulnerabilities detected per month bar chart"
+        i18n-aria-label>
+      </p-chart>
+      }
     </p-card>
   </div>
 

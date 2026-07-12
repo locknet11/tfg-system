@@ -9,9 +9,10 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { VulnerabilityListItem } from '../data-access/vulnerabilities.model';
+import { VulnerabilityListItem, VulnerabilityStatistics } from '../data-access/vulnerabilities.model';
 import { VulnerabilitiesService } from '../data-access/vulnerabilities.service';
 
 @Component({
@@ -23,6 +24,7 @@ import { VulnerabilitiesService } from '../data-access/vulnerabilities.service';
     TableModule,
     ButtonModule,
     TagModule,
+    SkeletonModule,
     TooltipModule,
     InputTextModule,
     DropdownModule,
@@ -38,6 +40,8 @@ export class VulnerabilitiesComponent {
   private searchSubject = new Subject<string>();
 
   records = signal<VulnerabilityListItem[]>([]);
+  statistics = signal<VulnerabilityStatistics | null>(null);
+  statsLoading = signal(false);
   totalSig = signal(0);
   loadingSig = signal(false);
   pageSig = signal(0);
@@ -68,6 +72,7 @@ export class VulnerabilitiesComponent {
         this.querySig.set(query);
         this.pageSig.set(0);
         this.loadRecords();
+        this.loadStatistics();
       });
   }
 
@@ -87,6 +92,7 @@ export class VulnerabilitiesComponent {
   onSeverityChange() {
     this.pageSig.set(0);
     this.loadRecords();
+    this.loadStatistics();
   }
 
   viewDetail(record: VulnerabilityListItem) {
@@ -120,12 +126,28 @@ export class VulnerabilitiesComponent {
         this.selectedSeverity || undefined
       )
       .subscribe({
-        next: res => {
+        next: (res) => {
           this.records.set(res.content);
           this.totalSig.set(res.totalElements);
           this.loadingSig.set(false);
         },
         error: () => this.loadingSig.set(false),
+      });
+  }
+
+  private loadStatistics() {
+    this.statsLoading.set(true);
+    this.vulnService
+      .getStatistics(
+        this.querySig() || undefined,
+        this.selectedSeverity || undefined
+      )
+      .subscribe({
+        next: (stats) => {
+          this.statistics.set(stats);
+          this.statsLoading.set(false);
+        },
+        error: () => this.statsLoading.set(false),
       });
   }
 }

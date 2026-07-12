@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.dto.AgentInfo;
+import com.spulido.tfg.domain.agent.model.dto.AgentMetricsResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
@@ -164,5 +165,14 @@ public class AgentController {
     public ResponseEntity<Void> clearPlan(@PathVariable("id") String id) throws AgentException {
         agentPlanService.clearAgentPlan(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/metrics")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AgentMetricsResponse> getMetrics() {
+        if (!com.spulido.tfg.common.context.ProjectContext.hasContext()) {
+            return ResponseEntity.unprocessableEntity().build();
+        }
+        return ResponseEntity.ok(agentService.getMetrics());
     }
 }

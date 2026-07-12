@@ -8,6 +8,7 @@ import {
   AssignPlanRequest,
   Agent,
   AgentPlatformInfo,
+  AgentMetrics,
 } from './agents.model';
 
 const baseUrl = environment.baseUrl;
@@ -49,5 +50,9 @@ export class AgentsService {
 
   downloadAgent(platform: string): void {
     window.open(`${baseUrl}/api/agent/download/${platform}`, '_blank');
+  }
+
+  getMetrics() {
+    return this.http.get<AgentMetrics>(`${baseUrl}/api/agent/metrics`);
   }
 }

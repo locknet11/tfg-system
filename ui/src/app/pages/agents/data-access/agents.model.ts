@@ -28,12 +28,18 @@ export interface AgentsList {
   totalElements: number;
 }
 
+export interface VulnerabilityTrendPoint {
+  readonly period: string;
+  readonly count: number;
+}
+
 export interface AgentMetrics {
-  activeAgents: number;
-  detectedVulnerabilities: number;
-  appliedRemediations: number;
-  averageUptime: number;
-  vulnerabilitiesOverTime: VulnerabilityDataPoint[];
+  readonly activeAgents: number;
+  readonly totalAgents: number;
+  readonly detectedVulnerabilities: number;
+  readonly appliedRemediations: number;
+  readonly uptimePercentage: number;
+  readonly vulnerabilityTrend: VulnerabilityTrendPoint[];
 }
 
 export interface VulnerabilityDataPoint {

@@ -275,5 +275,5 @@ Los reportes generados quedarán almacenados en formato digital/documental en la
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/017-reports-module/plan.md
+at specs/018-real-metrics-stats/plan.md
 <!-- SPECKIT END -->

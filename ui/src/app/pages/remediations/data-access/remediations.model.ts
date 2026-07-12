@@ -38,11 +38,17 @@ export interface RemediationListResponse {
   readonly totalElements: number;
 }
 
+export interface RecentActivity {
+  readonly id: string;
+  readonly cveId: string;
+  readonly targetName: string | null;
+  readonly status: string;
+  readonly completedAt: string | null;
+}
+
 export interface RemediationStatistics {
-  readonly totalRemediations: number;
-  readonly successCount: number;
-  readonly failedCount: number;
-  readonly pendingCount: number;
-  readonly skippedCount: number;
-  readonly pendingRebootCount: number;
+  readonly totalCount: number;
+  readonly byStatus: Record<string, number>;
+  readonly meanTimeToRemediateSeconds: number;
+  readonly recentActivity: RecentActivity[];
 }

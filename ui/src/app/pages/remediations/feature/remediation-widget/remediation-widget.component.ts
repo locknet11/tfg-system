@@ -1,26 +1,39 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
+import { SkeletonModule } from 'primeng/skeleton';
+import { MessageModule } from 'primeng/message';
+import { ButtonModule } from 'primeng/button';
 import { RemediationsService } from '../../data-access/remediations.service';
 import { RemediationStatistics } from '../../data-access/remediations.model';
 
 @Component({
   selector: 'app-remediation-widget',
   standalone: true,
-  imports: [CommonModule, CardModule, ChartModule],
+  imports: [
+    CommonModule,
+    CardModule,
+    ChartModule,
+    SkeletonModule,
+    MessageModule,
+    ButtonModule,
+  ],
   templateUrl: './remediation-widget.component.html',
   styleUrl: './remediation-widget.component.scss',
 })
 export class RemediationWidgetComponent implements OnInit {
-  statistics: RemediationStatistics | null = null;
+  statistics = signal<RemediationStatistics | null>(null);
   chartData: any = null;
+  loading = signal(true);
+  error = signal(false);
+
   chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'bottom',
+        position: 'bottom' as const,
       },
     },
   };
@@ -32,35 +45,45 @@ export class RemediationWidgetComponent implements OnInit {
   }
 
   loadStatistics(): void {
+    this.loading.set(true);
+    this.error.set(false);
     this.remediationsService.getStatistics().subscribe({
-      next: stats => {
-        this.statistics = stats;
+      next: (stats) => {
+        this.statistics.set(stats);
         this.buildChart(stats);
+        this.loading.set(false);
       },
-      error: err => {
-        console.error('Error loading remediation statistics', err);
+      error: () => {
+        this.loading.set(false);
+        this.error.set(true);
       },
     });
   }
 
   buildChart(stats: RemediationStatistics): void {
     this.chartData = {
-      labels: ['Success', 'Failed', 'Pending', 'Pending Reboot', 'Skipped'],
+      labels: [
+        $localize`Success`,
+        $localize`Failed`,
+        $localize`Pending`,
+        $localize`Pending Reboot`,
+        $localize`Skipped`,
+      ],
       datasets: [
         {
           data: [
-            stats.successCount,
-            stats.failedCount,
-            stats.pendingCount,
-            stats.pendingRebootCount,
-            stats.skippedCount,
+            this.statusCount(stats, 'SUCCESS'),
+            this.statusCount(stats, 'FAILED'),
+            this.statusCount(stats, 'PENDING'),
+            this.statusCount(stats, 'PENDING_REBOOT'),
+            this.statusCount(stats, 'SKIPPED'),
           ],
           backgroundColor: [
-            '#4CAF50', // success - green
-            '#F44336', // failed - red
-            '#FF9800', // pending - orange
-            '#2196F3', // pending reboot - blue
-            '#9E9E9E', // skipped - gray
+            '#4CAF50',
+            '#F44336',
+            '#FF9800',
+            '#2196F3',
+            '#9E9E9E',
           ],
           hoverBackgroundColor: [
             '#45a049',
@@ -75,11 +98,32 @@ export class RemediationWidgetComponent implements OnInit {
   }
 
   get successRate(): number {
-    if (!this.statistics || this.statistics.totalRemediations === 0) {
+    const stats = this.statistics();
+    if (!stats || stats.totalCount === 0) {
       return 0;
     }
     return Math.round(
-      (this.statistics.successCount / this.statistics.totalRemediations) * 100
+      (this.statusCount(stats, 'SUCCESS') / stats.totalCount) * 100
     );
+  }
+
+  get mttr(): string {
+    const seconds = this.statistics()?.meanTimeToRemediateSeconds ?? 0;
+    if (seconds <= 0) {
+      return $localize`N/A`;
+    }
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0 && minutes > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    } else {
+      return `${minutes}m`;
+    }
+  }
+
+  statusCount(stats: RemediationStatistics, key: string): number {
+    return stats.byStatus[key] ?? 0;
   }
 }

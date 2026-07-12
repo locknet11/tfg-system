@@ -1,17 +1,21 @@
 export interface DashboardKPIs {
-  targetsCount: number;
-  activeAgentsCount: number;
-  fixedVulnerabilitiesCount: number;
+  readonly targetsCount: number;
+  readonly activeAgentsCount: number;
+  readonly fixedVulnerabilitiesCount: number;
 }
 
 export interface CriticalVulnerability {
-  id: string;
-  cve: string;
-  description: string;
-  severity: 'Critical' | 'High' | 'Medium' | 'Low';
-  targetSystem: string;
-  reportedDate: Date;
-  status: 'Reported' | 'In Progress' | 'Fixed';
+  readonly serviceKey: string;
+  readonly cveId: string;
+  readonly description: string;
+  readonly serviceName: string;
+  readonly cvssScore: number | null;
+  readonly reportedDate: string;
+}
+
+export interface VulnerabilityTrendPoint {
+  readonly period: string;
+  readonly count: number;
 }
 
 export interface ChartData {

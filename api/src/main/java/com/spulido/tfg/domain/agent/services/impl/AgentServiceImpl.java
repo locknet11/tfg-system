@@ -48,6 +48,21 @@ import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.script.services.ScriptService;
 import com.spulido.tfg.domain.template.model.Template;
 import com.spulido.tfg.domain.template.services.TemplateService;
+import com.spulido.tfg.domain.remediation.db.RemediationRecordRepository;
+import com.spulido.tfg.domain.remediation.model.RemediationStatus;
+import com.spulido.tfg.domain.vulnerability.db.ServiceVulnerabilityRepository;
+import com.spulido.tfg.domain.vulnerability.model.ServiceVulnerabilityRecord;
+import com.spulido.tfg.domain.dashboard.model.dto.VulnerabilityTrendPoint;
+import com.spulido.tfg.domain.agent.model.dto.AgentMetricsResponse;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -67,6 +82,10 @@ public class AgentServiceImpl implements AgentService {
     private final TemplateService templateService;
     private final ScriptService scriptService;
     private final ReplicationRequestRepository replicationRequestRepository;
+    private final RemediationRecordRepository remediationRecordRepository;
+    private final ServiceVulnerabilityRepository serviceVulnerabilityRepository;
+
+    private static final DateTimeFormatter WEEK_FORMATTER = DateTimeFormatter.ofPattern("yyyy-'W'ww");
 
     @Value("${api.base-url:http://localhost:8080}")
     private String apiBaseUrl;
@@ -405,6 +424,78 @@ public class AgentServiceImpl implements AgentService {
                 })
                 .toList());
         return plan;
+    }
+
+    @Override
+    public AgentMetricsResponse getMetrics() {
+        String orgId = getContextOrgId();
+        String projectId = getContextProjectId();
+
+        // Agent counts
+        var allAgents = repository.findAllScoped(PageRequest.of(0, Integer.MAX_VALUE));
+        long totalAgents = allAgents.getTotalElements();
+        long activeAgents = allAgents.stream()
+                .filter(a -> a.getStatus() == AgentStatus.ACTIVE)
+                .count();
+
+        double uptimePct = totalAgents > 0 ? (activeAgents * 100.0) / totalAgents : 0.0;
+
+        // Vulnerability count
+        var vulnPage = serviceVulnerabilityRepository.findAll(PageRequest.of(0, 1));
+        long detectedVulnerabilities = vulnPage.getTotalElements();
+
+        // Successful remediations
+        long appliedRemediations = remediationRecordRepository
+                .countByOrganizationIdAndProjectIdAndStatus(orgId, projectId, RemediationStatus.SUCCESS);
+
+        // Weekly vulnerability trend (last 4 weeks)
+        var allVulns = serviceVulnerabilityRepository.findAll(
+                PageRequest.of(0, Integer.MAX_VALUE,
+                        org.springframework.data.domain.Sort.by(
+                                org.springframework.data.domain.Sort.Direction.DESC, "fetchedAt")));
+        Instant now = Instant.now();
+        Instant cutoff = now.minus(28, ChronoUnit.DAYS);
+
+        Map<String, Long> weekCounts = new LinkedHashMap<>();
+        for (int i = 3; i >= 0; i--) {
+            String weekKey = LocalDate.ofInstant(now.minus(i * 7L, ChronoUnit.DAYS), ZoneOffset.UTC)
+                    .format(WEEK_FORMATTER);
+            weekCounts.put(weekKey, 0L);
+        }
+
+        for (ServiceVulnerabilityRecord record : allVulns) {
+            if (record.getFetchedAt() != null && record.getFetchedAt().isAfter(cutoff)) {
+                String weekKey = LocalDate.ofInstant(record.getFetchedAt(), ZoneOffset.UTC)
+                        .format(WEEK_FORMATTER);
+                weekCounts.merge(weekKey, 1L, Long::sum);
+            }
+        }
+
+        List<VulnerabilityTrendPoint> trend = weekCounts.entrySet().stream()
+                .map(e -> VulnerabilityTrendPoint.builder()
+                        .period(e.getKey())
+                        .count(e.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        return AgentMetricsResponse.builder()
+                .activeAgents(activeAgents)
+                .totalAgents(totalAgents)
+                .detectedVulnerabilities(detectedVulnerabilities)
+                .appliedRemediations(appliedRemediations)
+                .uptimePercentage(Math.round(uptimePct * 10.0) / 10.0)
+                .vulnerabilityTrend(trend)
+                .build();
+    }
+
+    private String getContextOrgId() {
+        String orgId = ProjectContext.getOrganizationId();
+        return orgId != null ? orgId : "";
+    }
+
+    private String getContextProjectId() {
+        String projectId = ProjectContext.getProjectId();
+        return projectId != null ? projectId : "";
     }
 
     private String generateApiKey() {

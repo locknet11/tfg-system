@@ -40,3 +40,8 @@ export interface VulnerabilityListResponse {
   readonly content: VulnerabilityListItem[];
   readonly totalElements: number;
 }
+
+export interface VulnerabilityStatistics {
+  readonly totalCount: number;
+  readonly bySeverity: Record<string, number>;
+}

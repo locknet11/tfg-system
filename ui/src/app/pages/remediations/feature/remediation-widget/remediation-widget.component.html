@@ -1,64 +1,103 @@
-<p-card header="Remediation Statistics" *ngIf="statistics">
+<p-card header="Remediation Statistics" i18n-header>
+  @if (loading()) {
   <div class="grid">
     <div class="col-12 md:col-6">
-      <div class="text-center">
-        <h3 class="mb-3">Total Remediations</h3>
-        <p class="text-4xl font-bold">{{ statistics.totalRemediations }}</p>
-      </div>
+      <p-skeleton height="4rem"></p-skeleton>
     </div>
     <div class="col-12 md:col-6">
+      <p-skeleton height="4rem"></p-skeleton>
+    </div>
+  </div>
+  <p-skeleton height="300px" class="mt-4"></p-skeleton>
+  } @else if (error()) {
+  <p-message severity="error" styleClass="w-full">
+    <span i18n>Failed to load remediation statistics.</span>
+  </p-message>
+  <button
+    pButton
+    class="p-button-text p-button-sm mt-2"
+    (click)="loadStatistics()"
+    i18n>
+    Retry
+  </button>
+  } @else if (statistics()) {
+  <div class="grid">
+    <div class="col-12 md:col-4">
       <div class="text-center">
-        <h3 class="mb-3">Success Rate</h3>
+        <h3 class="mb-3" i18n>Total Remediations</h3>
+        <p class="text-4xl font-bold">{{ statistics()!.totalCount }}</p>
+      </div>
+    </div>
+    <div class="col-12 md:col-4">
+      <div class="text-center">
+        <h3 class="mb-3" i18n>Success Rate</h3>
         <p class="text-4xl font-bold p-text-success">{{ successRate }}%</p>
+      </div>
+    </div>
+    <div class="col-12 md:col-4">
+      <div class="text-center">
+        <h3 class="mb-3" i18n>MTTR</h3>
+        <p class="text-4xl font-bold">{{ mttr }}</p>
       </div>
     </div>
   </div>
 
   <div class="mt-4">
-    <h4 class="mb-3">Status Distribution</h4>
-    <div *ngIf="chartData" style="position: relative; height: 300px;">
+    <h4 class="mb-3" i18n>Status Distribution</h4>
+    @if (chartData) {
+    <div style="position: relative; height: 300px;">
       <p-chart
         type="pie"
         [data]="chartData"
-        [options]="chartOptions">
+        [options]="chartOptions"
+        aria-label="Remediation status distribution pie chart"
+        i18n-aria-label>
       </p-chart>
     </div>
+    }
   </div>
 
   <div class="mt-4 grid">
     <div class="col-6 md:col-4">
       <div class="bg-green-100 p-3 border-round text-center">
-        <p class="text-green-900 font-bold mb-2">Success</p>
+        <p class="text-green-900 font-bold mb-2" i18n>Success</p>
         <p class="text-2xl font-bold p-text-success">
-          {{ statistics.successCount }}
+          {{ statusCount(statistics()!, 'SUCCESS') }}
         </p>
       </div>
     </div>
     <div class="col-6 md:col-4">
       <div class="bg-red-100 p-3 border-round text-center">
-        <p class="text-red-900 font-bold mb-2">Failed</p>
+        <p class="text-red-900 font-bold mb-2" i18n>Failed</p>
         <p class="text-2xl font-bold p-text-danger">
-          {{ statistics.failedCount }}
+          {{ statusCount(statistics()!, 'FAILED') }}
         </p>
       </div>
     </div>
     <div class="col-6 md:col-4">
       <div class="bg-orange-100 p-3 border-round text-center">
-        <p class="text-orange-900 font-bold mb-2">Pending</p>
-        <p class="text-2xl font-bold">{{ statistics.pendingCount }}</p>
+        <p class="text-orange-900 font-bold mb-2" i18n>Pending</p>
+        <p class="text-2xl font-bold">
+          {{ statusCount(statistics()!, 'PENDING') }}
+        </p>
       </div>
     </div>
     <div class="col-6 md:col-4 mt-3">
       <div class="bg-blue-100 p-3 border-round text-center">
-        <p class="text-blue-900 font-bold mb-2">Pending Reboot</p>
-        <p class="text-2xl font-bold">{{ statistics.pendingRebootCount }}</p>
+        <p class="text-blue-900 font-bold mb-2" i18n>Pending Reboot</p>
+        <p class="text-2xl font-bold">
+          {{ statusCount(statistics()!, 'PENDING_REBOOT') }}
+        </p>
       </div>
     </div>
     <div class="col-6 md:col-4 mt-3">
       <div class="bg-gray-100 p-3 border-round text-center">
-        <p class="text-gray-900 font-bold mb-2">Skipped</p>
-        <p class="text-2xl font-bold">{{ statistics.skippedCount }}</p>
+        <p class="text-gray-900 font-bold mb-2" i18n>Skipped</p>
+        <p class="text-2xl font-bold">
+          {{ statusCount(statistics()!, 'SKIPPED') }}
+        </p>
       </div>
     </div>
   </div>
+  }
 </p-card>

@@ -4,6 +4,7 @@ import org.springframework.data.domain.PageRequest;
 
 import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.Agent;
+import com.spulido.tfg.domain.agent.model.dto.AgentMetricsResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
@@ -22,4 +23,6 @@ public interface AgentService {
     AgentRegistrationResponse registerReplicatedAgent(RegisterReplicatedAgentRequest request) throws AgentException;
 
     Agent assignPlan(String agentId, AssignPlanRequest request) throws AgentException;
+
+    AgentMetricsResponse getMetrics();
 }

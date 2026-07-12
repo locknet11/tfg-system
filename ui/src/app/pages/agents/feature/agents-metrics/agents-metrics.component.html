@@ -1,53 +1,84 @@
 <div class="metrics-container">
   <h2 class="text-2xl font-bold mb-4" i18n>Key Metrics</h2>
 
+  @if (loading()) {
+  <div class="grid">
+    @for (_ of [].constructor(4); track $index) {
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="metric-card">
+        <p-skeleton width="8rem" height="1rem" class="mb-2"></p-skeleton>
+        <p-skeleton width="4rem" height="2rem"></p-skeleton>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (error()) {
+  <p-message severity="error" styleClass="w-full mb-4">
+    <span i18n>Failed to load agent metrics.</span>
+  </p-message>
+  <button
+    pButton
+    class="p-button-text p-button-sm"
+    (click)="loadMetrics()"
+    i18n>
+    Retry
+  </button>
+  } @else if (metrics()) {
   <div class="grid">
     <div class="col-12 md:col-6 lg:col-3">
       <div class="metric-card">
         <div class="metric-label" i18n>Active Agents</div>
-        <div class="metric-value">{{ metrics.activeAgents }}</div>
+        <div class="metric-value">{{ metrics()!.activeAgents }}</div>
       </div>
     </div>
 
     <div class="col-12 md:col-6 lg:col-3">
       <div class="metric-card">
         <div class="metric-label" i18n>Detected Vulnerabilities</div>
-        <div class="metric-value">{{ metrics.detectedVulnerabilities }}</div>
+        <div class="metric-value">
+          {{ metrics()!.detectedVulnerabilities }}
+        </div>
       </div>
     </div>
 
     <div class="col-12 md:col-6 lg:col-3">
       <div class="metric-card">
         <div class="metric-label" i18n>Applied Remediations</div>
-        <div class="metric-value">{{ metrics.appliedRemediations }}</div>
+        <div class="metric-value">
+          {{ metrics()!.appliedRemediations }}
+        </div>
       </div>
     </div>
 
     <div class="col-12 md:col-6 lg:col-3">
       <div class="metric-card">
-        <div class="metric-label" i18n>Average Uptime</div>
-        <div class="metric-value">{{ metrics.averageUptime }}%</div>
+        <div class="metric-label" i18n>Uptime</div>
+        <div class="metric-value">{{ metrics()!.uptimePercentage }}%</div>
       </div>
     </div>
   </div>
 
   <div class="chart-container mt-5">
     <div class="chart-header mb-3">
-      <h3 class="text-xl font-semibold mb-2" i18n>Vulnerabilities Over Time</h3>
+      <h3 class="text-xl font-semibold mb-2" i18n>
+        Vulnerabilities Over Time
+      </h3>
       <div class="flex justify-content-between align-items-center">
-        <div class="chart-metric">
-          <span class="metric-label" i18n>Vulnerabilities</span>
-          <span class="metric-change">+12%</span>
-        </div>
-        <div class="chart-period" i18n>Last 30 days</div>
+        <div class="chart-period" i18n>Last 4 weeks</div>
       </div>
     </div>
 
+    @if (chartData) {
     <p-chart
       type="line"
       [data]="chartData"
       [options]="chartOptions"
       height="500"
-      [responsive]="true"></p-chart>
+      [responsive]="true"
+      aria-label="Vulnerabilities over time line chart"
+      i18n-aria-label>
+    </p-chart>
+    }
   </div>
+  }
 </div>
