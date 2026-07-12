@@ -12,6 +12,7 @@ import com.spulido.tfg.domain.agent.model.dto.AgentInfo;
 import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
+import com.spulido.tfg.domain.agent.model.dto.RegisterReplicatedAgentRequest;
 import com.spulido.tfg.domain.shared.ListMapper;
 import com.spulido.tfg.domain.shared.ResponseList;
 import com.spulido.tfg.domain.target.db.TargetRepository;
@@ -60,6 +61,10 @@ public class AgentServiceMapper {
 
     public AgentRegistrationResponse toRegistrationResponse(AgentRegistrationResponse response) {
         return modelMapper.map(response, AgentRegistrationResponse.class);
+    }
+
+    public void applyClientIp(RegisterReplicatedAgentRequest request, HttpServletRequest httpRequest) {
+        request.setClientIp(extractClientIp(httpRequest));
     }
 
     /**

@@ -21,6 +21,7 @@ import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
+import com.spulido.tfg.domain.agent.model.dto.RegisterReplicatedAgentRequest;
 import com.spulido.tfg.domain.agent.services.AgentService;
 import com.spulido.tfg.domain.organization.exception.OrganizationException;
 import com.spulido.tfg.domain.organization.model.Organization;
@@ -32,8 +33,13 @@ import com.spulido.tfg.domain.plan.model.dto.PlanRequest;
 import com.spulido.tfg.domain.project.exception.ProjectException;
 import com.spulido.tfg.domain.project.model.Project;
 import com.spulido.tfg.domain.project.services.ProjectService;
+import com.spulido.tfg.domain.replication.db.ReplicationRequestRepository;
+import com.spulido.tfg.domain.replication.model.ReplicationExploitInfo;
 import com.spulido.tfg.domain.replication.model.ReplicationPolicy;
+import com.spulido.tfg.domain.replication.model.ReplicationRequest;
+import com.spulido.tfg.domain.replication.model.ReplicationRequestStatus;
 import com.spulido.tfg.domain.target.exception.TargetException;
+import com.spulido.tfg.domain.target.model.OperatingSystem;
 import com.spulido.tfg.domain.target.model.Target;
 import com.spulido.tfg.domain.target.db.TargetRepository;
 import com.spulido.tfg.domain.target.model.TargetStatus;
@@ -60,6 +66,7 @@ public class AgentServiceImpl implements AgentService {
     private final TargetRepository targetRepository;
     private final TemplateService templateService;
     private final ScriptService scriptService;
+    private final ReplicationRequestRepository replicationRequestRepository;
 
     @Value("${api.base-url:http://localhost:8080}")
     private String apiBaseUrl;
@@ -197,6 +204,146 @@ public class AgentServiceImpl implements AgentService {
         } catch (TargetException e) {
             throw new AgentException("agent.error.targetNotFound");
         }
+    }
+
+    @Override
+    public AgentRegistrationResponse registerReplicatedAgent(RegisterReplicatedAgentRequest request)
+            throws AgentException {
+
+        // Authorize using the replication preauth code, which resolves to the approving
+        // replication request (source of org/project/parent-agent scope).
+        if (request.getPreauthCode() == null || request.getPreauthCode().isBlank()) {
+            throw new AgentException("agent.error.invalidPreauthCode");
+        }
+
+        ReplicationRequest replication = replicationRequestRepository
+                .findByPreauthCode(request.getPreauthCode())
+                .orElseThrow(() -> new AgentException("agent.error.replicationNotAuthorized"));
+
+        if (replication.getStatus() != ReplicationRequestStatus.APPROVED) {
+            throw new AgentException("agent.error.replicationNotAuthorized");
+        }
+        if (replication.getExpiresAt() != null && replication.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new AgentException("agent.error.replicationExpired");
+        }
+
+        String organizationId = replication.getOrganizationId();
+        String projectId = replication.getProjectId();
+
+        // Scope subsequent persistence to the replication's org/project.
+        ProjectContext.set(organizationId, projectId);
+
+        String clientIp = request.getClientIp();
+        String targetName = sanitizeHostname(request.getHostname());
+        if (targetName == null) {
+            targetName = (clientIp != null && !clientIp.isBlank()) ? clientIp : "exploited-host";
+        }
+
+        OperatingSystem os = request.getOs() != null ? request.getOs() : OperatingSystem.LINUX;
+
+        // De-duplicate by machine identity: same client IP within the same org/project.
+        Target existing = null;
+        if (clientIp != null && !clientIp.isBlank()) {
+            existing = targetRepository
+                    .findByIpOrDomainAndOrganizationIdAndProjectId(clientIp, organizationId, projectId)
+                    .orElse(null);
+        }
+        if (existing != null && existing.getAssignedAgent() != null && !existing.getAssignedAgent().isEmpty()) {
+            // Host is already covered by an agent — do not create a second one.
+            throw new AgentException("agent.error.targetAlreadyHasAgent");
+        }
+
+        boolean createdNewTarget = false;
+        Target target;
+        if (existing != null) {
+            target = existing;
+        } else {
+            Target newTarget = new Target();
+            newTarget.setSystemName(targetName);
+            newTarget.setOs(os);
+            newTarget.setOrganizationId(organizationId);
+            newTarget.setProjectId(projectId);
+            try {
+                target = targetService.createTarget(newTarget);
+            } catch (TargetException e) {
+                throw new AgentException("agent.error.replicatedTargetCreationFailed");
+            }
+            createdNewTarget = true;
+        }
+
+        // Create the replicated agent WITHOUT a plan — the administrator assigns one later
+        // from the panel (this deliberately skips the auto-plan behavior of standard registration).
+        String apiKey = generateApiKey();
+        Agent agent = new Agent();
+        agent.setName("Agent-" + targetName);
+        agent.setStatus(AgentStatus.ACTIVE);
+        agent.setLastConnection(LocalDateTime.now());
+        agent.setVersion("1.0.0");
+        agent.setOrganizationId(organizationId);
+        agent.setProjectId(projectId);
+        agent.setApiKey(apiKey);
+        agent.setReplicatedFrom(replication.getParentAgentId());
+        agent.setReplicatedAt(LocalDateTime.now());
+        agent.setReplicationExploit(new ReplicationExploitInfo(replication.getCveId(), replication.getExploitId()));
+
+        Agent savedAgent;
+        try {
+            savedAgent = repository.save(agent);
+
+            // Establish the bidirectional link and bring the target online.
+            target.setIpOrDomain(clientIp);
+            target.setAssignedAgent(savedAgent.getId());
+            target.setStatus(TargetStatus.ONLINE);
+            targetService.updateTarget(target);
+        } catch (Exception e) {
+            // Atomicity: never leave an orphaned target (that we created) or an orphaned agent.
+            if (agent.getId() != null) {
+                try {
+                    repository.delete(agent);
+                } catch (Exception ignored) {
+                    // best-effort rollback
+                }
+            }
+            if (createdNewTarget) {
+                try {
+                    targetRepository.delete(target);
+                } catch (Exception ignored) {
+                    // best-effort rollback
+                }
+            }
+            log.error("Replicated agent registration failed for host {}: {}", targetName, e.getMessage());
+            throw new AgentException("agent.error.replicatedRegistrationFailed");
+        }
+
+        log.info("Registered replicated agent {} on new target {} (host: {})",
+                savedAgent.getId(), target.getId(), targetName);
+
+        AgentRegistrationResponse response = new AgentRegistrationResponse();
+        response.setAgentId(savedAgent.getId());
+        response.setTargetId(target.getId());
+        response.setIpAddress(clientIp);
+        response.setStatus(savedAgent.getStatus().toString());
+        response.setApiKey(apiKey);
+        return response;
+    }
+
+    /**
+     * Sanitizes an untrusted hostname reported by an exploited host so it can be safely stored
+     * and displayed as a target name. Returns {@code null} when nothing usable remains.
+     */
+    private String sanitizeHostname(String hostname) {
+        if (hostname == null) {
+            return null;
+        }
+        String cleaned = hostname.trim().replaceAll("[^A-Za-z0-9._-]", "-");
+        cleaned = cleaned.replaceAll("-{2,}", "-").replaceAll("^[-.]+", "").replaceAll("[-.]+$", "");
+        if (cleaned.isEmpty()) {
+            return null;
+        }
+        if (cleaned.length() > 253) {
+            cleaned = cleaned.substring(0, 253);
+        }
+        return cleaned;
     }
 
     @Override

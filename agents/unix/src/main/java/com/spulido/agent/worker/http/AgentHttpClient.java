@@ -10,6 +10,8 @@ import com.spulido.agent.worker.http.dto.ExploitationKnowledgeRequest;
 import com.spulido.agent.worker.http.dto.ExploitationKnowledgeResponse;
 import com.spulido.agent.worker.http.dto.HeartbeatResponse;
 import com.spulido.agent.worker.http.dto.PlanResponse;
+import com.spulido.agent.worker.http.dto.RegisterReplicatedRequest;
+import com.spulido.agent.worker.http.dto.RegisterReplicatedResponse;
 import com.spulido.agent.worker.http.dto.RemediationReportRequest;
 import com.spulido.agent.worker.http.dto.RemediationReportResponse;
 import com.spulido.agent.worker.http.dto.RemediationStrategyRequest;
@@ -90,6 +92,13 @@ public class AgentHttpClient {
         String url = config.getCentralUrl() + "/api/agent/comm/replication-request/" + requestId + "/status";
         log.info("Polling replication request status: {}", url);
         return restTemplate.getForObject(url, ReplicationStatusResponse.class);
+    }
+
+    public RegisterReplicatedResponse registerReplicated(String hostname, String os) {
+        String url = config.getCentralUrl() + "/api/agent/replicated/register";
+        log.info("Registering replicated agent with central: {}", url);
+        RegisterReplicatedRequest body = new RegisterReplicatedRequest(config.getPreauthCode(), hostname, os);
+        return restTemplate.postForObject(url, body, RegisterReplicatedResponse.class);
     }
 
     public byte[] downloadBinary(String downloadUrl) {

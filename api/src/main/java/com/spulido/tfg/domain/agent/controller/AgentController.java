@@ -24,6 +24,7 @@ import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
+import com.spulido.tfg.domain.agent.model.dto.RegisterReplicatedAgentRequest;
 import com.spulido.tfg.domain.agent.services.AgentPlanService;
 import com.spulido.tfg.domain.agent.services.AgentService;
 import com.spulido.tfg.domain.agent.services.AgentServiceMapper;
@@ -37,6 +38,7 @@ import com.spulido.tfg.domain.target.services.TargetService;
 import com.spulido.tfg.domain.template.exception.TemplateException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -115,6 +117,18 @@ public class AgentController {
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(errorScript);
         }
+    }
+
+    // Public endpoint: registers an agent that arrived via autoreplication onto a host with
+    // no pre-existing Target ID. Central creates the target from the reported hostname.
+    @PostMapping(value = "/replicated/register", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AgentRegistrationResponse> registerReplicatedAgent(
+            @Valid @RequestBody RegisterReplicatedAgentRequest request,
+            HttpServletRequest httpRequest) throws AgentException {
+
+        mapper.applyClientIp(request, httpRequest);
+        AgentRegistrationResponse response = agentService.registerReplicatedAgent(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}/plan")
