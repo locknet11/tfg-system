@@ -33,6 +33,8 @@ public interface ReplicationRequestRepository extends MongoRepository<Replicatio
 
     Optional<ReplicationRequest> findByReplicationToken(String replicationToken);
 
+    Optional<ReplicationRequest> findByPreauthCode(String preauthCode);
+
     List<ReplicationRequest> findByStatusAndExpiresAtBefore(ReplicationRequestStatus status, LocalDateTime now);
 
     List<ReplicationRequest> findByParentAgentId(String parentAgentId);

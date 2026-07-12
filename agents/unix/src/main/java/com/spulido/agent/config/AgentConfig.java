@@ -11,6 +11,7 @@ public class AgentConfig {
     private String apiKey;
     private String agentId;
     private String centralPublicKey;
+    private String preauthCode;
 
     private String exploitDefaultTargetUser = "root";
     private String exploitTransferMethod = "auto";
@@ -48,6 +49,14 @@ public class AgentConfig {
 
     public void setCentralPublicKey(String centralPublicKey) {
         this.centralPublicKey = centralPublicKey;
+    }
+
+    public String getPreauthCode() {
+        return preauthCode;
+    }
+
+    public void setPreauthCode(String preauthCode) {
+        this.preauthCode = preauthCode;
     }
 
     public String getExploitDefaultTargetUser() {

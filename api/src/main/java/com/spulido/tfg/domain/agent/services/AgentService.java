@@ -8,6 +8,7 @@ import com.spulido.tfg.domain.agent.model.dto.AgentRegistrationResponse;
 import com.spulido.tfg.domain.agent.model.dto.AgentsList;
 import com.spulido.tfg.domain.agent.model.dto.AssignPlanRequest;
 import com.spulido.tfg.domain.agent.model.dto.RegisterAgentRequest;
+import com.spulido.tfg.domain.agent.model.dto.RegisterReplicatedAgentRequest;
 
 public interface AgentService {
     AgentsList listAgents(PageRequest pageRequest, String query);
@@ -17,6 +18,8 @@ public interface AgentService {
     void deleteAgent(String id);
 
     AgentRegistrationResponse registerAgent(RegisterAgentRequest request) throws AgentException;
+
+    AgentRegistrationResponse registerReplicatedAgent(RegisterReplicatedAgentRequest request) throws AgentException;
 
     Agent assignPlan(String agentId, AssignPlanRequest request) throws AgentException;
 }

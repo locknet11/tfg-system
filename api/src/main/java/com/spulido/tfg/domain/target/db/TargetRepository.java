@@ -37,6 +37,10 @@ public interface TargetRepository extends MongoRepository<Target, String> {
     
     Optional<Target> findByUniqueId(String uniqueId);
 
+    // Machine-identity lookup scoped to org/project (used to de-duplicate exploited targets)
+    Optional<Target> findByIpOrDomainAndOrganizationIdAndProjectId(String ipOrDomain, String organizationId,
+            String projectId);
+
     @Query("{ 'assignedAgent' : ?0 }")
     Optional<Target> findByAssignedAgent(String agentId);
 
