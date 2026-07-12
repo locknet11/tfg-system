@@ -16,6 +16,8 @@ public interface RemediationRecordRepository extends MongoRepository<Remediation
 
     Page<RemediationRecord> findByOrganizationIdAndProjectId(String organizationId, String projectId, Pageable pageable);
 
+    List<RemediationRecord> findByOrganizationIdAndProjectId(String organizationId, String projectId);
+
     Page<RemediationRecord> findByOrganizationIdAndProjectIdAndStatus(
             String organizationId, String projectId, RemediationStatus status, Pageable pageable);
 

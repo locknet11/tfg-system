@@ -21,6 +21,7 @@ import com.spulido.tfg.domain.template.exception.TemplateException;
 import com.spulido.tfg.domain.user.exception.UserException;
 import com.spulido.tfg.domain.exploitation.exception.ExploitationKnowledgeException;
 import com.spulido.tfg.domain.remediation.exception.RemediationException;
+import com.spulido.tfg.domain.report.exception.ReportException;
 import com.spulido.tfg.domain.replication.exception.ReplicationException;
 import com.spulido.tfg.domain.vulnerability.exception.VulnerabilityException;
 
@@ -254,6 +255,32 @@ public class CustomExceptionHandler {
 				.detail(ex.getLocalizedMessage()).build();
 		response = new GenericErrorResponse(errorDetails, null).mapOf();
 		log.error("Remediation exception: {} - {}", code, ex.getMessage());
+		return ResponseEntity.status(status).body(response);
+	}
+
+	@ExceptionHandler(ReportException.class)
+	public ResponseEntity<?> handleReportExceptions(ReportException ex) {
+		ErrorCode code = ex.getErrorCode();
+		HttpStatus status;
+
+		switch (code) {
+			case REPORT_NOT_FOUND:
+				status = HttpStatus.NOT_FOUND;
+				break;
+			case REPORT_EMPTY_RESULT:
+			case REPORT_NO_PROJECT_CONTEXT:
+				status = HttpStatus.UNPROCESSABLE_ENTITY;
+				break;
+			default:
+				status = HttpStatus.INTERNAL_SERVER_ERROR;
+				break;
+		}
+
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.code(code)
+				.detail(ex.getLocalizedMessage()).build();
+		Map<String, Object> response = new GenericErrorResponse(errorDetails, null).mapOf();
+		log.error("Report exception: {} - {}", code, ex.getMessage());
 		return ResponseEntity.status(status).body(response);
 	}
 

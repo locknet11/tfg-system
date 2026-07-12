@@ -83,6 +83,11 @@ const routes: Routes = [
           import('./pages/alerts/alerts.routes').then(x => x.alertsRoutes),
       },
       {
+        path: 'reports',
+        loadChildren: () =>
+          import('./pages/reports/reports.routes').then(x => x.reportsRoutes),
+      },
+      {
         path: 'replication-requests',
         title: $localize`Replication Requests`,
         loadComponent: () =>
