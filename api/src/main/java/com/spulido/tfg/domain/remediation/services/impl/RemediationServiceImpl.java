@@ -24,6 +24,9 @@ import com.spulido.tfg.domain.remediation.model.dto.RemediationInfo;
 import com.spulido.tfg.domain.remediation.model.dto.RemediationReportRequest;
 import com.spulido.tfg.domain.remediation.model.dto.RemediationStatistics;
 import com.spulido.tfg.domain.remediation.services.RemediationService;
+import com.spulido.tfg.domain.remediation.util.RemediationMetrics;
+import com.spulido.tfg.domain.target.db.TargetRepository;
+import com.spulido.tfg.domain.target.model.Target;
 import com.spulido.tfg.common.exception.ErrorCode;
 
 @Service
@@ -33,10 +36,13 @@ public class RemediationServiceImpl implements RemediationService {
 
     private final RemediationRecordRepository repository;
     private final AlertTriggerService alertTriggerService;
+    private final TargetRepository targetRepository;
 
-    public RemediationServiceImpl(RemediationRecordRepository repository, AlertTriggerService alertTriggerService) {
+    public RemediationServiceImpl(RemediationRecordRepository repository, AlertTriggerService alertTriggerService,
+            TargetRepository targetRepository) {
         this.repository = Objects.requireNonNull(repository, "repository must not be null");
         this.alertTriggerService = Objects.requireNonNull(alertTriggerService, "alertTriggerService must not be null");
+        this.targetRepository = Objects.requireNonNull(targetRepository, "targetRepository must not be null");
     }
 
     @Override
@@ -200,15 +206,19 @@ public class RemediationServiceImpl implements RemediationService {
                 .map(record -> RemediationStatistics.RecentActivity.builder()
                         .id(record.getId())
                         .cveId(record.getCveId())
+                        .targetName(resolveTargetName(record.getTargetId()))
                         .status(record.getStatus().name())
                         .completedAt(record.getCompletedAt() != null ? record.getCompletedAt().toString() : null)
                         .build())
                 .collect(Collectors.toList());
 
+        long meanTimeToRemediateSeconds = RemediationMetrics.meanTimeToRemediateSeconds(
+                repository.findByOrganizationIdAndProjectId(orgId, projectId));
+
         return RemediationStatistics.builder()
                 .totalCount(totalCount)
                 .byStatus(byStatus)
-                .meanTimeToRemediateSeconds(0)
+                .meanTimeToRemediateSeconds(meanTimeToRemediateSeconds)
                 .recentActivity(recentActivity)
                 .build();
     }
@@ -267,6 +277,15 @@ public class RemediationServiceImpl implements RemediationService {
             log.warn("Invalid remediation type: {}, defaulting to UNKNOWN", type);
             return com.spulido.tfg.domain.remediation.model.RemediationType.UNKNOWN;
         }
+    }
+
+    private String resolveTargetName(String targetId) {
+        if (targetId == null || targetId.isBlank()) {
+            return null;
+        }
+        return targetRepository.findById(targetId)
+                .map(Target::getSystemName)
+                .orElse(null);
     }
 
     private String getContextOrgId() {

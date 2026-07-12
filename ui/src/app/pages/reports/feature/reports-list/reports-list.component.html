@@ -1,0 +1,136 @@
+<div class="reports-container">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold m-0" i18n>Reports</h1>
+  </div>
+
+  <p-card styleClass="mb-4">
+    <ng-template pTemplate="title">
+      <span i18n>Generate report</span>
+    </ng-template>
+    <div class="formgrid grid">
+      <div class="field col-12 md:col-6 lg:col-3">
+        <label class="block mb-2" i18n>Target</label>
+        <p-dropdown
+          [options]="targetOptions()"
+          [(ngModel)]="selectedTargetId"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-dropdown>
+      </div>
+      <div class="field col-12 md:col-6 lg:col-3">
+        <label class="block mb-2" i18n>From</label>
+        <p-calendar
+          [(ngModel)]="dateFrom"
+          [showTime]="true"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-calendar>
+      </div>
+      <div class="field col-12 md:col-6 lg:col-3">
+        <label class="block mb-2" i18n>To</label>
+        <p-calendar
+          [(ngModel)]="dateTo"
+          [showTime]="true"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-calendar>
+      </div>
+      <div class="field col-12 md:col-6 lg:col-3">
+        <label class="block mb-2" i18n>Severity</label>
+        <p-multiSelect
+          [options]="severityOptions"
+          [(ngModel)]="selectedSeverities"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-multiSelect>
+      </div>
+      <div class="field col-12 md:col-6 lg:col-3">
+        <label class="block mb-2" i18n>Status</label>
+        <p-multiSelect
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatuses"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }"
+          appendTo="body">
+        </p-multiSelect>
+      </div>
+    </div>
+    <div class="flex justify-content-end mt-2">
+      <p-button
+        label="Generate report"
+        i18n-label
+        icon="pi pi-chart-bar"
+        [loading]="generatingSig()"
+        (onClick)="generate()">
+      </p-button>
+    </div>
+  </p-card>
+
+  <h2 class="text-xl font-semibold mb-3" i18n>History</h2>
+
+  <p-table
+    [value]="reports()"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [loading]="loadingSig()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    [rows]="sizeSig()"
+    [totalRecords]="totalSig()"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    i18n-currentPageReportTemplate
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    [showCurrentPageReport]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th i18n>TITLE</th>
+        <th i18n>TYPE</th>
+        <th i18n>GENERATED</th>
+        <th i18n>BY</th>
+        <th i18n>VULNERABILITIES</th>
+        <th i18n>REMEDIATIONS</th>
+        <th i18n>TARGETS</th>
+        <th style="width: 8rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-report>
+      <tr>
+        <td>{{ report.title }}</td>
+        <td>
+          <p-tag
+            [value]="getGenerationTypeLabel(report.generationType)"
+            [severity]="
+              report.generationType === 'SCHEDULED' ? 'info' : 'success'
+            ">
+          </p-tag>
+        </td>
+        <td>{{ formatDate(report.generatedAt) }}</td>
+        <td>{{ report.generatedBy }}</td>
+        <td>{{ report.totalVulnerabilities }}</td>
+        <td>{{ report.totalRemediations }}</td>
+        <td>{{ report.targetsCovered }}</td>
+        <td>
+          <div class="flex gap-2 justify-content-end">
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              [text]="true"
+              (onClick)="viewDetail(report)">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="text-center p-4">{{ emptyMessage }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

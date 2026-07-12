@@ -1,0 +1,110 @@
+<div class="report-detail-container">
+  <div class="flex align-items-center gap-3 mb-4">
+    <p-button
+      icon="pi pi-arrow-left"
+      [rounded]="true"
+      [text]="true"
+      (onClick)="back()">
+    </p-button>
+    <h1 class="text-3xl font-bold m-0">
+      {{ report()?.title }}
+    </h1>
+  </div>
+
+  <ng-container *ngIf="report() as r">
+    <div class="grid mb-4">
+      <div class="col-12 md:col-3">
+        <p-card>
+          <div class="text-500 mb-2" i18n>Vulnerabilities</div>
+          <div class="text-3xl font-bold">
+            {{ r.summary.totalVulnerabilities }}
+          </div>
+        </p-card>
+      </div>
+      <div class="col-12 md:col-3">
+        <p-card>
+          <div class="text-500 mb-2" i18n>Remediations</div>
+          <div class="text-3xl font-bold">
+            {{ r.summary.totalRemediations }}
+          </div>
+        </p-card>
+      </div>
+      <div class="col-12 md:col-3">
+        <p-card>
+          <div class="text-500 mb-2" i18n>Targets covered</div>
+          <div class="text-3xl font-bold">{{ r.summary.targetsCovered }}</div>
+        </p-card>
+      </div>
+      <div class="col-12 md:col-3">
+        <p-card>
+          <div class="text-500 mb-2" i18n>Mean time to remediate</div>
+          <div class="text-3xl font-bold">{{ mttrLabel() }}</div>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="grid mb-4">
+      <div class="col-12 md:col-6">
+        <p-card>
+          <ng-template pTemplate="title">
+            <span i18n>Vulnerabilities by severity</span>
+          </ng-template>
+          <div class="chart-wrapper">
+            <p-chart
+              *ngIf="severityChart() as chart"
+              type="bar"
+              [data]="chart"
+              [options]="chartOptions">
+            </p-chart>
+          </div>
+        </p-card>
+      </div>
+      <div class="col-12 md:col-6">
+        <p-card>
+          <ng-template pTemplate="title">
+            <span i18n>Remediations by status</span>
+          </ng-template>
+          <div class="chart-wrapper">
+            <p-chart
+              *ngIf="statusChart() as chart"
+              type="pie"
+              [data]="chart"
+              [options]="chartOptions">
+            </p-chart>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-3" i18n>Detail</h2>
+    <p-table [value]="r.items" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th i18n>CVE ID</th>
+          <th i18n>SEVERITY</th>
+          <th i18n>CVSS</th>
+          <th i18n>TARGET</th>
+          <th i18n>STATUS</th>
+          <th i18n>STARTED</th>
+          <th i18n>COMPLETED</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.cveId }}</td>
+          <td>{{ item.severity }}</td>
+          <td>{{ item.cvssScore ?? '-' }}</td>
+          <td>{{ item.targetName ?? item.targetId }}</td>
+          <td>
+            <p-tag
+              [value]="item.remediationStatus"
+              [severity]="getStatusSeverity(item.remediationStatus)">
+            </p-tag>
+          </td>
+          <td>{{ formatDate(item.startedAt) }}</td>
+          <td>{{ formatDate(item.completedAt) }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-container>
+</div>

@@ -46,7 +46,10 @@ public enum ErrorCode {
 	BINARY_INTEGRITY_CHECK_FAILED("exception.binaryIntegrityCheckFailed"),
 	REMEDIATION_NOT_FOUND("exception.remediationNotFound"),
 	REMEDIATION_STRATEGY_NOT_FOUND("exception.remediationStrategyNotFound"),
-	REMEDIATION_INVALID_STATUS("exception.remediationInvalidStatus");
+	REMEDIATION_INVALID_STATUS("exception.remediationInvalidStatus"),
+	REPORT_NOT_FOUND("exception.reportNotFound"),
+	REPORT_EMPTY_RESULT("exception.reportEmptyResult"),
+	REPORT_NO_PROJECT_CONTEXT("exception.reportNoProjectContext");
 
 	private final String defaultMessage;
 }
