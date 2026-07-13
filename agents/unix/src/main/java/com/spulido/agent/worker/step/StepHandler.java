@@ -7,5 +7,5 @@ import com.spulido.agent.domain.task.StepResult;
 
 public interface StepHandler {
 
-    StepResult handle(StepAction action, Map<StepAction, StepResult> context);
+    StepResult handle(StepAction action, Map<StepAction, StepResult> context, String targetIp);
 }

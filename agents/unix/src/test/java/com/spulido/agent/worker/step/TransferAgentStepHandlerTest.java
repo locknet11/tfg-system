@@ -81,7 +81,7 @@ class TransferAgentStepHandlerTest {
         when(mockTemplate.renderTemplate(anyString(), any()))
                 .thenReturn("#!/bin/bash\necho INSTALL_OK");
 
-        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context);
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertTrue(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("HTTP_DOWNLOAD")));
     }
@@ -112,7 +112,7 @@ class TransferAgentStepHandlerTest {
         when(mockTemplate.renderTemplate(anyString(), any()))
                 .thenReturn("#!/bin/bash\necho INSTALL_OK");
 
-        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context);
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertTrue(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("AGENT_PUSH")));
     }
@@ -146,7 +146,7 @@ class TransferAgentStepHandlerTest {
         when(mockTemplate.renderTemplate(anyString(), any()))
                 .thenReturn("#!/bin/bash\necho INSTALL_OK");
 
-        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context);
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertTrue(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("fallback_to_B")));
     }
@@ -173,7 +173,7 @@ class TransferAgentStepHandlerTest {
         when(mockTemplate.renderTemplate(anyString(), any()))
                 .thenReturn("#!/bin/bash\necho INSTALL_OK");
 
-        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context);
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertTrue(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("PARTIAL_SUCCESS")));
     }
@@ -194,7 +194,7 @@ class TransferAgentStepHandlerTest {
 
         when(mockVerifier.verify(any(byte[].class))).thenReturn(false);
 
-        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context);
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertFalse(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("integrity verification failed")));
     }

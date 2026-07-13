@@ -2,6 +2,8 @@ package com.spulido.agent.config;
 
 import java.util.Collections;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -18,10 +20,13 @@ import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.TaskExecutionService;
 import com.spulido.agent.worker.WorkerCoordinator;
 import com.spulido.agent.worker.http.AgentHttpClient;
+import com.spulido.agent.worker.tools.BundledToolProvisioner;
 
 @Configuration
 @EnableAsync
 public class WorkerPoolConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkerPoolConfig.class);
 
     @Bean("workerExecutor")
     public ThreadPoolTaskExecutor workerExecutor() {
@@ -57,11 +62,21 @@ public class WorkerPoolConfig {
     }
 
     @Bean
-    public CommandExecutor commandExecutor() {
+    public BundledToolProvisioner bundledToolProvisioner() {
+        return new BundledToolProvisioner();
+    }
+
+    @Bean
+    public CommandExecutor commandExecutor(BundledToolProvisioner bundledToolProvisioner) {
+        String toolsPath = bundledToolProvisioner.getExtractionDirectory().toAbsolutePath().toString();
         return (command, timeoutSeconds) -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder("sh", "-c", command);
                 processBuilder.redirectErrorStream(true);
+                // Prepend bundled tools directory to PATH so all commands resolve bundled binaries by bare name
+                String currentPath = System.getenv("PATH");
+                String augmentedPath = toolsPath + ":" + (currentPath != null ? currentPath : "/usr/bin");
+                processBuilder.environment().put("PATH", augmentedPath);
                 Process process = processBuilder.start();
 
                 boolean finished = process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);

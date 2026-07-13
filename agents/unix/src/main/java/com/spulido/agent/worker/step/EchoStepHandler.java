@@ -9,7 +9,7 @@ import com.spulido.agent.domain.task.StepResult;
 public class EchoStepHandler implements StepHandler {
 
     @Override
-    public StepResult handle(StepAction action, Map<StepAction, StepResult> context) {
+    public StepResult handle(StepAction action, Map<StepAction, StepResult> context, String targetIp) {
         return StepResult.success(action, List.of(), List.of(),
                 List.of("Executed echo step for action: " + action));
     }

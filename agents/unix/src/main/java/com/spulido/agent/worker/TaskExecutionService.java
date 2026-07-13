@@ -34,10 +34,15 @@ public class TaskExecutionService {
     }
 
     public AgentJob executeJob(String jobId, List<TaskDefinition> steps) {
-        return executeJob(jobId, steps, List.of());
+        return executeJob(jobId, steps, List.of(), null);
     }
 
     public AgentJob executeJob(String jobId, List<TaskDefinition> steps, List<StepAction> actions) {
+        return executeJob(jobId, steps, actions, null);
+    }
+
+    public AgentJob executeJob(String jobId, List<TaskDefinition> steps, List<StepAction> actions,
+                                String targetIp) {
         JobValidator.validate(steps);
 
         List<AgentTask> tasks = new ArrayList<>();
@@ -73,7 +78,7 @@ public class TaskExecutionService {
             if (stepAction != null) {
                 StepHandler handler = stepHandlers.get(stepAction);
                 if (handler != null) {
-                    StepResult stepResult = handler.handle(stepAction, context);
+                    StepResult stepResult = handler.handle(stepAction, context, targetIp);
                     context.put(stepAction, stepResult);
 
                     if (stepResult.isSkipped()) {

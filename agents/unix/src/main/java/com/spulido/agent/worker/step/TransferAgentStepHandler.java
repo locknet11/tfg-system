@@ -44,7 +44,7 @@ public class TransferAgentStepHandler implements StepHandler {
     }
 
     @Override
-    public StepResult handle(StepAction action, Map<StepAction, StepResult> context) {
+    public StepResult handle(StepAction action, Map<StepAction, StepResult> context, String targetIp) {
         log.info("Handling TRANSFER_AGENT step");
 
         StepResult replicationResult = context.get(StepAction.REQUEST_REPLICATION);
@@ -305,18 +305,18 @@ public class TransferAgentStepHandler implements StepHandler {
     private TargetSession buildTargetSession(StepResult exploitResult) {
         if (exploitResult == null) return null;
 
-        String targetIp = extractFromLogs(exploitResult.getLogs(), "targetIp:");
+        String sessionTargetIp = extractFromLogs(exploitResult.getLogs(), "targetIp:");
         String targetUser = extractFromLogs(exploitResult.getLogs(), "targetUser:");
         String reverseShell = extractFromLogs(exploitResult.getLogs(), "reverseShellActive:");
 
-        if (targetIp == null || "unknown".equals(targetIp)) return null;
+        if (sessionTargetIp == null || "unknown".equals(sessionTargetIp)) return null;
         if (!"true".equals(reverseShell)) return null;
 
         if (targetUser == null) {
             targetUser = config.getExploitDefaultTargetUser();
         }
 
-        return new TargetSession(targetIp, targetUser, null);
+        return new TargetSession(sessionTargetIp, targetUser, null);
     }
 
     private String extractFromLogs(List<String> logs, String prefix) {

@@ -52,7 +52,7 @@ public class RemediationStepHandler implements StepHandler {
     }
 
     @Override
-    public StepResult handle(StepAction action, Map<StepAction, StepResult> context) {
+    public StepResult handle(StepAction action, Map<StepAction, StepResult> context, String targetIp) {
         log.info("Starting remediation step handler");
 
         // Pre-condition: detect container runtime and skip remediation if found

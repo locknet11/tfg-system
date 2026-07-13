@@ -15,5 +15,6 @@ class NativeImageResourceHints implements RuntimeHintsRegistrar {
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
         hints.resources().registerPattern("scripts/*");
+        hints.resources().registerPattern("tools/**");
     }
 }

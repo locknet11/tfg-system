@@ -24,8 +24,10 @@ import com.spulido.agent.worker.http.dto.PlanStepResponse;
 import com.spulido.agent.worker.step.EchoStepHandler;
 import com.spulido.agent.worker.step.ExploitationKnowledgeStepHandler;
 import com.spulido.agent.worker.step.ExecuteExploitStepHandler;
+import com.spulido.agent.worker.step.NetworkScanStepHandler;
 import com.spulido.agent.worker.step.RemediationStepHandler;
 import com.spulido.agent.worker.step.RequestReplicationStepHandler;
+import com.spulido.agent.worker.step.ServiceScanStepHandler;
 import com.spulido.agent.worker.step.StepHandler;
 import com.spulido.agent.worker.step.TransferAgentStepHandler;
 import com.spulido.agent.utils.AgentLifecycle;
@@ -88,7 +90,7 @@ public class WorkerCoordinator {
         String jobId = "job-" + counter;
         log.info("Executing job: {} with actions: {}", jobId, actions);
 
-        AgentJob job = taskExecutionService.executeJob(jobId, steps, actions);
+        AgentJob job = taskExecutionService.executeJob(jobId, steps, actions, targetIp);
 
         if (job.getStatus() == JobStatus.FAILED) {
             log.warn("Job {} failed: {}", job.getJobId(), job.getFailureReason());
@@ -139,9 +141,9 @@ public class WorkerCoordinator {
                 new BinaryIntegrityVerifier(agentConfig), scriptTemplateService, agentConfig));
         handlers.put(StepAction.REPLICATE, new EchoStepHandler());
         handlers.put(StepAction.ECHO, new EchoStepHandler());
-        handlers.put(StepAction.SYSTEM_SCAN, new EchoStepHandler());
-        handlers.put(StepAction.SERVICE_SCAN, new EchoStepHandler());
-        handlers.put(StepAction.NETWORK_SCAN, new EchoStepHandler());
+        handlers.put(StepAction.SYSTEM_SCAN, new ServiceScanStepHandler(commandExecutor));
+        handlers.put(StepAction.SERVICE_SCAN, new ServiceScanStepHandler(commandExecutor));
+        handlers.put(StepAction.NETWORK_SCAN, new NetworkScanStepHandler(commandExecutor));
         handlers.put(StepAction.GENERATE_REPORT, new EchoStepHandler());
         handlers.put(StepAction.SEND_REPORT, new EchoStepHandler());
         handlers.put(StepAction.SELF_DESTRUCT, new EchoStepHandler());

@@ -29,7 +29,7 @@ public class RequestReplicationStepHandler implements StepHandler {
     }
 
     @Override
-    public StepResult handle(StepAction action, Map<StepAction, StepResult> context) {
+    public StepResult handle(StepAction action, Map<StepAction, StepResult> context, String targetIp) {
         log.info("Handling REQUEST_REPLICATION step");
 
         StepResult exploitKnowledge = context.get(StepAction.EXPLOITATION_KNOWLEDGE);
@@ -52,11 +52,11 @@ public class RequestReplicationStepHandler implements StepHandler {
         String cveId = scriptParts.length > 1 ? scriptParts[1].trim() : "unknown";
         String severity = scriptParts.length > 2 ? scriptParts[2].trim() : "HIGH";
 
-        String targetIp = extractFromLogs(serviceScan.getLogs(), "targetIp:");
+        String resolvedTargetIp = extractFromLogs(serviceScan.getLogs(), "targetIp:");
         String targetPort = extractFromLogs(serviceScan.getLogs(), "targetPort:");
 
         ReplicationRequestBody request = new ReplicationRequestBody();
-        request.setTargetIp(targetIp != null ? targetIp : "unknown");
+        request.setTargetIp(resolvedTargetIp != null ? resolvedTargetIp : "unknown");
         request.setTargetPort(targetPort != null ? Integer.parseInt(targetPort) : 0);
         request.setExploitId(exploitId);
         request.setCveId(cveId);
