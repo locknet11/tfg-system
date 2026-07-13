@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,28 @@ public class BundledToolProvisioner {
     private static final Logger log = LoggerFactory.getLogger(BundledToolProvisioner.class);
 
     private static final String RESOURCE_ROOT = "tools";
+
+    /**
+     * Non-executable data files extracted alongside the tool binaries. nmap
+     * resolves its data files from the directory of its own executable, so
+     * placing these next to the extracted {@code nmap} binary lets {@code -sV}
+     * version detection work without any {@code --datadir}/{@code NMAPDIR} flag.
+     * Files absent for a platform (e.g. macOS, which uses the host nmap) are
+     * skipped.
+     */
+    private static final List<String> DATA_FILES = List.of(
+            "nmap-service-probes",
+            "nmap-services",
+            "nmap-protocols",
+            "nse_main.lua");
+
+    /**
+     * The nmap static build initializes NSE at startup even for {@code -sV}, so
+     * it needs {@code nse_main.lua}, the {@code nselib/} tree, and a (possibly
+     * empty) {@code scripts/} directory next to the binary. {@code nselib/} is
+     * shipped zipped and expanded at extraction time.
+     */
+    private static final String NSE_ARCHIVE = "nmap-nselib.zip";
 
     private final String osArchDir;
     private final Path extractionDir;
@@ -114,6 +137,72 @@ public class BundledToolProvisioner {
             log.warn("No bundled tool binaries found for platform {} under classpath:{}/{}/."
                             + " Steps depending on bundled tools will fail with TOOL_ERROR.",
                     osArchDir, RESOURCE_ROOT, osArchDir);
+        }
+        extractDataFiles();
+        extractNmapNse();
+    }
+
+    /**
+     * Extracts the tool data files (currently nmap's) into the same directory as
+     * the binaries, so tools that resolve data relative to their own executable
+     * find them with no extra configuration.
+     */
+    private void extractDataFiles() {
+        for (String dataFile : DATA_FILES) {
+            String resourcePath = RESOURCE_ROOT + "/" + osArchDir + "/" + dataFile;
+            Resource resource = new ClassPathResource(resourcePath);
+            if (!resource.exists()) {
+                log.debug("Bundled data file not found (skipping): {}", resourcePath);
+                continue;
+            }
+            Path dest = extractionDir.resolve(dataFile);
+            try (InputStream in = resource.getInputStream()) {
+                Files.copy(in, dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                log.info("Extracted bundled data file {} -> {}", dataFile, dest.toAbsolutePath());
+            } catch (IOException e) {
+                log.warn("Failed to extract bundled data file {} for platform {}: {}",
+                        dataFile, osArchDir, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Expands the bundled {@code nselib/} zip next to the binaries and creates an
+     * empty {@code scripts/} directory, both required for nmap's NSE
+     * initialization. Skipped on platforms without a bundled NSE archive.
+     */
+    private void extractNmapNse() {
+        String resourcePath = RESOURCE_ROOT + "/" + osArchDir + "/" + NSE_ARCHIVE;
+        Resource resource = new ClassPathResource(resourcePath);
+        if (!resource.exists()) {
+            log.debug("Bundled NSE archive not found (skipping): {}", resourcePath);
+            return;
+        }
+        try (java.util.zip.ZipInputStream zip =
+                     new java.util.zip.ZipInputStream(resource.getInputStream())) {
+            java.util.zip.ZipEntry entry;
+            int files = 0;
+            while ((entry = zip.getNextEntry()) != null) {
+                Path dest = extractionDir.resolve(entry.getName()).normalize();
+                if (!dest.startsWith(extractionDir)) {
+                    continue; // guard against zip-slip
+                }
+                if (entry.isDirectory()) {
+                    Files.createDirectories(dest);
+                } else {
+                    Files.createDirectories(dest.getParent());
+                    Files.copy(zip, dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    files++;
+                }
+                zip.closeEntry();
+            }
+            // nmap requires the scripts directory to exist for NSE init, even empty.
+            Files.createDirectories(extractionDir.resolve("scripts"));
+            log.info("Extracted bundled NSE library ({} files) + scripts dir into {}",
+                    files, extractionDir);
+        } catch (IOException e) {
+            log.warn("Failed to extract bundled NSE archive for platform {}: {}",
+                    osArchDir, e.getMessage());
         }
     }
 
