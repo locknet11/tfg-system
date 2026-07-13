@@ -3,6 +3,7 @@ AGENTS Guide (Angular + Spring Boot)
 - Modules: ui/ (Angular 17), api/ (Spring Boot 3), agents/unix/ (Spring Boot + GraalVM native).
 - Build: ui → `cd ui && npm ci && npm run build`; api → `cd api && ./mvnw clean package`; agents/unix → `cd agents/unix && ./mvnw clean package`.
 - Native agent (macOS/GraalVM): `cd agents/unix && sh package-macos.sh` or `./mvnw -Pnative native:compile -DmainClass=com.spulido.agent.AgentApplication`.
+- Native agent (linux-x86_64/Docker): `cd agents/unix && docker build --platform linux/amd64 -f Dockerfile.native -t agent-native-linux . && docker cp $(docker create agent-native-linux):/build/target/agent api/src/main/resources/agents/linux-x86_64/agent && docker cp $(docker create agent-native-linux):/build/target/agent-0.0.1-SNAPSHOT.jar api/src/main/resources/agents/linux-x86_64/agent.jar`. Uses GraalVM inside a Linux x86_64 container; produces an ELF binary that gets copied into the API classpath resources automatically.
 - Lint/format (UI): Prettier 3.2.5 present; check `npx prettier --check .`, write `npx prettier --write .` (see ui/.prettierrc.json).
 - Lint (UI): No ESLint configured; rely on Angular strict TS and Prettier.
 - Java style: no formatter plugin; follow standard Spring/Java conventions; use Lombok where present; avoid wildcard imports; order imports: `java.*`, `jakarta.*`, `org.*`, project packages, static last.
