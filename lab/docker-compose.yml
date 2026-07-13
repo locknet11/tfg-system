@@ -59,6 +59,7 @@ services:
 
   mysql:
     build: ./targets/mysql
+    platform: linux/amd64
     ports:
       - "3306:3306"
     networks:
