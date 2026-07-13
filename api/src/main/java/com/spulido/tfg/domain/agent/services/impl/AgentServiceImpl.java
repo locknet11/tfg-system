@@ -111,9 +111,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public void deleteAgent(String id) {
-        // Delete using scoped query to ensure user can only delete their own agents
+        // Scoped query ensures a user can only delete their own agents.
         repository.findByIdScoped(id).ifPresent(agent -> {
-            // Clear the assignedAgent from the target so it can be re-registered
+            // Clear the assignedAgent from the target so it can be re-registered.
             targetRepository.findByAssignedAgent(agent.getId()).ifPresent(target -> {
                 target.setAssignedAgent(null);
                 target.setStatus(TargetStatus.OFFLINE);
@@ -121,7 +121,14 @@ public class AgentServiceImpl implements AgentService {
                 log.info("Cleared agent assignment from target {}", target.getId());
             });
 
-            repository.delete(agent);
+            // Soft-mark de-provisioned so the agent's next heartbeat receives the
+            // self-destruction signal. The record is hard-deleted when the agent
+            // reports its teardown outcome, or reaped by the offline monitor.
+            agent.setDeprovisioned(true);
+            agent.setDeprovisionReason("Deleted by operator");
+            agent.setStatus(AgentStatus.KILLED);
+            repository.save(agent);
+            log.info("Agent {} marked de-provisioned; awaiting self-destruction", agent.getId());
         });
     }
 

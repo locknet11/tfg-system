@@ -1,15 +1,20 @@
 package com.spulido.tfg.domain.agent.services.impl;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.spulido.tfg.domain.agent.db.AgentRepository;
+import com.spulido.tfg.domain.agent.db.AgentTeardownRepository;
 import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.Agent;
 import com.spulido.tfg.domain.agent.model.AgentStatus;
+import com.spulido.tfg.domain.agent.model.AgentTeardownRecord;
+import com.spulido.tfg.domain.agent.model.dto.TeardownReportRequest;
 import com.spulido.tfg.domain.agent.model.dto.UpdateStepRequest;
 import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
 import com.spulido.tfg.domain.plan.model.Plan;
@@ -32,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AgentCommunicationServiceImpl implements AgentCommunicationService {
 
     private final AgentRepository agentRepository;
+    private final AgentTeardownRepository agentTeardownRepository;
     private final TargetRepository targetRepository;
     private final VulnerabilityLookupService vulnerabilityLookupService;
     private final ExploitationKnowledgeService exploitationKnowledgeService;
@@ -57,6 +63,40 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
         }
 
         return agentRepository.save(agent);
+    }
+
+    @Override
+    public AgentTeardownRecord recordTeardown(String agentId, TeardownReportRequest request) {
+        // Idempotent: a duplicate report for the same agent + trigger returns the
+        // existing record rather than creating a second one.
+        return agentTeardownRepository.findFirstByAgentIdAndTrigger(agentId, request.getTrigger())
+                .orElseGet(() -> {
+                    AgentTeardownRecord record = new AgentTeardownRecord()
+                            .setAgentId(agentId)
+                            .setTrigger(request.getTrigger())
+                            .setAgentTimestamp(request.getTimestamp())
+                            .setBinaryRemoval(request.getBinaryRemoval())
+                            .setReportedAt(Instant.now());
+                    if (request.getResults() != null) {
+                        record.setResults(request.getResults().stream()
+                                .map(r -> new AgentTeardownRecord.ArtifactResult()
+                                        .setType(r.getType())
+                                        .setPath(r.getPath())
+                                        .setStatus(r.getStatus())
+                                        .setDetail(r.getDetail()))
+                                .collect(Collectors.toList()));
+                    }
+
+                    agentRepository.findById(agentId).ifPresent(agent -> {
+                        record.setOrganizationId(agent.getOrganizationId());
+                        record.setProjectId(agent.getProjectId());
+                        // Reap the torn-down agent now that its outcome is recorded.
+                        agentRepository.delete(agent);
+                        log.info("Agent {} reaped after teardown report ({})", agentId, request.getTrigger());
+                    });
+
+                    return agentTeardownRepository.save(record);
+                });
     }
 
     @Override

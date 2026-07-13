@@ -21,6 +21,7 @@ import com.spulido.agent.worker.http.dto.ReplicationRequestResponse;
 import com.spulido.agent.worker.http.dto.ReplicationStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusResponse;
 import com.spulido.agent.worker.http.dto.StepStatusUpdate;
+import com.spulido.agent.worker.http.dto.TeardownReportRequest;
 import com.spulido.agent.worker.http.dto.VulnerabilityLookupRequest;
 import com.spulido.agent.worker.http.dto.VulnerabilityLookupResponse;
 
@@ -104,5 +105,11 @@ public class AgentHttpClient {
     public byte[] downloadBinary(String downloadUrl) {
         log.info("Downloading agent binary from: {}", downloadUrl);
         return restTemplate.getForObject(downloadUrl, byte[].class);
+    }
+
+    public void reportTeardownOutcome(TeardownReportRequest request) {
+        String url = config.getCentralUrl() + "/api/agent/comm/teardown";
+        log.info("Reporting teardown outcome to central: {}", url);
+        restTemplate.postForObject(url, request, Void.class);
     }
 }

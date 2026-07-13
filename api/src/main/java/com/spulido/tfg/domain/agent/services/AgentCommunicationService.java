@@ -2,6 +2,8 @@ package com.spulido.tfg.domain.agent.services;
 
 import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.Agent;
+import com.spulido.tfg.domain.agent.model.AgentTeardownRecord;
+import com.spulido.tfg.domain.agent.model.dto.TeardownReportRequest;
 import com.spulido.tfg.domain.agent.model.dto.UpdateStepRequest;
 import com.spulido.tfg.domain.plan.model.Plan;
 
@@ -18,6 +20,16 @@ public interface AgentCommunicationService {
      * @throws AgentException if agent not found
      */
     Agent updateHeartbeat(String agentId) throws AgentException;
+
+    /**
+     * Records an agent's teardown-outcome report for audit and reaps the agent
+     * record. Idempotent for a repeated report of the same agent + trigger.
+     *
+     * @param agentId the agent's ID
+     * @param request the teardown outcome report
+     * @return the persisted (or pre-existing) audit record
+     */
+    AgentTeardownRecord recordTeardown(String agentId, TeardownReportRequest request);
 
     /**
      * Gets the current plan assigned to the agent.

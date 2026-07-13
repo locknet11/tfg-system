@@ -6,6 +6,8 @@ public class HeartbeatResponse {
     private String status;
     private String lastConnection;
     private boolean hasPlan;
+    private boolean deprovision;
+    private String deprovisionReason;
 
     public HeartbeatResponse() {}
 
@@ -39,5 +41,21 @@ public class HeartbeatResponse {
 
     public void setHasPlan(boolean hasPlan) {
         this.hasPlan = hasPlan;
+    }
+
+    public boolean isDeprovision() {
+        return deprovision;
+    }
+
+    public void setDeprovision(boolean deprovision) {
+        this.deprovision = deprovision;
+    }
+
+    public String getDeprovisionReason() {
+        return deprovisionReason;
+    }
+
+    public void setDeprovisionReason(String deprovisionReason) {
+        this.deprovisionReason = deprovisionReason;
     }
 }

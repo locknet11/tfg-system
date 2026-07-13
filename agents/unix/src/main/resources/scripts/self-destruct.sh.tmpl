@@ -1,0 +1,54 @@
+#!/bin/sh
+# Detached agent self-cleanup. Placeholder values are substituted by
+# ScriptTemplateService (ClassPathResource + String.replace) — this file is the
+# single source of the teardown shell; no part of it is built in Java.
+#
+# Each removal is best-effort and independent (|| true), so one failure never
+# aborts the rest, and every step is idempotent (rm -f / rm -rf on a missing
+# path is a no-op). The script waits for the agent process to exit before
+# unlinking the running binary, then removes itself last.
+
+AGENT_BINARY="{{AGENT_BINARY}}"
+AGENT_PID="{{AGENT_PID}}"
+CONFIG_FILE="{{CONFIG_FILE}}"
+LOG_FILE="{{LOG_FILE}}"
+RAW_DOWNLOAD="{{RAW_DOWNLOAD}}"
+INSTALL_SCRIPT="{{INSTALL_SCRIPT}}"
+TOOLS_DIR="{{TOOLS_DIR}}"
+WORKING_DIR="{{WORKING_DIR}}"
+OS_REGISTRATION="{{OS_REGISTRATION}}"
+SELF="$0"
+
+# Wait (bounded) for the agent process to exit so its binary can be unlinked
+# cleanly after the final report has been flushed.
+if [ -n "$AGENT_PID" ]; then
+    i=0
+    while kill -0 "$AGENT_PID" 2>/dev/null; do
+        i=$((i + 1))
+        if [ "$i" -ge 60 ]; then
+            break
+        fi
+        sleep 1
+    done
+fi
+
+# Working data and configuration (config holds the preauth code + api key).
+[ -n "$CONFIG_FILE" ] && rm -f "$CONFIG_FILE" 2>/dev/null || true
+[ -n "$LOG_FILE" ] && rm -f "$LOG_FILE" 2>/dev/null || true
+[ -n "$RAW_DOWNLOAD" ] && rm -f "$RAW_DOWNLOAD" 2>/dev/null || true
+[ -n "$INSTALL_SCRIPT" ] && rm -f "$INSTALL_SCRIPT" 2>/dev/null || true
+[ -n "$TOOLS_DIR" ] && rm -rf "$TOOLS_DIR" 2>/dev/null || true
+[ -n "$WORKING_DIR" ] && rm -rf "$WORKING_DIR" 2>/dev/null || true
+
+# OS-level registration (systemd unit / launchd plist / cron entry) if present,
+# so the agent is not restarted after teardown.
+if [ -n "$OS_REGISTRATION" ] && [ -e "$OS_REGISTRATION" ]; then
+    rm -f "$OS_REGISTRATION" 2>/dev/null || true
+fi
+
+# The agent binary itself (the kernel kept the inode alive while it ran).
+[ -n "$AGENT_BINARY" ] && rm -f "$AGENT_BINARY" 2>/dev/null || true
+
+# Finally, remove this cleanup script so nothing remains.
+rm -f "$SELF" 2>/dev/null || true
+exit 0

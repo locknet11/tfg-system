@@ -18,6 +18,8 @@ import com.spulido.agent.domain.task.StepAction;
 import com.spulido.agent.domain.task.TaskDefinition;
 import com.spulido.agent.remote.RemoteCommandExecutor;
 import com.spulido.agent.remote.SshSessionProvisioner;
+import com.spulido.agent.teardown.TeardownService;
+import com.spulido.agent.teardown.TeardownTrigger;
 import com.spulido.agent.worker.http.AgentHttpClient;
 import com.spulido.agent.worker.http.dto.PlanResponse;
 import com.spulido.agent.worker.http.dto.PlanStepResponse;
@@ -27,6 +29,7 @@ import com.spulido.agent.worker.step.ExecuteExploitStepHandler;
 import com.spulido.agent.worker.step.NetworkScanStepHandler;
 import com.spulido.agent.worker.step.RemediationStepHandler;
 import com.spulido.agent.worker.step.RequestReplicationStepHandler;
+import com.spulido.agent.worker.step.SelfDestructStepHandler;
 import com.spulido.agent.worker.step.ServiceScanStepHandler;
 import com.spulido.agent.worker.step.StepHandler;
 import com.spulido.agent.worker.step.TransferAgentStepHandler;
@@ -42,6 +45,7 @@ public class WorkerCoordinator {
     private final AgentHttpClient httpClient;
     private final AgentConfig config;
     private final AgentLifecycle agentLifecycle;
+    private final TeardownService teardownService;
 
     private String targetIp;
 
@@ -49,24 +53,33 @@ public class WorkerCoordinator {
                              TaskExecutionService taskExecutionService,
                              AgentHttpClient httpClient,
                              AgentConfig config,
-                             AgentLifecycle agentLifecycle) {
+                             AgentLifecycle agentLifecycle,
+                             TeardownService teardownService) {
         this.executor = executor;
         this.taskExecutionService = taskExecutionService;
         this.httpClient = httpClient;
         this.config = config;
         this.agentLifecycle = agentLifecycle;
+        this.teardownService = teardownService;
     }
 
     int counter = 0;
 
     @Scheduled(fixedDelay = 10000)
     public void pollCentralPlatform() {
+        if (teardownService.isTearingDown()) {
+            log.info("Teardown in progress; skipping poll for new jobs");
+            return;
+        }
         log.info("Polling central platform for jobs");
         executor.submit(this::runJob);
         counter++;
     }
 
     private void runJob() {
+        if (teardownService.isTearingDown()) {
+            return;
+        }
         PlanResponse planResponse = httpClient.fetchPlan();
         if (planResponse == null || planResponse.getSteps() == null || planResponse.getSteps().isEmpty()) {
             log.info("No plan received from central");
@@ -96,6 +109,9 @@ public class WorkerCoordinator {
             log.warn("Job {} failed: {}", job.getJobId(), job.getFailureReason());
         } else if (job.getStatus() == JobStatus.COMPLETED) {
             log.info("Job {} completed successfully", job.getJobId());
+            // Plan finished: all steps completed. The final status has been
+            // reported to central during step execution; now tear the agent down.
+            teardownService.selfDestruct(TeardownTrigger.PLAN_COMPLETION);
         }
     }
 
@@ -129,7 +145,8 @@ public class WorkerCoordinator {
                                                                            AgentConfig agentConfig,
                                                                            ScriptTemplateService scriptTemplateService,
                                                                            RemoteCommandExecutor remoteCommandExecutor,
-                                                                           SshSessionProvisioner sshSessionProvisioner) {
+                                                                           SshSessionProvisioner sshSessionProvisioner,
+                                                                           TeardownService teardownService) {
         Map<StepAction, StepHandler> handlers = new HashMap<>();
         handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
         handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
@@ -146,7 +163,7 @@ public class WorkerCoordinator {
         handlers.put(StepAction.NETWORK_SCAN, new NetworkScanStepHandler(commandExecutor));
         handlers.put(StepAction.GENERATE_REPORT, new EchoStepHandler());
         handlers.put(StepAction.SEND_REPORT, new EchoStepHandler());
-        handlers.put(StepAction.SELF_DESTRUCT, new EchoStepHandler());
+        handlers.put(StepAction.SELF_DESTRUCT, new SelfDestructStepHandler(teardownService));
         return handlers;
     }
 }
