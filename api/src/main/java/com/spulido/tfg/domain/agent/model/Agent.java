@@ -59,6 +59,12 @@ public class Agent extends BaseEntity implements ScopedEntity {
     private String preauthCode;
 
     @Field
+    private boolean deprovisioned;
+
+    @Field
+    private String deprovisionReason;
+
+    @Field
     private String replicatedFrom;
 
     @Field

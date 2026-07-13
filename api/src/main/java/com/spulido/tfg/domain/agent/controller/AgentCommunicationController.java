@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.spulido.tfg.domain.agent.exception.AgentException;
 import com.spulido.tfg.domain.agent.model.Agent;
+import com.spulido.tfg.domain.agent.model.AgentTeardownRecord;
 import com.spulido.tfg.domain.agent.model.dto.HeartbeatResponse;
+import com.spulido.tfg.domain.agent.model.dto.TeardownReportRequest;
+import com.spulido.tfg.domain.agent.model.dto.TeardownReportResponse;
 import com.spulido.tfg.domain.agent.model.dto.UpdateStepRequest;
 import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
 import com.spulido.tfg.domain.plan.model.Plan;
@@ -64,9 +67,24 @@ public class AgentCommunicationController {
                 .status(agent.getStatus().toString())
                 .lastConnection(agent.getLastConnection())
                 .hasPlan(agent.getPlan() != null)
+                .deprovision(agent.isDeprovisioned())
+                .deprovisionReason(agent.getDeprovisionReason())
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Teardown report endpoint - records an agent's self-destruction outcome for
+     * audit and reaps the agent record.
+     */
+    @PostMapping("/teardown")
+    public ResponseEntity<TeardownReportResponse> reportTeardown(
+            @AuthenticationPrincipal String agentId,
+            @Valid @RequestBody TeardownReportRequest request) {
+
+        AgentTeardownRecord record = communicationService.recordTeardown(agentId, request);
+        return ResponseEntity.ok(new TeardownReportResponse(true, record.getId()));
     }
 
     /**

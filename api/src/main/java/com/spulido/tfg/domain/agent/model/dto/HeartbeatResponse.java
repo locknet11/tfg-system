@@ -14,4 +14,6 @@ public class HeartbeatResponse {
     private String status;
     private LocalDateTime lastConnection;
     private boolean hasPlan;
+    private boolean deprovision;
+    private String deprovisionReason;
 }

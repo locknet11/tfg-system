@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import com.spulido.agent.remote.RemoteCommandExecutor;
 import com.spulido.agent.remote.SshRemoteCommandExecutor;
 import com.spulido.agent.remote.SshSessionProvisioner;
+import com.spulido.agent.teardown.TeardownService;
 import com.spulido.agent.worker.CommandExecutor;
 import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.TaskExecutionService;
@@ -126,9 +127,10 @@ public class WorkerPoolConfig {
                                                       AgentConfig agentConfig,
                                                       ScriptTemplateService scriptTemplateService,
                                                       RemoteCommandExecutor remoteCommandExecutor,
-                                                      SshSessionProvisioner sshSessionProvisioner) {
+                                                      SshSessionProvisioner sshSessionProvisioner,
+                                                      TeardownService teardownService) {
         return new TaskExecutionService(commandExecutor,
                 WorkerCoordinator.createDefaultStepHandlers(agentHttpClient, commandExecutor, agentConfig,
-                        scriptTemplateService, remoteCommandExecutor, sshSessionProvisioner));
+                        scriptTemplateService, remoteCommandExecutor, sshSessionProvisioner, teardownService));
     }
 }
