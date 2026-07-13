@@ -115,10 +115,6 @@ public class WorkerCoordinator {
 
     private String mapActionToCommand(StepAction action, PlanStepResponse planStep) {
         switch (action) {
-            case EXPLOITATION_KNOWLEDGE:
-                return "exploitation-knowledge";
-            case REMEDIATE:
-                return "remediate";
             case ECHO:
                 return formatCommand("echo Running step: {}", planStep.getAction());
             default:

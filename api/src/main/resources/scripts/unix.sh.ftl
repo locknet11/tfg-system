@@ -24,6 +24,7 @@ PROJECT_ID="${projectIdentifier}"
 TARGET_ID="${targetUniqueId}"
 CENTRAL_PUBLIC_KEY="${centralPublicKey}"
 
+<#noparse>
 echo "=== Agent Installation ==="
 echo "API URL: $CENTRAL_URL"
 echo "Organization: $ORGANIZATION_ID"
@@ -195,3 +196,4 @@ fi
 rm -f /tmp/agent_raw
 
 echo "INSTALL_OK"
+</#noparse>
