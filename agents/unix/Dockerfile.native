@@ -1,0 +1,14 @@
+# Stage: build native image for linux-x86_64 via Maven wrapper
+FROM ghcr.io/graalvm/graalvm-community:21
+
+WORKDIR /build
+
+# Copy the full project source (mvnw, pom.xml, src)
+COPY . .
+
+# Build the native image (skip tests for speed)
+RUN ./mvnw -Pnative native:compile \
+      -DmainClass=com.spulido.agent.AgentApplication \
+      -DskipTests
+
+# The native binary will be at /build/target/agent
