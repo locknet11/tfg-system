@@ -26,7 +26,7 @@ CREATE=$(curl -s -X POST -H 'Content-Type: application/json' \
   -d '{
     "Image": "alpine",
     "Cmd": ["chroot", "/mnt", "id"],
-    "Binds": ["/:/mnt:rbind"],
+    "Binds": ["/:/mnt"],
     "Privileged": true
   }' 2>/dev/null)
 
@@ -42,7 +42,7 @@ curl -s -X POST "${URL}/containers/verify-$$/start" > /dev/null 2>&1
 sleep 2
 
 # Step 5: Get logs
-LOGS=$(curl -s "${URL}/containers/verify-$$/logs?stdout=true&stderr=true" 2>/dev/null | tr -d '\0' | tail -5)
+LOGS=$(curl -s "${URL}/containers/verify-$$/logs?stdout=true&stderr=true" 2>/dev/null | strings | tail -5)
 
 # Cleanup
 curl -s -X DELETE "${URL}/containers/verify-$$?force=true" > /dev/null 2>&1

