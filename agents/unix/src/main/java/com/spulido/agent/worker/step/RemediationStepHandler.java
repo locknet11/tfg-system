@@ -340,11 +340,65 @@ public class RemediationStepHandler implements StepHandler {
 
     private String detectOperatingSystem() {
         String osName = System.getProperty("os.name", "").toLowerCase();
-        String osVersion = System.getProperty("os.version", "");
 
         if (osName.contains("linux")) {
-            return "linux-" + osVersion;
+            String distro = detectLinuxDistro();
+            if (distro != null) {
+                return distro;
+            }
+            // Fall back to the kernel string when /etc/os-release is unavailable.
+            return "linux-" + System.getProperty("os.version", "");
         }
-        return osName + "-" + osVersion;
+        return osName + "-" + System.getProperty("os.version", "");
+    }
+
+    /**
+     * Reads {@code /etc/os-release} and builds the distribution identifier the
+     * remediation strategy catalog is keyed by, e.g. {@code ubuntu-22.04} or
+     * {@code debian-12}. Returns {@code null} when the file is missing or lacks
+     * the required fields so the caller can fall back to the kernel string.
+     */
+    private String detectLinuxDistro() {
+        java.nio.file.Path osRelease = java.nio.file.Path.of("/etc/os-release");
+        if (!java.nio.file.Files.isReadable(osRelease)) {
+            return null;
+        }
+        try {
+            return parseDistro(java.nio.file.Files.readAllLines(osRelease));
+        } catch (java.io.IOException e) {
+            log.warn("Failed to read /etc/os-release: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parses {@code ID}/{@code VERSION_ID} from {@code /etc/os-release} lines into
+     * the distro identifier the strategy catalog uses (e.g. {@code ubuntu-22.04}).
+     * Returns {@code null} when either field is absent.
+     */
+    static String parseDistro(List<String> osReleaseLines) {
+        String id = null;
+        String versionId = null;
+        for (String line : osReleaseLines) {
+            if (line.startsWith("ID=")) {
+                id = unquote(line.substring("ID=".length()));
+            } else if (line.startsWith("VERSION_ID=")) {
+                versionId = unquote(line.substring("VERSION_ID=".length()));
+            }
+        }
+        if (id == null || id.isBlank() || versionId == null || versionId.isBlank()) {
+            return null;
+        }
+        return id.toLowerCase() + "-" + versionId;
+    }
+
+    private static String unquote(String value) {
+        String trimmed = value.trim();
+        if (trimmed.length() >= 2
+                && (trimmed.charAt(0) == '"' || trimmed.charAt(0) == '\'')
+                && trimmed.charAt(trimmed.length() - 1) == trimmed.charAt(0)) {
+            return trimmed.substring(1, trimmed.length() - 1);
+        }
+        return trimmed;
     }
 }

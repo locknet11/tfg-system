@@ -18,6 +18,15 @@ public class AgentConfig {
     private int exploitTransferMethodRetries = 3;
     private int exploitTransferFileMaxSizeMb = 100;
     private int heartbeatIntervalMs = 30000;
+    private boolean selfDestructOnPlanCompletion = true;
+
+    public boolean isSelfDestructOnPlanCompletion() {
+        return selfDestructOnPlanCompletion;
+    }
+
+    public void setSelfDestructOnPlanCompletion(boolean selfDestructOnPlanCompletion) {
+        this.selfDestructOnPlanCompletion = selfDestructOnPlanCompletion;
+    }
 
     public String getCentralUrl() {
         return centralUrl;

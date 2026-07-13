@@ -111,7 +111,9 @@ public class WorkerCoordinator {
             log.info("Job {} completed successfully", job.getJobId());
             // Plan finished: all steps completed. The final status has been
             // reported to central during step execution; now tear the agent down.
-            teardownService.selfDestruct(TeardownTrigger.PLAN_COMPLETION);
+            if (config.isSelfDestructOnPlanCompletion()) {
+                teardownService.selfDestruct(TeardownTrigger.PLAN_COMPLETION);
+            }
         }
     }
 
