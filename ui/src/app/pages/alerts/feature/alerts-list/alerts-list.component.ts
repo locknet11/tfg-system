@@ -61,6 +61,10 @@ export class AlertsListComponent {
 
   filteredAlerts = computed(() => this.alertsSig());
 
+  enabledLabel(enabled: boolean): string {
+    return enabled ? $localize`Enabled` : $localize`Disabled`;
+  }
+
   whenConditionLabel = whenConditionLabel;
 
   ngOnInit() {}

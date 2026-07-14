@@ -1,0 +1,11 @@
+# Terraform state (may contain sensitive values) and local artifacts
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+.build/
+crash.log
+
+# Secrets / per-user config
+terraform.tfvars
+*.auto.tfvars

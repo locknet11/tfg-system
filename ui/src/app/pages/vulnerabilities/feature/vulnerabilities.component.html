@@ -23,27 +23,15 @@
   <!-- Severity Distribution Summary -->
   <div class="flex gap-3 mb-4 flex-wrap">
     @if (statsLoading()) {
-    <p-skeleton width="5rem" height="2rem"></p-skeleton>
-    <p-skeleton width="5rem" height="2rem"></p-skeleton>
-    <p-skeleton width="5rem" height="2rem"></p-skeleton>
-    <p-skeleton width="5rem" height="2rem"></p-skeleton>
+      <p-skeleton width="5rem" height="2rem"></p-skeleton>
+      <p-skeleton width="5rem" height="2rem"></p-skeleton>
+      <p-skeleton width="5rem" height="2rem"></p-skeleton>
+      <p-skeleton width="5rem" height="2rem"></p-skeleton>
     } @else if (statistics()) {
-    <p-tag
-      severity="danger"
-      [value]="'Critical: ' + statistics()!.bySeverity['CRITICAL']">
-    </p-tag>
-    <p-tag
-      severity="warning"
-      [value]="'High: ' + statistics()!.bySeverity['HIGH']">
-    </p-tag>
-    <p-tag
-      severity="info"
-      [value]="'Medium: ' + statistics()!.bySeverity['MEDIUM']">
-    </p-tag>
-    <p-tag
-      severity="success"
-      [value]="'Low: ' + statistics()!.bySeverity['LOW']">
-    </p-tag>
+      <p-tag severity="danger" [value]="severitySummary('CRITICAL')"> </p-tag>
+      <p-tag severity="warning" [value]="severitySummary('HIGH')"> </p-tag>
+      <p-tag severity="info" [value]="severitySummary('MEDIUM')"> </p-tag>
+      <p-tag severity="success" [value]="severitySummary('LOW')"> </p-tag>
     }
   </div>
 
@@ -85,13 +73,13 @@
         <td>
           <p-tag
             *ngIf="record.maxSeverity"
-            [value]="record.maxSeverity"
+            [value]="severityLabel(record.maxSeverity)"
             [severity]="getSeverityClass(record.maxSeverity)"></p-tag>
           <span *ngIf="!record.maxSeverity" class="no-data" i18n>None</span>
         </td>
         <td>
           <p-tag
-            [value]="record.status"
+            [value]="vulnStatusLabel(record.status)"
             [severity]="
               record.status === 'FETCHED' ? 'success' : 'info'
             "></p-tag>
@@ -111,11 +99,7 @@
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="7" class="text-center p-4">
-          {{
-            querySig()
-              ? emptySearchMessage
-              : emptyMessage
-          }}
+          {{ querySig() ? emptySearchMessage : emptyMessage }}
         </td>
       </tr>
     </ng-template>

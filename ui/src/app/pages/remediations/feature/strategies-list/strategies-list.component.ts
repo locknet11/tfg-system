@@ -51,6 +51,8 @@ export class StrategiesListComponent {
   filterAction = '';
 
   readonly emptyMessage = $localize`No remediation strategies found.`;
+  readonly yesLabel = $localize`Yes`;
+  readonly noLabel = $localize`No`;
 
   osOptions = [
     { label: $localize`All`, value: '' },
@@ -69,11 +71,11 @@ export class StrategiesListComponent {
 
   actionOptions = [
     { label: $localize`All`, value: '' },
-    { label: 'APT Upgrade', value: 'APT_UPGRADE' },
-    { label: 'APT Install', value: 'APT_INSTALL' },
-    { label: 'Config Update', value: 'CONFIG_UPDATE' },
-    { label: 'Systemctl Restart', value: 'SYSTEMCTL_RESTART' },
-    { label: 'Manual', value: 'MANUAL' },
+    { label: $localize`APT Upgrade`, value: 'APT_UPGRADE' },
+    { label: $localize`APT Install`, value: 'APT_INSTALL' },
+    { label: $localize`Config Update`, value: 'CONFIG_UPDATE' },
+    { label: $localize`Systemctl Restart`, value: 'SYSTEMCTL_RESTART' },
+    { label: $localize`Manual`, value: 'MANUAL' },
   ];
 
   constructor() {
@@ -135,15 +137,15 @@ export class StrategiesListComponent {
   getActionLabel(action: RemediationAction): string {
     switch (action) {
       case 'APT_UPGRADE':
-        return 'APT Upgrade';
+        return $localize`APT Upgrade`;
       case 'APT_INSTALL':
-        return 'APT Install';
+        return $localize`APT Install`;
       case 'CONFIG_UPDATE':
-        return 'Config Update';
+        return $localize`Config Update`;
       case 'SYSTEMCTL_RESTART':
-        return 'Systemctl Restart';
+        return $localize`Systemctl Restart`;
       case 'MANUAL':
-        return 'Manual';
+        return $localize`Manual`;
       default:
         return action;
     }

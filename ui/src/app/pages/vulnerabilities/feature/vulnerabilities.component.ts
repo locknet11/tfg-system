@@ -12,8 +12,39 @@ import { TagModule } from 'primeng/tag';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { VulnerabilityListItem, VulnerabilityStatistics } from '../data-access/vulnerabilities.model';
+import {
+  VulnerabilityListItem,
+  VulnerabilityStatistics,
+} from '../data-access/vulnerabilities.model';
 import { VulnerabilitiesService } from '../data-access/vulnerabilities.service';
+
+export function severityLabel(severity: string | null): string {
+  switch (severity) {
+    case 'CRITICAL':
+      return $localize`Critical`;
+    case 'HIGH':
+      return $localize`High`;
+    case 'MEDIUM':
+      return $localize`Medium`;
+    case 'LOW':
+      return $localize`Low`;
+    case 'UNKNOWN':
+      return $localize`Unknown`;
+    default:
+      return severity ?? '';
+  }
+}
+
+export function vulnStatusLabel(status: string): string {
+  switch (status) {
+    case 'FETCHED':
+      return $localize`Fetched`;
+    case 'NO_RESULTS':
+      return $localize`No results`;
+    default:
+      return status;
+  }
+}
 
 @Component({
   selector: 'app-vulnerabilities',
@@ -99,6 +130,15 @@ export class VulnerabilitiesComponent {
     this.router.navigate(['/vulnerabilities', record.serviceKey]);
   }
 
+  severityLabel = severityLabel;
+  vulnStatusLabel = vulnStatusLabel;
+
+  severitySummary(severity: string): string {
+    const count = this.statistics()?.bySeverity[severity] ?? 0;
+    const label = severityLabel(severity);
+    return `${label}: ${count}`;
+  }
+
   getSeverityClass(
     severity: string | null
   ): 'danger' | 'warning' | 'info' | 'success' | undefined {
@@ -126,7 +166,7 @@ export class VulnerabilitiesComponent {
         this.selectedSeverity || undefined
       )
       .subscribe({
-        next: (res) => {
+        next: res => {
           this.records.set(res.content);
           this.totalSig.set(res.totalElements);
           this.loadingSig.set(false);
@@ -143,7 +183,7 @@ export class VulnerabilitiesComponent {
         this.selectedSeverity || undefined
       )
       .subscribe({
-        next: (stats) => {
+        next: stats => {
           this.statistics.set(stats);
           this.statsLoading.set(false);
         },

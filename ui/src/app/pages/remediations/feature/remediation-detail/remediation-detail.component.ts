@@ -62,6 +62,20 @@ export class RemediationDetailComponent implements OnInit {
     }
   }
 
+  getRemediationTypeLabel(type: string): string {
+    switch (type) {
+      case 'SERVICE_UPDATE':
+        return $localize`Service Update`;
+      case 'REBOOT_REQUIRED':
+        return $localize`Reboot Required`;
+      case 'KERNEL_UPDATE':
+        return $localize`Kernel Update`;
+      case 'UNKNOWN':
+      default:
+        return $localize`Unknown`;
+    }
+  }
+
   getStatusLabel(status: string): string {
     switch (status) {
       case 'SUCCESS':

@@ -1,0 +1,28 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+region  = "us-east-1"
+project = "tfg-vuln-lab"
+
+# Your SSH public key (used to reach the instances).
+ssh_public_key = "ssh-ed25519 AAAA... you@host"
+
+# IP allow-list. These are DELIBERATELY VULNERABLE hosts — keep both to /32.
+# Your workstation:      curl -s ifconfig.me
+admin_cidr = "203.0.113.7/32"
+# Your control-plane VPS (set equal to admin_cidr if the API runs on your laptop):
+central_cidr = "198.51.100.9/32"
+
+# Sizing (t3.micro = 2 GiB recommended for the docker-lab host).
+docker_lab_instance_type = "t3.micro"
+target_vm_instance_type  = "t2.micro"
+target_vm_count          = 2
+
+# Each target VM installs a vulnerable OpenSSH on the HOST (CVE-2024-6387 regreSSHion)
+# so the agent can detect AND remediate it (real remediation, not container-skipped).
+openssh_vulnerable_version = "1:8.9p1-3"
+
+# OPTIONAL extra vulnerable containers per target VM (default: none). Adding these opens
+# their host_port in the SG, but the agent skips remediation for containers.
+# target_vm_services = [
+#   { name = "drupal", host_port = 8081, container_port = 80, image = "vulhub/drupal:8.5.0" },
+# ]

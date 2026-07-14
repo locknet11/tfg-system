@@ -1,0 +1,45 @@
+#!/bin/bash
+# Bootstrap for a standalone target VM: a REAL host the agent can remediate.
+# Installs a genuinely vulnerable OpenSSH (CVE-2024-6387 "regreSSHion") directly on
+# the host OS, so the platform detects it and runs a real apt remediation that upgrades
+# it to the patched build. Optionally also runs extra vulnerable containers.
+# Progress log: /var/log/target-bootstrap.log
+set -euxo pipefail
+exec > /var/log/target-bootstrap.log 2>&1
+echo "=== target bootstrap start $(date -u) ==="
+
+# --- swap ---
+if [ ! -f /swapfile ]; then
+  fallocate -l ${swap_gb}G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+export DEBIAN_FRONTEND=noninteractive
+
+# --- keep the target vulnerable until the agent fixes it: stop automatic patching ---
+systemctl disable --now unattended-upgrades apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+
+# --- install the VULNERABLE OpenSSH on the host (CVE-2024-6387 regreSSHion) ---
+# ${openssh_version} is the frozen jammy GA build (pre-fix). The platform remediates it
+# with `apt-get install -y openssh-server`, upgrading to the patched 1:8.9p1-3ubuntu0.10+.
+# NOTE: not apt-mark hold'd, so the agent's remediation can upgrade it.
+apt-get update -y
+apt-get install -y --allow-downgrades \
+  openssh-server=${openssh_version} \
+  openssh-client=${openssh_version} \
+  openssh-sftp-server=${openssh_version}
+systemctl enable --now ssh
+
+# --- optional extra vulnerable containers (remediation is skipped for these) ---
+%{ if length(services) > 0 ~}
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+%{ for s in services ~}
+docker run -d --restart=always --name ${s.name} -p ${s.host_port}:${s.container_port} ${s.image}
+%{ endfor ~}
+%{ endif ~}
+
+echo "=== target bootstrap done $(date -u) ==="

@@ -94,9 +94,7 @@ export class AssignPlanModalComponent implements OnInit, OnChanges {
     const justOpened =
       changes['showModal'] && changes['showModal'].currentValue === true;
     const agentSwitchedWhileOpen =
-      changes['agentId'] &&
-      !changes['agentId'].firstChange &&
-      this.showModal;
+      changes['agentId'] && !changes['agentId'].firstChange && this.showModal;
 
     if (justOpened || agentSwitchedWhileOpen) {
       this.resetModalState();
@@ -139,8 +137,8 @@ export class AssignPlanModalComponent implements OnInit, OnChanges {
       error: err => {
         this.messageService.add({
           severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load templates: ${err.message}`,
+          summary: $localize`Error`,
+          detail: $localize`Failed to load templates`,
         });
       },
     });
@@ -194,8 +192,8 @@ export class AssignPlanModalComponent implements OnInit, OnChanges {
         next: () => {
           this.messageService.add({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Plan assigned successfully',
+            summary: $localize`Success`,
+            detail: $localize`Plan assigned successfully`,
           });
           this.closeModal();
           this.planAssigned.emit();
@@ -203,8 +201,8 @@ export class AssignPlanModalComponent implements OnInit, OnChanges {
         error: err => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Error',
-            detail: `Failed to assign plan: ${err.message}`,
+            summary: $localize`Error`,
+            detail: $localize`Failed to assign plan`,
           });
         },
       })
@@ -248,9 +246,31 @@ export class AssignPlanModalComponent implements OnInit, OnChanges {
   }
 
   formatActionLabel(action: StepAction): string {
-    return action
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, l => l.toUpperCase());
+    switch (action) {
+      case StepAction.SYSTEM_SCAN:
+        return $localize`System scan`;
+      case StepAction.SERVICE_SCAN:
+        return $localize`Service scan`;
+      case StepAction.NETWORK_SCAN:
+        return $localize`Network scan`;
+      case StepAction.GENERATE_REPORT:
+        return $localize`Generate report`;
+      case StepAction.SEND_REPORT:
+        return $localize`Send report`;
+      case StepAction.EXPLOITATION_KNOWLEDGE:
+        return $localize`Exploitation knowledge`;
+      case StepAction.REQUEST_REPLICATION:
+        return $localize`Request replication`;
+      case StepAction.EXECUTE_EXPLOIT:
+        return $localize`Execute exploit`;
+      case StepAction.TRANSFER_AGENT:
+        return $localize`Transfer agent`;
+      case StepAction.REPLICATE:
+        return $localize`Replicate`;
+      case StepAction.SELF_DESTRUCT:
+        return $localize`Self destruct`;
+      default:
+        return action;
+    }
   }
 }

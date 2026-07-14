@@ -129,7 +129,7 @@
           <span
             [class.reboot-yes]="strategy.requiresReboot"
             [class.reboot-no]="!strategy.requiresReboot">
-            {{ strategy.requiresReboot ? 'Yes' : 'No' }}
+            {{ strategy.requiresReboot ? yesLabel : noLabel }}
           </span>
         </td>
       </tr>

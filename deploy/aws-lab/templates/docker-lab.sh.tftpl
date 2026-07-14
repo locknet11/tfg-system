@@ -1,0 +1,53 @@
+#!/bin/bash
+# Bootstrap for the docker-lab host: installs Docker, adds swap, pulls the lab/
+# bundle from S3, and installs a systemd unit that brings the lab up on every boot
+# (so stop/start and reboots recover automatically — the compose has no restart policy).
+# Progress log: /var/log/lab-bootstrap.log
+set -euxo pipefail
+exec > /var/log/lab-bootstrap.log 2>&1
+echo "=== docker-lab bootstrap start $(date -u) ==="
+
+# --- swap (headroom for exploitation/remediation spikes) ---
+if [ ! -f /swapfile ]; then
+  fallocate -l ${swap_gb}G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# --- packages + Docker (compose v2 plugin included by get.docker.com) ---
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y unzip awscli
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+
+# --- fetch the lab bundle uploaded by Terraform ---
+aws s3 cp "s3://${bucket}/${lab_key}" /root/lab.zip --region ${region}
+rm -rf /root/lab && mkdir -p /root/lab
+unzip -o /root/lab.zip -d /root/lab
+
+# --- systemd unit so the lab starts on every boot (survives stop/start) ---
+cat > /etc/systemd/system/lab-compose.service <<'UNIT'
+[Unit]
+Description=TFG vulnerable lab (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/root/lab
+ExecStart=/usr/bin/docker compose up -d --build
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now lab-compose.service
+
+echo "=== docker-lab bootstrap done $(date -u) ==="

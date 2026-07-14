@@ -8,7 +8,7 @@
           height="60"
           class="mb-4" />
         <div class="text-600 text-sm" i18n>
-          Configure la cuenta de administrador inicial.
+          Configure the initial administrator account.
         </div>
       </div>
 
@@ -17,7 +17,8 @@
           <input
             [ngClass]="markErrors('fullName')"
             formControlName="fullName"
-            placeholder="Nombre"
+            placeholder="Full name"
+            i18n-placeholder
             type="text"
             pInputText
             class="w-full p-3" />
@@ -27,7 +28,8 @@
           <input
             [ngClass]="markErrors('email')"
             formControlName="email"
-            placeholder="Correo Electrónico"
+            placeholder="Email"
+            i18n-placeholder
             type="email"
             pInputText
             class="w-full p-3" />
@@ -37,7 +39,8 @@
           <p-password
             [ngClass]="markErrors('password')"
             formControlName="password"
-            placeholder="Contraseña"
+            placeholder="Password"
+            i18n-placeholder
             [toggleMask]="true"
             [feedback]="false"
             styleClass="w-full"
@@ -49,7 +52,8 @@
           <p-password
             [ngClass]="markErrors('confirmPassword')"
             formControlName="confirmPassword"
-            placeholder="Confirmar Contraseña"
+            placeholder="Confirm password"
+            i18n-placeholder
             [toggleMask]="true"
             [feedback]="false"
             styleClass="w-full"
@@ -71,7 +75,7 @@
           [disabled]="setupForm.invalid"
           i18n-label
           pButton
-          label="Configurar Administrador"
+          label="Configure Administrator"
           pRipple
           class="w-full p-3 mt-2"></button>
       </div>

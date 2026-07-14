@@ -60,7 +60,7 @@ export class EditTargetModalComponent {
   ];
 
   operatingSystems: SelectItem[] = [
-    { label: 'Linux', value: OperatingSystem.LINUX },
+    { label: $localize`Linux`, value: OperatingSystem.LINUX },
   ];
 
   constructor(

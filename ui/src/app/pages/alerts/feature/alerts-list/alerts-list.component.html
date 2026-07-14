@@ -51,7 +51,7 @@
         </td>
         <td>
           <p-tag
-            [value]="alert.enabled ? 'Enabled' : 'Disabled'"
+            [value]="enabledLabel(alert.enabled)"
             [severity]="alert.enabled ? 'success' : 'danger'"></p-tag>
         </td>
         <td>

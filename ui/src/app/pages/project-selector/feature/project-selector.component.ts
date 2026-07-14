@@ -102,8 +102,8 @@ export class ProjectSelectorComponent implements OnInit, OnDestroy {
   // Setup wizard properties
   setupWizardActiveIndex = 0;
   setupWizardItems: MenuItem[] = [
-    { label: 'Organization' },
-    { label: 'Project' },
+    { label: $localize`Organization` },
+    { label: $localize`Project` },
   ];
 
   loading = false;

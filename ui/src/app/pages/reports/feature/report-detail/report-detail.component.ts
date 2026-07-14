@@ -74,6 +74,8 @@ export class ReportDetailComponent implements OnInit {
     },
   };
 
+  backTooltip = $localize`Back to reports`;
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -95,6 +97,42 @@ export class ReportDetailComponent implements OnInit {
     const minutes = Math.floor(seconds / 60);
     const remaining = seconds % 60;
     return minutes > 0 ? `${minutes}m ${remaining}s` : `${remaining}s`;
+  }
+
+  severityLabel(severity: string | null): string {
+    switch (severity) {
+      case 'CRITICAL':
+        return $localize`Critical`;
+      case 'HIGH':
+        return $localize`High`;
+      case 'MEDIUM':
+        return $localize`Medium`;
+      case 'LOW':
+        return $localize`Low`;
+      case 'UNKNOWN':
+        return $localize`Unknown`;
+      default:
+        return severity ?? '';
+    }
+  }
+
+  remediationStatusLabel(status: RemediationStatus): string {
+    switch (status) {
+      case 'SUCCESS':
+        return $localize`Success`;
+      case 'FAILED':
+        return $localize`Failed`;
+      case 'PENDING':
+        return $localize`Pending`;
+      case 'IN_PROGRESS':
+        return $localize`In Progress`;
+      case 'SKIPPED':
+        return $localize`Skipped`;
+      case 'PENDING_REBOOT':
+        return $localize`Pending Reboot`;
+      default:
+        return status;
+    }
   }
 
   getStatusSeverity(
@@ -149,6 +187,17 @@ export class ReportDetailComponent implements OnInit {
     );
   }
 
+  private translateChartKey(
+    key: string,
+    colors: Record<string, string>
+  ): string {
+    const isSeverityChart = 'CRITICAL' in colors;
+    if (isSeverityChart) {
+      return this.severityLabel(key);
+    }
+    return this.remediationStatusLabel(key as RemediationStatus);
+  }
+
   private toChart(
     counts: Readonly<Record<string, number>>,
     colors: Record<string, string>
@@ -159,7 +208,7 @@ export class ReportDetailComponent implements OnInit {
 
     Object.entries(counts).forEach(([key, value]) => {
       if (value > 0) {
-        labels.push(key);
+        labels.push(this.translateChartKey(key, colors));
         data.push(value);
         backgroundColor.push(colors[key] ?? '#9E9E9E');
       }

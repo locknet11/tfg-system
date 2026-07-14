@@ -50,12 +50,12 @@ export class ReplicationRequestsComponent {
   severityFilter = signal<string | null>(null);
 
   readonly statusOptions = Object.values(ReplicationRequestStatus).map(s => ({
-    label: s,
+    label: this.statusLabel(s),
     value: s,
   }));
 
   readonly severityOptions = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(s => ({
-    label: s,
+    label: this.severityLabel(s),
     value: s,
   }));
 
@@ -130,6 +130,36 @@ export class ReplicationRequestsComponent {
         });
       },
     });
+  }
+
+  statusLabel(status: ReplicationRequestStatus): string {
+    switch (status) {
+      case ReplicationRequestStatus.PENDING:
+        return $localize`Pending`;
+      case ReplicationRequestStatus.APPROVED:
+        return $localize`Approved`;
+      case ReplicationRequestStatus.DENIED:
+        return $localize`Denied`;
+      case ReplicationRequestStatus.EXPIRED:
+        return $localize`Expired`;
+      default:
+        return status;
+    }
+  }
+
+  severityLabel(severity: string): string {
+    switch (severity) {
+      case 'CRITICAL':
+        return $localize`Critical`;
+      case 'HIGH':
+        return $localize`High`;
+      case 'MEDIUM':
+        return $localize`Medium`;
+      case 'LOW':
+        return $localize`Low`;
+      default:
+        return severity;
+    }
   }
 
   severityTag(severity: string): 'success' | 'warning' | 'danger' | 'info' {

@@ -4,6 +4,8 @@
       icon="pi pi-arrow-left"
       [rounded]="true"
       [text]="true"
+      pTooltip="Back to reports"
+      i18n-pTooltip
       (onClick)="back()">
     </p-button>
     <h1 class="text-3xl font-bold m-0">
@@ -92,12 +94,12 @@
       <ng-template pTemplate="body" let-item>
         <tr>
           <td>{{ item.cveId }}</td>
-          <td>{{ item.severity }}</td>
+          <td>{{ severityLabel(item.severity) }}</td>
           <td>{{ item.cvssScore ?? '-' }}</td>
           <td>{{ item.targetName ?? item.targetId }}</td>
           <td>
             <p-tag
-              [value]="item.remediationStatus"
+              [value]="remediationStatusLabel(item.remediationStatus)"
               [severity]="getStatusSeverity(item.remediationStatus)">
             </p-tag>
           </td>
