@@ -15,6 +15,8 @@
           [(ngModel)]="selectedTargetId"
           optionLabel="label"
           optionValue="value"
+          placeholder="Select target"
+          i18n-placeholder
           [style]="{ width: '100%' }"
           appendTo="body">
         </p-dropdown>
@@ -24,6 +26,8 @@
         <p-calendar
           [(ngModel)]="dateFrom"
           [showTime]="true"
+          placeholder="Start date"
+          i18n-placeholder
           [style]="{ width: '100%' }"
           appendTo="body">
         </p-calendar>
@@ -33,6 +37,8 @@
         <p-calendar
           [(ngModel)]="dateTo"
           [showTime]="true"
+          placeholder="End date"
+          i18n-placeholder
           [style]="{ width: '100%' }"
           appendTo="body">
         </p-calendar>
@@ -44,6 +50,8 @@
           [(ngModel)]="selectedSeverities"
           optionLabel="label"
           optionValue="value"
+          placeholder="Select severities"
+          i18n-placeholder
           [style]="{ width: '100%' }"
           appendTo="body">
         </p-multiSelect>
@@ -55,6 +63,8 @@
           [(ngModel)]="selectedStatuses"
           optionLabel="label"
           optionValue="value"
+          placeholder="Select statuses"
+          i18n-placeholder
           [style]="{ width: '100%' }"
           appendTo="body">
         </p-multiSelect>
@@ -75,33 +85,38 @@
 
   <p-table
     [value]="reports()"
-    [tableStyle]="{ 'min-width': '50rem' }"
+    [tableStyle]="{ width: '100%' }"
+    styleClass="reports-table"
     [loading]="loadingSig()"
     [paginator]="true"
     [alwaysShowPaginator]="true"
     [rows]="sizeSig()"
     [totalRecords]="totalSig()"
     [lazy]="true"
+    [lazyLoadOnInit]="true"
     (onLazyLoad)="onLazyLoad($event)"
-    [rowsPerPageOptions]="[10, 20, 50]"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [dataKey]="'id'"
     i18n-currentPageReportTemplate
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     [showCurrentPageReport]="true">
     <ng-template pTemplate="header">
       <tr>
-        <th i18n>TITLE</th>
-        <th i18n>TYPE</th>
-        <th i18n>GENERATED</th>
-        <th i18n>BY</th>
-        <th i18n>VULNERABILITIES</th>
-        <th i18n>REMEDIATIONS</th>
-        <th i18n>TARGETS</th>
+        <th i18n style="width: 16rem">TITLE</th>
+        <th i18n style="width: 7rem">TYPE</th>
+        <th i18n style="width: 8rem">GENERATED</th>
+        <th i18n style="width: 12rem">BY</th>
+        <th i18n style="width: 6rem">VULNERABILITIES</th>
+        <th i18n style="width: 6rem">REMEDIATIONS</th>
+        <th i18n style="width: 5rem">TARGETS</th>
         <th style="width: 8rem"></th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-report>
       <tr>
-        <td>{{ report.title }}</td>
+        <td>
+          <span class="report-title">{{ report.title }}</span>
+        </td>
         <td>
           <p-tag
             [value]="getGenerationTypeLabel(report.generationType)"
@@ -110,8 +125,10 @@
             ">
           </p-tag>
         </td>
-        <td>{{ formatDate(report.generatedAt) }}</td>
-        <td>{{ report.generatedBy }}</td>
+        <td>{{ report.generatedAt | date: 'short' }}</td>
+        <td>
+          <span class="report-author">{{ report.generatedBy }}</span>
+        </td>
         <td>{{ report.totalVulnerabilities }}</td>
         <td>{{ report.totalRemediations }}</td>
         <td>{{ report.targetsCovered }}</td>
@@ -121,7 +138,10 @@
               icon="pi pi-eye"
               [rounded]="true"
               [text]="true"
-              (onClick)="viewDetail(report)">
+              (onClick)="viewDetail(report)"
+              pTooltip="View details"
+              i18n-pTooltip
+              tooltipPosition="top">
             </p-button>
           </div>
         </td>

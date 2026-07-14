@@ -11,6 +11,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { ToastService } from 'src/app/shared/services/toast.service';
 import { TargetInfo } from '../../../targets/data-access/targets.model';
@@ -39,6 +40,7 @@ interface Option<T> {
     TableModule,
     ButtonModule,
     TagModule,
+    TooltipModule,
     CardModule,
     DropdownModule,
     MultiSelectModule,
@@ -89,7 +91,6 @@ export class ReportsListComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadReports();
     this.loadTargets();
   }
 
@@ -138,11 +139,6 @@ export class ReportsListComponent implements OnInit {
 
   getGenerationTypeLabel(type: GenerationType): string {
     return type === 'SCHEDULED' ? $localize`Automatic` : $localize`On demand`;
-  }
-
-  formatDate(dateStr: string | null): string {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleString();
   }
 
   private isEmptyResult(err: HttpErrorResponse): boolean {

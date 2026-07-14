@@ -47,6 +47,7 @@ public class ReportServiceImpl implements ReportService {
 
     private static final String UNKNOWN_SEVERITY = "UNKNOWN";
     private static final List<String> SEVERITY_ORDER = List.of("CRITICAL", "HIGH", "MEDIUM", "LOW", UNKNOWN_SEVERITY);
+    private static final int TARGET_PAGE_SIZE = 1000;
 
     private final ReportRepository reportRepository;
     private final RemediationRecordRepository remediationRepository;
@@ -76,17 +77,17 @@ public class ReportServiceImpl implements ReportService {
 
         ReportGenerateRequest filters = request != null ? request : ReportGenerateRequest.builder().build();
 
+        TargetIndex targetIndex = buildTargetIndex();
         List<RemediationRecord> records = loadRecords(orgId, projectId, filters);
-        records = applyInMemoryFilters(records, filters);
+        records = applyInMemoryFilters(records, filters, targetIndex);
 
         Map<String, CveEntry> cveIndex = buildCveIndex(records);
-        Map<String, String> targetNames = new HashMap<>();
 
         List<ReportItem> items = new ArrayList<>();
         List<RemediationRecord> kept = new ArrayList<>();
         List<String> severityFilter = normalizeSeverities(filters.getSeverities());
         for (RemediationRecord record : records) {
-            ReportItem item = toItem(record, cveIndex, targetNames);
+            ReportItem item = toItem(record, cveIndex, targetIndex);
             if (!severityFilter.isEmpty() && !severityFilter.contains(item.getSeverity())) {
                 continue;
             }
@@ -157,15 +158,22 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private List<RemediationRecord> applyInMemoryFilters(List<RemediationRecord> records,
-            ReportGenerateRequest filters) {
+            ReportGenerateRequest filters, TargetIndex targetIndex) {
         String targetId = filters.getTargetId();
+        Target selectedTarget = targetIndex.selected(targetId);
+        String selectedHost = selectedTarget != null ? canonicalHost(selectedTarget.getIpOrDomain()) : null;
         List<RemediationStatus> statuses = filters.getStatuses();
         Instant from = filters.getFrom();
         Instant to = filters.getTo();
         boolean bothBounds = from != null && to != null;
 
         return records.stream()
-                .filter(r -> targetId == null || targetId.isBlank() || targetId.equals(r.getTargetId()))
+                // A stored targetId is a host/IP for agent-reported records but a Target id for others, so a
+                // target-scoped report matches either the Target's id or its host/IP (loopback forms such as
+                // 127.0.0.1 and ::1 are treated as equivalent).
+                .filter(r -> targetId == null || targetId.isBlank()
+                        || targetId.equals(r.getTargetId())
+                        || (selectedHost != null && selectedHost.equals(canonicalHost(r.getTargetId()))))
                 .filter(r -> statuses == null || statuses.isEmpty() || statuses.contains(r.getStatus()))
                 // Single-sided date bounds (both-bounds case already handled by the query).
                 .filter(r -> bothBounds || from == null
@@ -195,7 +203,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private ReportItem toItem(RemediationRecord record, Map<String, CveEntry> cveIndex,
-            Map<String, String> targetNames) {
+            TargetIndex targetIndex) {
         CveEntry cve = record.getCveId() != null ? cveIndex.get(record.getCveId()) : null;
         String severity = cve != null ? normalizeSeverity(cve.getSeverity()) : UNKNOWN_SEVERITY;
         Double cvss = cve != null ? cve.getCvssScore() : null;
@@ -205,20 +213,76 @@ public class ReportServiceImpl implements ReportService {
                 .severity(severity)
                 .cvssScore(cvss)
                 .targetId(record.getTargetId())
-                .targetName(resolveTargetName(record.getTargetId(), targetNames))
+                .targetName(targetIndex.resolveName(record.getTargetId()))
                 .remediationStatus(record.getStatus() != null ? record.getStatus().name() : null)
                 .startedAt(record.getStartedAt())
                 .completedAt(record.getCompletedAt())
                 .build();
     }
 
-    private String resolveTargetName(String targetId, Map<String, String> cache) {
-        if (targetId == null || targetId.isBlank()) {
+    private TargetIndex buildTargetIndex() {
+        Map<String, Target> byId = new HashMap<>();
+        Map<String, Target> byHost = new HashMap<>();
+        for (Target target : targetRepository.findAllScoped(Pageable.ofSize(TARGET_PAGE_SIZE)).getContent()) {
+            if (target.getId() != null) {
+                byId.putIfAbsent(target.getId(), target);
+            }
+            String host = canonicalHost(target.getIpOrDomain());
+            if (host != null) {
+                byHost.putIfAbsent(host, target);
+            }
+        }
+        return new TargetIndex(byId, byHost);
+    }
+
+    /**
+     * Normalizes a host/IP so different spellings of the same address join together, notably the loopback
+     * forms (127.0.0.0/8, ::1, its expanded 0:0:0:0:0:0:0:1, and localhost) which agents and target
+     * registration may record differently. Returns {@code null} for blank input.
+     */
+    private static String canonicalHost(String value) {
+        if (value == null) {
             return null;
         }
-        return cache.computeIfAbsent(targetId, id -> targetRepository.findById(id)
-                .map(Target::getSystemName)
-                .orElse(null));
+        String host = value.trim().toLowerCase();
+        if (host.isEmpty()) {
+            return null;
+        }
+        if (host.equals("localhost") || host.startsWith("127.")
+                || host.equals("::1") || host.equals("0:0:0:0:0:0:0:1")) {
+            return "127.0.0.1";
+        }
+        return host;
+    }
+
+    /**
+     * In-memory view of the active project's targets, indexed by id and by canonical host/IP so a report can
+     * join remediation records (which store a host/IP) to targets (referenced by id in the UI) with id taking
+     * precedence over host/IP.
+     */
+    private static final class TargetIndex {
+        private final Map<String, Target> byId;
+        private final Map<String, Target> byHost;
+
+        private TargetIndex(Map<String, Target> byId, Map<String, Target> byHost) {
+            this.byId = byId;
+            this.byHost = byHost;
+        }
+
+        private Target selected(String targetId) {
+            return targetId != null && !targetId.isBlank() ? byId.get(targetId) : null;
+        }
+
+        private String resolveName(String targetId) {
+            if (targetId == null || targetId.isBlank()) {
+                return null;
+            }
+            Target target = byId.get(targetId);
+            if (target == null) {
+                target = byHost.get(canonicalHost(targetId));
+            }
+            return target != null ? target.getSystemName() : null;
+        }
     }
 
     private ReportSummary buildSummary(List<RemediationRecord> records, List<ReportItem> items) {

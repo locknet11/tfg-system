@@ -3,7 +3,6 @@ package com.spulido.tfg.domain.report.services.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import com.spulido.tfg.common.context.ProjectContext;
 import com.spulido.tfg.common.exception.ErrorCode;
@@ -76,6 +77,19 @@ class ReportServiceImplTest {
         return r;
     }
 
+    private Target target(String id, String systemName, String ipOrDomain) {
+        Target t = new Target();
+        t.setId(id);
+        t.setSystemName(systemName);
+        t.setIpOrDomain(ipOrDomain);
+        return t;
+    }
+
+    private void stubTargets(Target... targets) {
+        when(targetRepository.findAllScoped(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(targets)));
+    }
+
     private void stubSaveEcho() {
         when(reportRepository.save(any(Report.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -93,12 +107,7 @@ class ReportServiceImplTest {
         svr.setCves(List.of(cve1, cve2));
         when(vulnerabilityRepository.findAll()).thenReturn(List.of(svr));
 
-        Target t1 = new Target();
-        t1.setSystemName("web-01");
-        Target t2 = new Target();
-        t2.setSystemName("db-01");
-        when(targetRepository.findById("t-1")).thenReturn(Optional.of(t1));
-        when(targetRepository.findById("t-2")).thenReturn(Optional.of(t2));
+        stubTargets(target("t-1", "web-01", "10.0.0.1"), target("t-2", "db-01", "10.0.0.2"));
         stubSaveEcho();
 
         Report report = service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND);
@@ -125,7 +134,7 @@ class ReportServiceImplTest {
         RemediationRecord r1 = record("CVE-X", "t-1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
         when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r1));
         when(vulnerabilityRepository.findAll()).thenReturn(List.of());
-        when(targetRepository.findById("t-1")).thenReturn(Optional.empty());
+        stubTargets();
         stubSaveEcho();
 
         Report report = service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND);
@@ -137,6 +146,7 @@ class ReportServiceImplTest {
     @Test
     void generate_emptyResultThrowsAndPersistsNothing() {
         when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of());
+        stubTargets();
 
         assertThatThrownBy(() -> service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND))
                 .isInstanceOf(ReportException.class)
@@ -170,7 +180,7 @@ class ReportServiceImplTest {
                 CveEntry.builder().cveId("CVE-1").severity("CRITICAL").build(),
                 CveEntry.builder().cveId("CVE-2").severity("MEDIUM").build()));
         when(vulnerabilityRepository.findAll()).thenReturn(List.of(svr));
-        when(targetRepository.findById(anyString())).thenReturn(Optional.empty());
+        stubTargets();
         stubSaveEcho();
 
         ReportGenerateRequest request = ReportGenerateRequest.builder()
@@ -200,12 +210,134 @@ class ReportServiceImplTest {
         RemediationRecord r1 = record("CVE-1", "t-1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
         when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r1));
         when(vulnerabilityRepository.findAll()).thenReturn(List.of());
-        when(targetRepository.findById("t-1")).thenReturn(Optional.empty());
+        stubTargets();
         stubSaveEcho();
 
         Report report = service.generate(null, GenerationType.SCHEDULED);
 
         assertThat(report.getGeneratedBy()).isEqualTo("system");
         assertThat(report.getGenerationType()).isEqualTo(GenerationType.SCHEDULED);
+    }
+
+    // US1 — target-scoped report matches records by the selected target's ipOrDomain.
+    @Test
+    void generate_targetFilterMatchesRecordsByTargetIpOrDomain() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r = record("CVE-1", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "vm-ubuntu", "127.0.0.1"));
+        stubSaveEcho();
+
+        ReportGenerateRequest request = ReportGenerateRequest.builder().targetId("t-1").build();
+        Report report = service.generate(request, GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems()).hasSize(1);
+        assertThat(report.getItems().get(0).getTargetId()).isEqualTo("127.0.0.1");
+        assertThat(report.getItems().get(0).getTargetName()).isEqualTo("vm-ubuntu");
+    }
+
+    // US1 — target-scoped report still matches records whose stored targetId equals the target id.
+    @Test
+    void generate_targetFilterMatchesRecordsByTargetId() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r = record("CVE-1", "t-1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "vm-ubuntu", "10.0.0.5"));
+        stubSaveEcho();
+
+        ReportGenerateRequest request = ReportGenerateRequest.builder().targetId("t-1").build();
+        Report report = service.generate(request, GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems()).hasSize(1);
+        assertThat(report.getItems().get(0).getTargetName()).isEqualTo("vm-ubuntu");
+    }
+
+    // US1 — a target filter that matches nothing still yields the empty-result error.
+    @Test
+    void generate_targetFilterWithNoMatchThrowsEmptyResult() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r = record("CVE-1", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r));
+        stubTargets(target("t-other", "other-host", "192.168.1.1"));
+
+        ReportGenerateRequest request = ReportGenerateRequest.builder().targetId("t-other").build();
+
+        assertThatThrownBy(() -> service.generate(request, GenerationType.ON_DEMAND))
+                .isInstanceOf(ReportException.class)
+                .satisfies(ex -> assertThat(((ReportException) ex).getErrorCode())
+                        .isEqualTo(ErrorCode.REPORT_EMPTY_RESULT));
+
+        verify(reportRepository, never()).save(any());
+    }
+
+    // US1 — a record's IPv4 loopback matches a target registered with the IPv6 loopback (and vice versa).
+    @Test
+    void generate_targetFilterMatchesRecordsByLoopbackEquivalence() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r = record("CVE-1", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "vm-ubuntu", "0:0:0:0:0:0:0:1"));
+        stubSaveEcho();
+
+        ReportGenerateRequest request = ReportGenerateRequest.builder().targetId("t-1").build();
+        Report report = service.generate(request, GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems()).hasSize(1);
+        assertThat(report.getItems().get(0).getTargetName()).isEqualTo("vm-ubuntu");
+    }
+
+    // US2 — a record's IPv4 loopback resolves to the name of a target registered with the IPv6 loopback.
+    @Test
+    void generate_resolvesTargetNameAcrossLoopbackForms() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r = record("CVE-1", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "vm-ubuntu", "::1"));
+        stubSaveEcho();
+
+        Report report = service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems().get(0).getTargetName()).isEqualTo("vm-ubuntu");
+    }
+
+    // US2 — target names resolve by id first, then by ipOrDomain, else null.
+    @Test
+    void generate_resolvesTargetNamesByIdThenIpOrDomainElseNull() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord byId = record("CVE-1", "t-1", RemediationStatus.SUCCESS, base, base.plusSeconds(5));
+        RemediationRecord byIp = record("CVE-2", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(5));
+        RemediationRecord unknown = record("CVE-3", "no-such", RemediationStatus.SUCCESS, base, base.plusSeconds(5));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT))
+                .thenReturn(List.of(byId, byIp, unknown));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "host-by-id", "10.0.0.1"), target("t-2", "host-by-ip", "127.0.0.1"));
+        stubSaveEcho();
+
+        Report report = service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems()).hasSize(3);
+        assertThat(report.getItems().get(0).getTargetName()).isEqualTo("host-by-id");
+        assertThat(report.getItems().get(1).getTargetName()).isEqualTo("host-by-ip");
+        assertThat(report.getItems().get(2).getTargetName()).isNull();
+    }
+
+    // US3 — without a target filter, all records are returned regardless of targetId shape.
+    @Test
+    void generate_withoutTargetFilterReturnsAllRecords() {
+        Instant base = Instant.parse("2026-06-01T00:00:00Z");
+        RemediationRecord r1 = record("CVE-1", "t-1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        RemediationRecord r2 = record("CVE-2", "127.0.0.1", RemediationStatus.SUCCESS, base, base.plusSeconds(10));
+        when(remediationRepository.findByOrganizationIdAndProjectId(ORG, PROJECT)).thenReturn(List.of(r1, r2));
+        when(vulnerabilityRepository.findAll()).thenReturn(List.of());
+        stubTargets(target("t-1", "a", "10.0.0.1"), target("t-2", "b", "127.0.0.1"));
+        stubSaveEcho();
+
+        Report report = service.generate(new ReportGenerateRequest(), GenerationType.ON_DEMAND);
+
+        assertThat(report.getItems()).hasSize(2);
     }
 }
