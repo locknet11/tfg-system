@@ -43,6 +43,17 @@ public class TaskExecutionService {
 
     public AgentJob executeJob(String jobId, List<TaskDefinition> steps, List<StepAction> actions,
                                 String targetIp) {
+        return executeJob(jobId, steps, actions, targetIp, null);
+    }
+
+    /**
+     * @param targetId the real Central target document id (distinct from targetIp, which is
+     *                 the scannable address). Used to correct SERVICE_SCAN's targetId log entry
+     *                 — nmap only knows the address, not Central's identifier — so downstream
+     *                 steps (e.g. EXPLOITATION_KNOWLEDGE) report the id Central can look up.
+     */
+    public AgentJob executeJob(String jobId, List<TaskDefinition> steps, List<StepAction> actions,
+                                String targetIp, String targetId) {
         JobValidator.validate(steps);
 
         List<AgentTask> tasks = new ArrayList<>();
@@ -79,6 +90,9 @@ public class TaskExecutionService {
                 StepHandler handler = stepHandlers.get(stepAction);
                 if (handler != null) {
                     StepResult stepResult = handler.handle(stepAction, context, targetIp);
+                    if (stepAction == StepAction.SERVICE_SCAN && targetId != null && !targetId.isBlank()) {
+                        stepResult = withRealTargetId(stepResult, targetId);
+                    }
                     context.put(stepAction, stepResult);
 
                     if (stepResult.isSkipped()) {
@@ -100,6 +114,29 @@ public class TaskExecutionService {
         job.complete();
         taskStateLogger.logJobCompleted(job);
         return job;
+    }
+
+    /**
+     * SERVICE_SCAN only knows the scanned address, so it reports {@code targetId:<address>}.
+     * Central's EXPLOITATION_KNOWLEDGE endpoint expects the real target document id there —
+     * rewrite the log line with the id sourced from the plan response.
+     */
+    private StepResult withRealTargetId(StepResult result, String targetId) {
+        List<String> logs = new ArrayList<>();
+        boolean replaced = false;
+        for (String line : result.getLogs()) {
+            if (line.startsWith("targetId:")) {
+                logs.add("targetId:" + targetId);
+                replaced = true;
+            } else {
+                logs.add(line);
+            }
+        }
+        if (!replaced) {
+            return result;
+        }
+        return new StepResult(result.getAction(), result.getServices(), result.getScripts(), logs,
+                result.isSuccess(), result.isSkipped());
     }
 
     private StepAction getActionForOrder(int order, List<StepAction> actions) {

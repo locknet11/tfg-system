@@ -20,9 +20,11 @@ import com.spulido.agent.domain.task.StepAction;
 import com.spulido.agent.domain.task.StepResult;
 import com.spulido.agent.domain.task.TaskResult;
 import com.spulido.agent.remote.RemoteCommandExecutor;
+import com.spulido.agent.remote.TargetSession;
 import com.spulido.agent.worker.BinaryIntegrityVerifier;
 import com.spulido.agent.worker.ScriptTemplateService;
 import com.spulido.agent.worker.http.AgentHttpClient;
+import org.mockito.ArgumentCaptor;
 
 class TransferAgentStepHandlerTest {
 
@@ -176,6 +178,44 @@ class TransferAgentStepHandlerTest {
         StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
         assertTrue(result.isSuccess());
         assertTrue(result.getLogs().stream().anyMatch(l -> l.contains("PARTIAL_SUCCESS")));
+    }
+
+    @Test
+    void dockerApiChannelBuildsDockerApiSessionNotSsh() {
+        Map<StepAction, StepResult> context = new HashMap<>();
+        context.put(StepAction.EXECUTE_EXPLOIT, new StepResult(StepAction.EXECUTE_EXPLOIT,
+                List.of(), List.of(),
+                List.of("channel:DOCKER_API", "targetIp:172.20.0.14", "dockerApiPort:2375",
+                        "reverseShellActive:true"),
+                true, false));
+        context.put(StepAction.REQUEST_REPLICATION, new StepResult(StepAction.REQUEST_REPLICATION,
+                List.of(), List.of(),
+                List.of("downloadUrl:https://central/api/agent/binary/token123",
+                        "preauthCode:preauth-abc", "centralUrl:https://central"),
+                true, false));
+
+        when(mockRemoteExecutor.execute(any(), anyString(), anyLong()))
+                .thenReturn(
+                        TaskResult.success("probe1", "curl 7.68.0"),
+                        TaskResult.success("probe2", "wget 1.21"),
+                        TaskResult.success("probe3", "central reachable"),
+                        TaskResult.success("install", "INSTALL_OK\n"),
+                        TaskResult.success("health", "{\"status\":\"UP\"}"));
+
+        when(mockRemoteExecutor.transferFile(any(), any(), anyString(), anyString()))
+                .thenReturn(TaskResult.success("transfer", "File transferred"));
+
+        when(mockTemplate.renderTemplate(anyString(), any()))
+                .thenReturn("#!/bin/bash\necho INSTALL_OK");
+
+        StepResult result = handler.handle(StepAction.TRANSFER_AGENT, context, null);
+        assertTrue(result.isSuccess());
+
+        ArgumentCaptor<TargetSession> sessionCaptor = ArgumentCaptor.forClass(TargetSession.class);
+        org.mockito.Mockito.verify(mockRemoteExecutor, org.mockito.Mockito.atLeastOnce())
+                .execute(sessionCaptor.capture(), anyString(), anyLong());
+        assertTrue(sessionCaptor.getAllValues().stream()
+                .allMatch(s -> s.getChannelType() == TargetSession.ChannelType.DOCKER_API));
     }
 
     @Test

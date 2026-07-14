@@ -70,8 +70,9 @@ class WorkerCoordinatorTeardownTest {
         WorkerCoordinator coordinator = coordinator();
         runInline();
         when(httpClient.fetchPlan()).thenReturn(planWithOneStep());
-        when(taskExecutionService.executeJob(anyString(), anyList(), anyList(), any())).thenReturn(job);
+        when(taskExecutionService.executeJob(anyString(), anyList(), anyList(), any(), any())).thenReturn(job);
         when(job.getStatus()).thenReturn(JobStatus.COMPLETED);
+        when(config.isSelfDestructOnPlanCompletion()).thenReturn(true);
 
         coordinator.pollCentralPlatform();
 
@@ -83,7 +84,7 @@ class WorkerCoordinatorTeardownTest {
         WorkerCoordinator coordinator = coordinator();
         runInline();
         when(httpClient.fetchPlan()).thenReturn(planWithOneStep());
-        when(taskExecutionService.executeJob(anyString(), anyList(), anyList(), any())).thenReturn(job);
+        when(taskExecutionService.executeJob(anyString(), anyList(), anyList(), any(), any())).thenReturn(job);
         when(job.getStatus()).thenReturn(JobStatus.FAILED);
 
         coordinator.pollCentralPlatform();

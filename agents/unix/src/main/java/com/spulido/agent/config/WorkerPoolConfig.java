@@ -12,6 +12,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
+import com.spulido.agent.remote.CompositeRemoteCommandExecutor;
+import com.spulido.agent.remote.DockerApiRemoteCommandExecutor;
 import com.spulido.agent.remote.RemoteCommandExecutor;
 import com.spulido.agent.remote.SshRemoteCommandExecutor;
 import com.spulido.agent.remote.SshSessionProvisioner;
@@ -113,7 +115,9 @@ public class WorkerPoolConfig {
 
     @Bean
     public RemoteCommandExecutor remoteCommandExecutor(AgentConfig agentConfig) {
-        return new SshRemoteCommandExecutor(agentConfig);
+        return new CompositeRemoteCommandExecutor(
+                new SshRemoteCommandExecutor(agentConfig),
+                new DockerApiRemoteCommandExecutor());
     }
 
     @Bean

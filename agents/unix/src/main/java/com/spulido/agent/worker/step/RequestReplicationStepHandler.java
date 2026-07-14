@@ -52,8 +52,11 @@ public class RequestReplicationStepHandler implements StepHandler {
         String cveId = scriptParts.length > 1 ? scriptParts[1].trim() : "unknown";
         String severity = scriptParts.length > 2 ? scriptParts[2].trim() : "HIGH";
 
-        String resolvedTargetIp = extractFromLogs(serviceScan.getLogs(), "targetIp:");
-        String targetPort = extractFromLogs(serviceScan.getLogs(), "targetPort:");
+        // Central resolves targetIp/targetPort per matched script (EXPLOITATION_KNOWLEDGE's own
+        // logs) — SERVICE_SCAN's raw output has no such fields and, with multiple services
+        // reported, "the first discovered service" is not reliably the one with an exploit.
+        String resolvedTargetIp = extractFromLogs(exploitKnowledge.getLogs(), "targetIp:");
+        String targetPort = extractFromLogs(exploitKnowledge.getLogs(), "targetPort:");
 
         ReplicationRequestBody request = new ReplicationRequestBody();
         request.setTargetIp(resolvedTargetIp != null ? resolvedTargetIp : "unknown");

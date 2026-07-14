@@ -45,6 +45,7 @@ services:
     privileged: true
     ports:
       - "2375:2375"
+      - "8888:8888"
     networks:
       targets:
         ipv4_address: 172.20.0.14

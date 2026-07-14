@@ -306,12 +306,19 @@ public class TransferAgentStepHandler implements StepHandler {
         if (exploitResult == null) return null;
 
         String sessionTargetIp = extractFromLogs(exploitResult.getLogs(), "targetIp:");
-        String targetUser = extractFromLogs(exploitResult.getLogs(), "targetUser:");
         String reverseShell = extractFromLogs(exploitResult.getLogs(), "reverseShellActive:");
 
         if (sessionTargetIp == null || "unknown".equals(sessionTargetIp)) return null;
         if (!"true".equals(reverseShell)) return null;
 
+        String channel = extractFromLogs(exploitResult.getLogs(), "channel:");
+        if ("DOCKER_API".equals(channel)) {
+            String portStr = extractFromLogs(exploitResult.getLogs(), "dockerApiPort:");
+            int port = portStr != null ? Integer.parseInt(portStr) : 2375;
+            return TargetSession.dockerApi(sessionTargetIp, port);
+        }
+
+        String targetUser = extractFromLogs(exploitResult.getLogs(), "targetUser:");
         if (targetUser == null) {
             targetUser = config.getExploitDefaultTargetUser();
         }

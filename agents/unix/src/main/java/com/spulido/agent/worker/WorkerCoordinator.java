@@ -48,6 +48,7 @@ public class WorkerCoordinator {
     private final TeardownService teardownService;
 
     private String targetIp;
+    private String targetId;
 
     public WorkerCoordinator(ThreadPoolTaskExecutor executor,
                              TaskExecutionService taskExecutionService,
@@ -87,6 +88,7 @@ public class WorkerCoordinator {
         }
 
         this.targetIp = planResponse.getTargetIp();
+        this.targetId = planResponse.getTargetId();
         log.info("Received plan with {} steps, target IP: {}", planResponse.getSteps().size(), targetIp);
 
         List<TaskDefinition> steps = new ArrayList<>();
@@ -103,7 +105,7 @@ public class WorkerCoordinator {
         String jobId = "job-" + counter;
         log.info("Executing job: {} with actions: {}", jobId, actions);
 
-        AgentJob job = taskExecutionService.executeJob(jobId, steps, actions, targetIp);
+        AgentJob job = taskExecutionService.executeJob(jobId, steps, actions, targetIp, targetId);
 
         if (job.getStatus() == JobStatus.FAILED) {
             log.warn("Job {} failed: {}", job.getJobId(), job.getFailureReason());
@@ -153,7 +155,7 @@ public class WorkerCoordinator {
         handlers.put(StepAction.EXPLOITATION_KNOWLEDGE, new ExploitationKnowledgeStepHandler(httpClient));
         handlers.put(StepAction.REQUEST_REPLICATION, new RequestReplicationStepHandler(httpClient));
         handlers.put(StepAction.EXECUTE_EXPLOIT,
-                new ExecuteExploitStepHandler(commandExecutor, sshSessionProvisioner));
+                new ExecuteExploitStepHandler(commandExecutor, sshSessionProvisioner, remoteCommandExecutor));
         handlers.put(StepAction.REMEDIATE,
                 new RemediationStepHandler(httpClient, commandExecutor));
         handlers.put(StepAction.TRANSFER_AGENT, new TransferAgentStepHandler(httpClient, remoteCommandExecutor,
