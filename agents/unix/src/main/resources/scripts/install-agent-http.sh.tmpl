@@ -16,7 +16,7 @@ echo "Download URL: $DOWNLOAD_URL"
 # Step 1: Download the agent binary
 echo "Downloading agent binary..."
 if command -v curl &> /dev/null; then
-    curl -sS -o /tmp/agent_raw "$DOWNLOAD_URL"
+    curl -fsS -o /tmp/agent_raw "$DOWNLOAD_URL"
 elif command -v wget &> /dev/null; then
     wget -q -O /tmp/agent_raw "$DOWNLOAD_URL"
 else
@@ -98,7 +98,11 @@ if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY
         # Write public key to temp file
         echo "$CENTRAL_PUBLIC_KEY" > /tmp/central_pubkey.pem
 
-        # Write hash to temp file
+        # Write the signed payload (the Blake3 hash string) to a temp file.
+        # Central signs with Java "SHA256withRSA" over EXPECTED_HASH.getBytes(),
+        # i.e. SHA-256 digest of the hash string, then RSA. Verify with the
+        # matching openssl `dgst -sha256 -verify` (NOT `pkeyutl -verify`, which
+        # does raw RSA over the input and does not reproduce SHA256withRSA).
         echo -n "$EXPECTED_HASH" > /tmp/hash_to_verify.bin
 
         # Decode signature from base64
@@ -108,8 +112,8 @@ if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY
         }
 
         # Verify signature
-        if openssl pkeyutl -verify -pubin -inkey /tmp/central_pubkey.pem \
-                -in /tmp/hash_to_verify.bin -sigfile /tmp/signature.bin 2>/dev/null; then
+        if openssl dgst -sha256 -verify /tmp/central_pubkey.pem \
+                -signature /tmp/signature.bin /tmp/hash_to_verify.bin 2>/dev/null; then
             echo "RSA signature: VERIFIED"
         else
             echo "FATAL: RSA signature verification FAILED"
@@ -135,7 +139,11 @@ echo "agent.agent-id=$AGENT_ID" >> /tmp/agent.properties
 echo "agent.preauth-code=$PREAUTH_CODE" >> /tmp/agent.properties
 echo "agent.central-public-key=$CENTRAL_PUBLIC_KEY" >> /tmp/agent.properties
 
-nohup /tmp/agent > /tmp/agent.log 2>&1 &
+# Spring Boot only auto-loads application.properties from the cwd/classpath, not
+# a file named agent.properties, so point it at the rendered config explicitly —
+# otherwise the delivered agent falls back to its baked-in defaults (central-url
+# localhost:8080, no preauth code) and never self-registers.
+nohup /tmp/agent --spring.config.additional-location=optional:file:/tmp/agent.properties > /tmp/agent.log 2>&1 &
 AGENT_PID=$!
 
 # Brief check that agent started

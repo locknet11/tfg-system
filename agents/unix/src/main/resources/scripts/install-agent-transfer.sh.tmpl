@@ -7,5 +7,8 @@ echo 'agent.api-key={{API_KEY}}' >> /tmp/agent.properties
 echo 'agent.agent-id={{AGENT_ID}}' >> /tmp/agent.properties
 echo 'agent.preauth-code={{PREAUTH_CODE}}' >> /tmp/agent.properties
 echo 'agent.central-public-key={{CENTRAL_PUBLIC_KEY}}' >> /tmp/agent.properties
-nohup /tmp/agent > /tmp/agent.log 2>&1 &
+# Point Spring at the rendered config explicitly (it is not named
+# application.properties, so it is not auto-loaded), otherwise the delivered
+# agent uses its baked-in defaults and never self-registers.
+nohup /tmp/agent --spring.config.additional-location=optional:file:/tmp/agent.properties > /tmp/agent.log 2>&1 &
 echo "INSTALL_OK"

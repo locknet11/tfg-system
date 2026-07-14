@@ -37,10 +37,15 @@ public class AgentBinaryController {
         byte[] binaryBytes = binaryService.getBinaryBytes();
         String manifest = binaryService.getSignedManifest();
 
-        byte[] response = new byte[binaryBytes.length + manifest.length() + 2];
+        // Layout: [binary bytes]\n[manifest]. Size is exactly binary + 1 (newline)
+        // + manifest; a larger array leaves a trailing 0 byte that corrupts the
+        // client's split (the extra byte lands on the binary or manifest side),
+        // so the recomputed Blake3 never matches the manifest.
+        byte[] manifestBytes = manifest.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] response = new byte[binaryBytes.length + 1 + manifestBytes.length];
         System.arraycopy(binaryBytes, 0, response, 0, binaryBytes.length);
         response[binaryBytes.length] = '\n';
-        System.arraycopy(manifest.getBytes(), 0, response, binaryBytes.length + 1, manifest.length());
+        System.arraycopy(manifestBytes, 0, response, binaryBytes.length + 1, manifestBytes.length);
 
         request.setStatus(ReplicationRequestStatus.DENIED);
         request.setResolvedAt(LocalDateTime.now());

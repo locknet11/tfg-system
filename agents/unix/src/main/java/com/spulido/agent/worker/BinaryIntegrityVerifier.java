@@ -53,17 +53,25 @@ public class BinaryIntegrityVerifier {
             return true;
         }
 
-        String newline = "\n";
-        String content = new String(binary, StandardCharsets.UTF_8);
-
-        int manifestIdx = content.indexOf("{\"blake3Hash\"");
+        // The response is [binary bytes][manifest JSON]. Locate the manifest by
+        // scanning the RAW bytes — never via new String(binary): the agent binary
+        // is arbitrary (non-UTF-8) bytes, and a String round-trip replaces invalid
+        // sequences with U+FFFD, so the reconstructed binary would not match the
+        // Blake3 hash Central computed over the true bytes.
+        // Search from the END: the marker also occurs as a compiled-in string
+        // constant inside the agent ELF itself, so a forward scan would split on
+        // that copy. The real manifest is the trailing occurrence.
+        byte[] marker = "{\"blake3Hash\"".getBytes(StandardCharsets.UTF_8);
+        int manifestIdx = lastIndexOf(binary, marker);
         if (manifestIdx < 0) {
             log.error("No manifest found in binary response");
             return false;
         }
 
-        byte[] actualBinary = content.substring(0, manifestIdx).getBytes(StandardCharsets.UTF_8);
-        String manifestStr = content.substring(manifestIdx).trim();
+        byte[] actualBinary = new byte[manifestIdx];
+        System.arraycopy(binary, 0, actualBinary, 0, manifestIdx);
+        String manifestStr = new String(binary, manifestIdx, binary.length - manifestIdx,
+                StandardCharsets.UTF_8).trim();
 
         try {
             JsonNode manifest = objectMapper.readTree(manifestStr);
@@ -95,6 +103,19 @@ public class BinaryIntegrityVerifier {
             log.error("Failed to verify binary integrity", e);
             return false;
         }
+    }
+
+    private static int lastIndexOf(byte[] haystack, byte[] needle) {
+        outer:
+        for (int i = haystack.length - needle.length; i >= 0; i--) {
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
+                    continue outer;
+                }
+            }
+            return i;
+        }
+        return -1;
     }
 
     private String computeBlake3Hash(byte[] binary) {

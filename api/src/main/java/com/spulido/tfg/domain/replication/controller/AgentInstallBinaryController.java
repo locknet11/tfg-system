@@ -60,11 +60,14 @@ public class AgentInstallBinaryController {
             byte[] binaryBytes = binaryService.getBinaryBytes();
             String manifest = binaryService.getSignedManifest();
 
-            // Build response: binary bytes + newline + manifest JSON
-            byte[] response = new byte[binaryBytes.length + manifest.length() + 2];
+            // Build response: [binary bytes]\n[manifest]. Size must be exactly
+            // binary + 1 (newline) + manifest — a larger array leaves a trailing
+            // 0 byte that shifts the client's split and breaks Blake3 verification.
+            byte[] manifestBytes = manifest.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            byte[] response = new byte[binaryBytes.length + 1 + manifestBytes.length];
             System.arraycopy(binaryBytes, 0, response, 0, binaryBytes.length);
             response[binaryBytes.length] = '\n';
-            System.arraycopy(manifest.getBytes(), 0, response, binaryBytes.length + 1, manifest.length());
+            System.arraycopy(manifestBytes, 0, response, binaryBytes.length + 1, manifestBytes.length);
 
             // Consume the token (one-time use)
             agent.setInstallToken(null);

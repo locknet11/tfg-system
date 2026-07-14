@@ -146,8 +146,10 @@ public class TransferAgentStepHandler implements StepHandler {
 
             for (int attempt = 1; attempt <= retries; attempt++) {
                 log.info("Path A target download attempt {}/{}", attempt, retries);
+                // Run with bash, not sh: the installer is #!/bin/bash and uses bashisms
+                // (&>, echo -n); under dash the command -v checks misfire and it aborts.
                 TaskResult installResult = remoteCommandExecutor.execute(
-                        session, "sh /tmp/install-agent.sh", 30);
+                        session, "bash /tmp/install-agent.sh", 120);
 
                 if (installResult.isSuccess() && installResult.getMessage() != null
                         && installResult.getMessage().contains("INSTALL_OK")) {
@@ -223,7 +225,7 @@ public class TransferAgentStepHandler implements StepHandler {
             }
 
             TaskResult launchResult = remoteCommandExecutor.execute(
-                    session, "sh /tmp/install-agent.sh", 30);
+                    session, "bash /tmp/install-agent.sh", 120);
             if (!launchResult.isSuccess() || launchResult.getMessage() == null
                     || !launchResult.getMessage().contains("INSTALL_OK")) {
                 log.error("Agent launch failed");
