@@ -34,3 +34,14 @@ output "all_target_ips" {
   description = "Every target IP (docker-lab + VMs) to register in the central platform."
   value       = concat([aws_instance.docker_lab.public_ip], aws_instance.target_vm[*].public_ip)
 }
+
+# --- SSM Session Manager access (works from any IP; no open SSH port required) ---
+output "docker_lab_ssm" {
+  description = "SSM Session Manager command for the docker-lab host (shell from anywhere)."
+  value       = "aws ssm start-session --region ${var.region} --target ${aws_instance.docker_lab.id}"
+}
+
+output "target_vm_ssm" {
+  description = "SSM Session Manager commands for the standalone target VMs."
+  value       = [for i in aws_instance.target_vm : "aws ssm start-session --region ${var.region} --target ${i.id}"]
+}

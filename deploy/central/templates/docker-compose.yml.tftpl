@@ -1,20 +1,21 @@
 services:
   api:
-    image: registry.locknet.com.ar/tfg/api
+    image: ${api_image}
+    restart: unless-stopped
     stop_grace_period: 30s
     environment:
       SERVER_PORT: "8080"
-      MONGODB_URI: "mongodb://localhost:27017"
-      MONGODB_DATABASE_NAME: "tfg-system"
+      MONGODB_URI: "${mongodb_uri}"
+      MONGODB_DATABASE_NAME: "${mongodb_database_name}"
       MONGODB_AUTO_INDEX_CREATION: "true"
-      JWT_SECRET: ""
+      JWT_SECRET: "${jwt_secret}"
       LOG_RESOLVED_EXCEPTION: "false"
-      ALLOWED_ORIGINS: "https://tfg.locknet.com.ar"
-      APPLICATION_DOMAIN: "https://tfg.locknet.com.ar"
-      API_BASE_URL: "https://tfg-api.locknet.com.ar"
-      RESEND_API_KEY: ""
-      RESEND_FROM_ADDRESS: ""
-      NVD_API_KEY: ""
+      ALLOWED_ORIGINS: "https://${ui_domain}"
+      APPLICATION_DOMAIN: "https://${ui_domain}"
+      API_BASE_URL: "https://${api_domain}"
+      RESEND_API_KEY: "${resend_api_key}"
+      RESEND_FROM_ADDRESS: "${resend_from_address}"
+      NVD_API_KEY: "${nvd_api_key}"
       NVD_API_BASE_URL: "https://services.nvd.nist.gov/rest/json"
       NVD_RATE_LIMIT_REQUESTS: "5"
       NVD_RATE_LIMIT_WINDOW: "30"
@@ -24,27 +25,30 @@ services:
       REPORTS_SCHEDULER_ENABLED: "false"
       REPORTS_SCHEDULER_CRON: "0 0 2 * * *"
       AGENT_BINARY_RESOURCE_PATH: "agents"
-      CENTRAL_PUBLIC_KEY: ""
-      REPLICATION_PRIVATE_KEY: ""
+      CENTRAL_PUBLIC_KEY: "${central_public_key}"
+      REPLICATION_PRIVATE_KEY: "${replication_private_key}"
     networks:
       - tfg-net
 
   ui:
-    image: registry.locknet.com.ar/tfg/ui
+    image: ${ui_image}
+    restart: unless-stopped
     stop_grace_period: 30s
     environment:
-      API_BASE_URL: "https://tfg-api.locknet.com.ar"
+      API_BASE_URL: "https://${api_domain}"
     networks:
       - tfg-net
 
   caddy:
     image: caddy:2-alpine
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - api
       - ui
@@ -57,3 +61,4 @@ networks:
 
 volumes:
   caddy_data:
+  caddy_config:

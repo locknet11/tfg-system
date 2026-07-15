@@ -109,6 +109,15 @@ resource "aws_iam_instance_profile" "lab" {
   role = aws_iam_role.lab.name
 }
 
+# SSM Session Manager: lets you open a shell on any lab host via `aws ssm start-session`
+# from any IP (out-of-band, through the ssm-agent's outbound channel — not sshd), so agent
+# installs work while travelling without ever widening the intentionally-vulnerable lab SGs.
+# Does NOT touch the vulnerable OpenSSH package: regreSSHion stays present for detect/remediate.
+resource "aws_iam_role_policy_attachment" "lab_ssm" {
+  role       = aws_iam_role.lab.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 ########################################
 # Security groups (locked to admin + central only)
 ########################################
@@ -225,6 +234,7 @@ resource "aws_instance" "target_vm" {
   subnet_id                   = element(data.aws_subnets.default.ids, count.index)
   vpc_security_group_ids      = [aws_security_group.target_vm.id]
   key_name                    = aws_key_pair.lab.key_name
+  iam_instance_profile        = aws_iam_instance_profile.lab.name
   associate_public_ip_address = true
 
   user_data = templatefile("${path.module}/templates/target-vm.sh.tftpl", {

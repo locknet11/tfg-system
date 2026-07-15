@@ -90,6 +90,16 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
                     agentRepository.findById(agentId).ifPresent(agent -> {
                         record.setOrganizationId(agent.getOrganizationId());
                         record.setProjectId(agent.getProjectId());
+                        // Release the target before reaping the agent. Otherwise the target
+                        // stays pinned to an agent that no longer exists, and re-registration
+                        // is rejected with "target already has an agent" while the Agents view
+                        // shows nothing (the agent was hard-deleted). Mirrors deleteAgent().
+                        targetRepository.findByAssignedAgent(agent.getId()).ifPresent(target -> {
+                            target.setAssignedAgent(null);
+                            target.setStatus(TargetStatus.OFFLINE);
+                            targetRepository.save(target);
+                            log.info("Target {} released after agent {} teardown", target.getId(), agentId);
+                        });
                         // Reap the torn-down agent now that its outcome is recorded.
                         agentRepository.delete(agent);
                         log.info("Agent {} reaped after teardown report ({})", agentId, request.getTrigger());

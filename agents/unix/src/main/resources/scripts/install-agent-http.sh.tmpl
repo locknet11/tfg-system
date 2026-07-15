@@ -95,8 +95,15 @@ fi
 echo "=== Verifying RSA signature ==="
 if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY" != " " ]; then
     if command -v openssl &> /dev/null; then
-        # Write public key to temp file
-        echo "$CENTRAL_PUBLIC_KEY" > /tmp/central_pubkey.pem
+        # Reconstruct a valid PEM. The central serves the key as headerless,
+        # single-line base64 (Terraform strips the PEM armor); a full PEM also
+        # works. Normalize both: drop any armor/whitespace, then re-wrap at 64.
+        PUBKEY_B64=$(printf '%s' "$CENTRAL_PUBLIC_KEY" | sed 's/-----[^-]*-----//g' | tr -cd 'A-Za-z0-9+/=')
+        {
+            echo "-----BEGIN PUBLIC KEY-----"
+            echo "$PUBKEY_B64" | fold -w 64
+            echo "-----END PUBLIC KEY-----"
+        } > /tmp/central_pubkey.pem
 
         # Write the signed payload (the Blake3 hash string) to a temp file.
         # Central signs with Java "SHA256withRSA" over EXPECTED_HASH.getBytes(),

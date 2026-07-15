@@ -135,11 +135,18 @@ echo "=== Verifying RSA signature ==="
 
 if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY" != " " ]; then
     if command -v openssl > /dev/null 2>&1; then
-        # Write public key to temp file
-        echo "$CENTRAL_PUBLIC_KEY" > /tmp/central_pubkey.pem
+        # Reconstruct a valid PEM. The central serves the key as headerless,
+        # single-line base64 (Terraform strips the PEM armor); a full PEM also
+        # works. Normalize both: drop any armor/whitespace, then re-wrap at 64.
+        PUBKEY_B64=$(printf '%s' "$CENTRAL_PUBLIC_KEY" | sed 's/-----[^-]*-----//g' | tr -cd 'A-Za-z0-9+/=')
+        {
+            echo "-----BEGIN PUBLIC KEY-----"
+            echo "$PUBKEY_B64" | fold -w 64
+            echo "-----END PUBLIC KEY-----"
+        } > /tmp/central_pubkey.pem
 
-        # Write hash to temp file
-        echo -n "$EXPECTED_HASH" > /tmp/hash_to_verify.bin
+        # Write hash to temp file — the exact bytes the central signed, no newline
+        printf '%s' "$EXPECTED_HASH" > /tmp/hash_to_verify.bin
 
         # Decode signature from base64
         echo "$SIGNATURE" | base64 -d > /tmp/signature.bin 2>/dev/null || {
@@ -147,9 +154,12 @@ if [ -n "$SIGNATURE" ] && [ -n "$CENTRAL_PUBLIC_KEY" ] && [ "$CENTRAL_PUBLIC_KEY
             exit 1
         }
 
-        # Verify signature (PKCS#1 v1.5 padding, SHA256withRSA)
-        if openssl pkeyutl -verify -pubin -inkey /tmp/central_pubkey.pem \
-                -in /tmp/hash_to_verify.bin -sigfile /tmp/signature.bin 2>/dev/null; then
+        # Verify (SHA256withRSA, PKCS#1 v1.5). Must use `dgst -sha256` so openssl
+        # hashes the payload and wraps it in the DigestInfo the JVM's
+        # Signature("SHA256withRSA") produced when signing. `pkeyutl -verify`
+        # treats the input as a raw pre-computed digest and can never match.
+        if openssl dgst -sha256 -verify /tmp/central_pubkey.pem \
+                -signature /tmp/signature.bin /tmp/hash_to_verify.bin > /dev/null 2>&1; then
             echo "RSA signature: VERIFIED"
         else
             echo "FATAL: RSA signature verification FAILED"
@@ -170,7 +180,7 @@ echo "=== Installing agent ==="
 
 chmod +x /tmp/agent
 
-<#-- Write configuration properties — apiKey goes ONLY to the config file, never echoed -->
+# Write configuration properties — apiKey goes ONLY to the config file, never echoed
 echo "agent.central-url=$CENTRAL_URL" > /tmp/agent.properties
 echo "agent.api-key=$API_KEY" >> /tmp/agent.properties
 echo "agent.agent-id=$AGENT_ID" >> /tmp/agent.properties
@@ -180,7 +190,10 @@ echo "agent.project-identifier=$PROJECT_ID" >> /tmp/agent.properties
 echo "agent.target-unique-id=$TARGET_ID" >> /tmp/agent.properties
 
 # --- Launch agent in background (POSIX-compatible) ---
-nohup /tmp/agent > /tmp/agent.log 2>&1 &
+# Point Spring at the rendered config explicitly — it is not named
+# application.properties, so it is not auto-loaded; without this the agent uses
+# its baked-in defaults (central-url=http://localhost:8080) and never reaches central.
+nohup /tmp/agent --spring.config.additional-location=optional:file:/tmp/agent.properties > /tmp/agent.log 2>&1 &
 AGENT_PID=$!
 echo $AGENT_PID > /tmp/agent.pid
 

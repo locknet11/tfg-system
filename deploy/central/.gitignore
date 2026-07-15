@@ -1,0 +1,10 @@
+# Terraform state (contains secrets: JWT, Mongo URI) + local artifacts
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Secrets / per-user config
+terraform.tfvars
+*.auto.tfvars
