@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: ./api
+    stop_grace_period: 30s
+    environment:
+      SERVER_PORT: "8080"
+      MONGODB_URI: "mongodb://localhost:27017"
+      MONGODB_DATABASE_NAME: "tfg-system"
+      MONGODB_AUTO_INDEX_CREATION: "true"
+      JWT_SECRET: ""
+      LOG_RESOLVED_EXCEPTION: "false"
+      ALLOWED_ORIGINS: "https://tfg.locknet.com.ar"
+      APPLICATION_DOMAIN: "https://tfg.locknet.com.ar"
+      API_BASE_URL: "https://tfg-api.locknet.com.ar"
+      RESEND_API_KEY: ""
+      RESEND_FROM_ADDRESS: ""
+      NVD_API_KEY: ""
+      NVD_API_BASE_URL: "https://services.nvd.nist.gov/rest/json"
+      NVD_RATE_LIMIT_REQUESTS: "5"
+      NVD_RATE_LIMIT_WINDOW: "30"
+      VULN_CACHE_STALENESS_DAYS: "30"
+      HEARTBEAT_TIMEOUT_SECONDS: "120"
+      HEARTBEAT_SCHEDULER_DELAY_MS: "30000"
+      REPORTS_SCHEDULER_ENABLED: "false"
+      REPORTS_SCHEDULER_CRON: "0 0 2 * * *"
+      AGENT_BINARY_RESOURCE_PATH: "agents"
+      CENTRAL_PUBLIC_KEY: ""
+      REPLICATION_PRIVATE_KEY: ""
+    networks:
+      - tfg-net
+
+  ui:
+    build:
+      context: ./ui
+    stop_grace_period: 30s
+    environment:
+      API_BASE_URL: "https://tfg-api.locknet.com.ar"
+    networks:
+      - tfg-net
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - api
+      - ui
+    networks:
+      - tfg-net
+
+networks:
+  tfg-net:
+    driver: bridge
+
+volumes:
+  caddy_data:

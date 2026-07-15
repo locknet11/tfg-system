@@ -18,8 +18,9 @@ cd "$(dirname "$0")/.." || exit 1
 
 IPS=("$@")
 if [ "${#IPS[@]}" -eq 0 ]; then
-  mapfile -t IPS < <(terraform output -json target_vm_public_ips 2>/dev/null \
-    | python3 -c 'import sys,json;[print(x) for x in json.load(sys.stdin)]' 2>/dev/null)
+  while IFS= read -r _ip; do [ -n "$_ip" ] && IPS+=("$_ip"); done \
+    < <(terraform output -json target_vm_public_ips 2>/dev/null \
+      | python3 -c 'import sys,json;[print(x) for x in json.load(sys.stdin)]' 2>/dev/null)
 fi
 if [ "${#IPS[@]}" -eq 0 ]; then
   echo "No target IPs (pass them as args, or run 'terraform apply' first)." >&2

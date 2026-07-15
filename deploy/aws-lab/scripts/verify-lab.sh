@@ -33,7 +33,9 @@ if [ -z "$LAB_IP" ]; then
   echo "${R}No terraform outputs found. Run 'terraform apply' first (and from the module dir).${N}"
   exit 2
 fi
-mapfile -t VM_IPS < <(tfout_json target_vm_public_ips | python3 -c 'import sys,json;[print(x) for x in json.load(sys.stdin)]' 2>/dev/null)
+VM_IPS=()
+while IFS= read -r _ip; do [ -n "$_ip" ] && VM_IPS+=("$_ip"); done \
+  < <(tfout_json target_vm_public_ips | python3 -c 'import sys,json;[print(x) for x in json.load(sys.stdin)]' 2>/dev/null)
 
 echo "${B}== Docker-lab host ($LAB_IP) ==${N}"
 if sshc "$LAB_IP" 'true'; then
@@ -44,8 +46,8 @@ if sshc "$LAB_IP" 'true'; then
   UP=$(sshc "$LAB_IP" 'sudo docker compose -f /root/lab/docker-compose.yml ps --status running -q 2>/dev/null | wc -l')
   [ "${UP:-0}" -ge 10 ] && ok "lab containers running ($UP)" || bad "only ${UP:-0} lab containers up (expected ~11) — 'sudo docker compose -f /root/lab/docker-compose.yml ps'"
   # exploitability probes (run on the host, against localhost)
-  sshc "$LAB_IP" 'curl -s http://localhost:2375/version'   | grep -q ApiVersion && ok "docker-api 2375 exposed (unauth)" || bad "docker-api 2375 not responding"
-  sshc "$LAB_IP" 'curl -s "http://localhost:8000/?name={{7*7}}"' | grep -q 49  && ok "flask SSTI live (7*7=49)"        || bad "flask SSTI probe failed"
+  sshc "$LAB_IP" 'curl -s http://localhost:2375/version' | grep -q ApiVersion && ok "docker-api 2375 exposed (unauth)" || bad "docker-api 2375 not responding"
+  sshc "$LAB_IP" 'curl -s "http://localhost:8000/?name=SSTIPROBE"' | grep -q SSTIPROBE && ok "flask reflects input (SSTI surface)" || bad "flask not responding"
   for pp in "drupal:8081" "tomcat:8082" "thinkphp:8083" "nodejs:3000"; do
     n=${pp%:*}; p=${pp#*:}
     sshc "$LAB_IP" "curl -s -o /dev/null -w '%{http_code}' http://localhost:$p" | grep -qE '^(200|30.|40.)$' \

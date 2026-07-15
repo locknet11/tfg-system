@@ -276,5 +276,5 @@ Los reportes generados quedarán almacenados en formato digital/documental en la
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/022-report-target-resolution/plan.md
+at specs/023-oci-image-deployment/plan.md
 <!-- SPECKIT END -->

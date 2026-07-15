@@ -1,0 +1,7 @@
+tfg.locknet.com.ar {
+    reverse_proxy ui:80
+}
+
+tfg-api.locknet.com.ar {
+    reverse_proxy api:8080
+}

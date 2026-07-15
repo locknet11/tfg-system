@@ -1,3 +1,3 @@
 export const environment = {
-  baseUrl: 'https://project.com',
+  baseUrl: '__API_BASE_URL__',
 };
