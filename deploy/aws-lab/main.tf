@@ -191,6 +191,17 @@ resource "aws_security_group" "target_vm" {
     }
   }
 
+  # Intra-lab private network — agent host discovery / sibling scan / lateral
+  # movement. Both target VMs share this SG, so self = true lets them talk across
+  # their (possibly different) subnets within the VPC.
+  ingress {
+    description = "Intra-lab private network - agent host discovery / sibling scan / lateral movement"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

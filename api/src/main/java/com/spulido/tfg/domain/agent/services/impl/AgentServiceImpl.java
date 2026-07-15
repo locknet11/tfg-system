@@ -186,8 +186,12 @@ public class AgentServiceImpl implements AgentService {
 
             Agent savedAgent = repository.save(agent);
 
-            // Update Target with IP and assigned agent
-            target.setIpOrDomain(request.getClientIp());
+            // Update Target with IP and assigned agent.
+            // Only adopt the caller's IP if the target has no address configured; otherwise
+            // respect the operator-set ipOrDomain (e.g. 127.0.0.1 for a local self-scan).
+            if (target.getIpOrDomain() == null || target.getIpOrDomain().isBlank()) {
+                target.setIpOrDomain(request.getClientIp());
+            }
             target.setAssignedAgent(savedAgent.getId());
             target.setStatus(TargetStatus.ONLINE);
 
