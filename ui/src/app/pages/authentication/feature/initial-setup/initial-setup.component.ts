@@ -85,7 +85,7 @@ export class InitialSetupComponent {
           this.toastService.success(
             $localize`Administrator configured successfully`
           );
-          this.router.navigate(['/']);
+          this.router.navigate(['/project-selector']);
         },
         error: error => {
           this.toastService.error(
