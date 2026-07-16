@@ -81,6 +81,11 @@ public class BundledToolProvisioner {
         } else {
             log.warn("Bundled tools not provisioned: unsupported platform");
         }
+
+        // Extract the pre-provisioned exploit SSH private key so the agent can
+        // establish a foothold on sibling targets with weak SSH configuration.
+        extractStaticKey();
+
         log.info("Bundled tools provisioned: {} binaries in {}", resolvedPaths.size(), extractionDir);
     }
 
@@ -211,6 +216,33 @@ public class BundledToolProvisioner {
             return Files.createTempDirectory("agent-tools");
         } catch (IOException e) {
             throw new ToolExtractionException("Failed to create temp directory for bundled tools", e);
+        }
+    }
+
+    /**
+     * Extracts the pre-provisioned exploit SSH private key to {@code /tmp/exploit_key}
+     * (mode 0600) so the agent can establish a real shell foothold on targets with
+     * weak SSH configuration during EXECUTE_EXPLOIT / TRANSFER_AGENT steps.
+     */
+    private static void extractStaticKey() {
+        Path dst = Path.of("/tmp/exploit_key");
+        try {
+            var resource = new ClassPathResource(RESOURCE_ROOT + "/exploit_key");
+            if (!resource.exists()) {
+                log.warn("Exploit SSH key not found in bundled resources — skip extraction");
+                return;
+            }
+            byte[] data;
+            try (var in = resource.getInputStream()) {
+                data = in.readAllBytes();
+            }
+            Files.write(dst, data);
+            Set<PosixFilePermission> perms = Set.of(
+                    PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+            Files.setPosixFilePermissions(dst, perms);
+            log.info("Extracted exploit SSH key to {}", dst);
+        } catch (Exception e) {
+            log.warn("Failed to extract exploit SSH key to {}: {}", dst, e.getMessage());
         }
     }
 

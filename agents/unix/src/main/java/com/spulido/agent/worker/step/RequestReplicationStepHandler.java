@@ -46,11 +46,17 @@ public class RequestReplicationStepHandler implements StepHandler {
         }
 
         ServiceInfo firstService = serviceScan.getServices().get(0);
-        String script = exploitKnowledge.getScripts().get(0);
-        String[] scriptParts = script.split("\\|");
-        String exploitId = scriptParts.length > 0 ? scriptParts[0].trim() : "unknown";
-        String cveId = scriptParts.length > 1 ? scriptParts[1].trim() : "unknown";
-        String severity = scriptParts.length > 2 ? scriptParts[2].trim() : "HIGH";
+        // Exploitation metadata (exploitId / cveId / severity) is emitted to the
+        // EXPLOITATION_KNOWLEDGE step logs by ExploitationKnowledgeStepHandler as
+        // dedicated log lines, alongside targetIp:/targetPort:. Reading structured
+        // fields from logs avoids parsing the executable scriptContent (a bash payload
+        // with no such delimiters), which the previous pipe-split did incorrectly.
+        String exploitId = extractFromLogs(exploitKnowledge.getLogs(), "exploitId:");
+        String cveId = extractFromLogs(exploitKnowledge.getLogs(), "cveId:");
+        String severity = extractFromLogs(exploitKnowledge.getLogs(), "severity:");
+        if (exploitId == null) exploitId = "unknown";
+        if (cveId == null) cveId = "unknown";
+        if (severity == null) severity = "HIGH";
 
         // Central resolves targetIp/targetPort per matched script (EXPLOITATION_KNOWLEDGE's own
         // logs) — SERVICE_SCAN's raw output has no such fields and, with multiple services

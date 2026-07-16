@@ -47,9 +47,12 @@ public class ReplicationRequestServiceImpl implements ReplicationRequestService 
         List<ReplicationRequest> duplicates = repository.findDuplicateRequests(
                 request.getTargetIp(), request.getExploitId());
         if (!duplicates.isEmpty()) {
-            return ReplicationRequestResponse.builder()
-                    .status("DUPLICATE")
-                    .build();
+            // A prior request is already in-flight for this target + exploit; return its
+            // token set so the requesting agent can carry on with the transfer chain.
+            // Without this, TRANSFER_AGENT has no download URL and the auto-replication
+            // pipeline stops at REQUEST_REPLICATION.
+            ReplicationRequest existing = duplicates.get(0);
+            return buildResponse(existing);
         }
 
         ReplicationApprovalMode policy = policyService.evaluatePolicy(projectId, request.getSeverity());

@@ -47,8 +47,10 @@ public class AgentBinaryController {
         response[binaryBytes.length] = '\n';
         System.arraycopy(manifestBytes, 0, response, binaryBytes.length + 1, manifestBytes.length);
 
-        request.setStatus(ReplicationRequestStatus.DENIED);
-        request.setResolvedAt(LocalDateTime.now());
+        // Keep the replication request APPROVED after serving the binary so the
+        // download token can be reused by concurrent TRANSFER_AGENT paths (e.g.
+        // Path B downloads from the parent while Path A needs the same token on
+        // the child target). Expiry is handled by the existing expiresAt check.
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);

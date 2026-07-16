@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, output, inject, input } from '@angular/core';
+import { Component, signal, output, inject } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -43,7 +43,8 @@ export class EditTemplateModalComponent {
 
   visible = signal(false);
   templateEdited = output();
-  template = input<PlanTemplate | null>(null);
+
+  private currentTemplate: PlanTemplate | null = null;
 
   form = this.fb.group({
     name: ['', Validators.required],
@@ -64,6 +65,7 @@ export class EditTemplateModalComponent {
   }
 
   show(template: PlanTemplate) {
+    this.currentTemplate = template;
     this.visible.set(true);
     this.form.patchValue({
       name: template.name,
@@ -95,7 +97,7 @@ export class EditTemplateModalComponent {
   }
 
   submit() {
-    if (this.form.invalid || !this.template()) return;
+    if (this.form.invalid || !this.currentTemplate) return;
     const value = this.form.value;
     const template = {
       name: value.name!,
@@ -105,7 +107,7 @@ export class EditTemplateModalComponent {
         steps: value.plan!.steps!.map((s: any) => ({ action: s.action })),
       },
     };
-    this.templatesService.update(this.template()!.id, template).subscribe({
+    this.templatesService.update(this.currentTemplate!.id, template).subscribe({
       next: () => {
         this.toastService.success($localize`Template updated successfully`);
         this.templateEdited.emit();

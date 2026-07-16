@@ -16,9 +16,13 @@ import com.spulido.tfg.domain.agent.model.AgentStatus;
 import com.spulido.tfg.domain.agent.model.AgentTeardownRecord;
 import com.spulido.tfg.domain.agent.model.dto.TeardownReportRequest;
 import com.spulido.tfg.domain.agent.model.dto.UpdateStepRequest;
+import com.spulido.tfg.common.context.ProjectContext;
 import com.spulido.tfg.domain.agent.services.AgentCommunicationService;
+import com.spulido.tfg.domain.alerts.model.AlertEvent;
+import com.spulido.tfg.domain.alerts.services.AlertTriggerService;
 import com.spulido.tfg.domain.plan.model.Plan;
 import com.spulido.tfg.domain.plan.model.Step;
+import com.spulido.tfg.domain.vulnerability.model.CveEntry;
 import com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeRequest;
 import com.spulido.tfg.domain.exploitation.model.dto.ExploitationKnowledgeResponse;
 import com.spulido.tfg.domain.exploitation.services.ExploitationKnowledgeService;
@@ -41,6 +45,7 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
     private final TargetRepository targetRepository;
     private final VulnerabilityLookupService vulnerabilityLookupService;
     private final ExploitationKnowledgeService exploitationKnowledgeService;
+    private final AlertTriggerService alertTriggerService;
 
     @Override
     public Agent updateHeartbeat(String agentId) throws AgentException {
@@ -160,7 +165,64 @@ public class AgentCommunicationServiceImpl implements AgentCommunicationService 
     @Override
     public ServiceVulnerabilityRecord lookupVulnerabilities(
             String serviceName, String serviceVersion) throws Exception {
-        return vulnerabilityLookupService.lookup(serviceName, serviceVersion);
+        ServiceVulnerabilityRecord record = vulnerabilityLookupService.lookup(serviceName, serviceVersion);
+
+        // Emit a VULNERABILITY_DETECTED alert when an agent-driven lookup returns CVEs,
+        // so the "vulnerability found" alert conditions (ON_VULNERABILITY_DETECTED /
+        // ON_HIGH_SEVERITY_VULNERABILITY) actually fire. Without this, only remediation
+        // completion was producing alerts — detected vulnerabilities were silent.
+        if (record != null && record.getCves() != null && !record.getCves().isEmpty()) {
+            triggerVulnerabilityDetectedAlert(serviceName, serviceVersion, record);
+        }
+
+        return record;
+    }
+
+    private void triggerVulnerabilityDetectedAlert(
+            String serviceName, String serviceVersion, ServiceVulnerabilityRecord record) {
+        try {
+            String maxSeverity = highestSeverity(record.getCves());
+            java.util.Map<String, Object> payload = java.util.Map.of(
+                    "serviceKey", record.getServiceKey() != null ? record.getServiceKey() : "",
+                    "serviceName", serviceName != null ? serviceName : "",
+                    "serviceVersion", serviceVersion != null ? serviceVersion : "",
+                    "cveCount", record.getTotalCves(),
+                    "maxSeverity", maxSeverity != null ? maxSeverity : "");
+
+            AlertEvent event = AlertEvent.builder()
+                    .type(AlertEvent.AlertEventType.VULNERABILITY_DETECTED)
+                    .severity(maxSeverity)
+                    .payload(payload)
+                    .timestamp(Instant.now())
+                    .organizationId(ProjectContext.getOrganizationId())
+                    .projectId(ProjectContext.getProjectId())
+                    .build();
+
+            alertTriggerService.checkAndTrigger(event);
+            log.info("Triggered VULNERABILITY_DETECTED alert for {}@{} ({} CVEs, max {})",
+                    serviceName, serviceVersion, record.getTotalCves(), maxSeverity);
+        } catch (Exception e) {
+            log.warn("Failed to trigger VULNERABILITY_DETECTED alert for {}@{}: {}",
+                    serviceName, serviceVersion, e.getMessage());
+        }
+    }
+
+    private static String highestSeverity(java.util.List<CveEntry> cves) {
+        java.util.List<String> order = java.util.List.of("LOW", "MEDIUM", "HIGH", "CRITICAL");
+        String best = null;
+        if (cves == null) {
+            return null;
+        }
+        for (CveEntry cve : cves) {
+            String sev = cve.getSeverity();
+            if (sev == null || sev.isBlank()) {
+                continue;
+            }
+            if (best == null || order.indexOf(sev.toUpperCase()) > order.indexOf(best.toUpperCase())) {
+                best = sev.toUpperCase();
+            }
+        }
+        return best;
     }
 
     @Override

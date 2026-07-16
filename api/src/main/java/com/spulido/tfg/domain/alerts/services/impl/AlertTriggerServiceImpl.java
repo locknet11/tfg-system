@@ -87,8 +87,10 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
                                 event.getPayload() != null ? String.valueOf(event.getPayload().get("status")) : "");
 
             case ON_REMEDIATION_FAILURE:
+                // RemediationStatus enum emits "FAILED" (not "FAILURE"); accept both spellings
+                // so a failed remediation reliably matches this condition.
                 return event.getType() == AlertEvent.AlertEventType.REMEDIATION_COMPLETED
-                        && "FAILURE".equalsIgnoreCase(
+                        && isFailureStatus(
                                 event.getPayload() != null ? String.valueOf(event.getPayload().get("status")) : "");
 
             case ON_SCAN_COMPLETED:
@@ -110,6 +112,13 @@ public class AlertTriggerServiceImpl implements AlertTriggerService {
             return false;
         }
         return "HIGH".equalsIgnoreCase(severity) || "CRITICAL".equalsIgnoreCase(severity);
+    }
+
+    private boolean isFailureStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        return "FAILURE".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status);
     }
 
     private void sendAlert(AlertConfiguration config, AlertEvent event) {

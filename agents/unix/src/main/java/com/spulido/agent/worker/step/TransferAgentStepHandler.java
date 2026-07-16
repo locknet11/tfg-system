@@ -325,7 +325,12 @@ public class TransferAgentStepHandler implements StepHandler {
             targetUser = config.getExploitDefaultTargetUser();
         }
 
-        return new TargetSession(sessionTargetIp, targetUser, null);
+        // Read the identity file from the exploit step's logs (set by
+        // EXECUTE_EXPLOIT from EXPLOITATION_KNOWLEDGE metadata); this is the
+        // pre-provisioned private key used to establish the SSH foothold.
+        String identityFile = extractFromLogs(exploitResult.getLogs(), "identityFile:");
+
+        return new TargetSession(sessionTargetIp, targetUser, identityFile);
     }
 
     private String extractFromLogs(List<String> logs, String prefix) {

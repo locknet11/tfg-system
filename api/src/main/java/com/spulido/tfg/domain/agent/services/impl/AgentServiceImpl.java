@@ -321,7 +321,13 @@ public class AgentServiceImpl implements AgentService {
             savedAgent = repository.save(agent);
 
             // Establish the bidirectional link and bring the target online.
-            target.setIpOrDomain(clientIp);
+            // Prefer the discovered/exploited host address captured in the replication
+            // request (the sibling reached over the private network) so the child agent —
+            // running on that same host — can scan/remediate itself. Fall back to the
+            // caller's public IP (clientIp) only when the replication didn't record one.
+            String childTargetAddress = (replication.getTargetIp() != null && !replication.getTargetIp().isBlank())
+                    ? replication.getTargetIp() : clientIp;
+            target.setIpOrDomain(childTargetAddress);
             target.setAssignedAgent(savedAgent.getId());
             target.setStatus(TargetStatus.ONLINE);
             targetService.updateTarget(target);
